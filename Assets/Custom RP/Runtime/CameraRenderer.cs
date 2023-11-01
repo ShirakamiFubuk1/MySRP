@@ -11,5 +11,24 @@ public class CameraRenderer
     {
         this.context = context;
         this.camera = camera;
+
+        Setup();
+        DrawVisibleGeometry();
+        Submit();
+    }
+
+    void Setup()
+    {
+        context.SetupCameraProperties(camera);
+    }
+
+    void Submit()
+    {
+        context.Submit();
+    }
+    
+    void DrawVisibleGeometry()
+    {
+        context.DrawSkybox(camera);
     }
 }
