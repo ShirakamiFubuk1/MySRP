@@ -46,14 +46,14 @@ public partial class CameraRenderer
         //清除图像缓存,前两个true控制是否应该清除深度和颜色数据，第三个是用于清楚的颜色。
         buffer.ClearRenderTarget(true,true,Color.clear);
         //使用命令缓冲区诸如给Profiler
-        buffer.BeginSample(bufferName);        
+        buffer.BeginSample(SampleName);        
         ExecuteBuffer();
     }
 
     void Submit()
     {
         //结束采样
-        buffer.EndSample(bufferName);
+        buffer.EndSample(SampleName);
         //执行命令缓冲区
         ExecuteBuffer();
         context.Submit();
