@@ -16,6 +16,16 @@ public class CameraRenderer
 
     private CullingResults cullingResults;
 
+    private static ShaderTagId[] legacyShaderTagIds =
+    {
+        new ShaderTagId("Always"),
+        new ShaderTagId("ForwardBase"),
+        new ShaderTagId("PrepassBase"),
+        new ShaderTagId("Vertex"),
+        new ShaderTagId("VertexLMRGBM"),
+        new ShaderTagId("VertexLM")
+    };
+
     //指出使用哪种Pass
     private static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
     
@@ -32,6 +42,7 @@ public class CameraRenderer
 
         Setup();
         DrawVisibleGeometry();
+        DrawUnsupportedShaders();
         Submit();
     }
 
@@ -39,10 +50,10 @@ public class CameraRenderer
     {
         //用命令缓冲区名称将清除命令圈在一个范围内，省的把别的相机内容清除掉
         context.SetupCameraProperties(camera);
-        //使用命令缓冲区诸如给Profiler
-        buffer.BeginSample(bufferName);
         //清除图像缓存,前两个true控制是否应该清除深度和颜色数据，第三个是用于清楚的颜色。
         buffer.ClearRenderTarget(true,true,Color.clear);
+        //使用命令缓冲区诸如给Profiler
+        buffer.BeginSample(bufferName);        
         ExecuteBuffer();
     }
 
@@ -64,29 +75,29 @@ public class CameraRenderer
     void DrawVisibleGeometry()
     {
         //用于确定用正交还是透视
-        var sortingSetting = new SortingSettings
+        var sortingSettings = new SortingSettings
         {
             criteria = SortingCriteria.CommonOpaque
         };
-        var drawingSetting = new DrawingSettings(
-                unlitShaderTagId,sortingSetting
+        var drawingSettings = new DrawingSettings(
+                unlitShaderTagId,sortingSettings
             );
         //指出哪些Render队列是被允许的
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         
         context.DrawRenderers(
                 //告诉Render哪些东西是可以看到的，此外还要提供绘制设置和筛选设置
-                cullingResults,ref drawingSetting,ref filteringSettings
+                cullingResults,ref drawingSettings,ref filteringSettings
             );
         
         context.DrawSkybox(camera);
 
-        sortingSetting.criteria = SortingCriteria.CommonTransparent;
-        drawingSetting.sortingSettings = sortingSetting;
+        sortingSettings.criteria = SortingCriteria.CommonTransparent;
+        drawingSettings.sortingSettings = sortingSettings;
         filteringSettings.renderQueueRange = RenderQueueRange.transparent;
         
         context.DrawRenderers(
-                cullingResults,ref drawingSetting,ref filteringSettings
+                cullingResults,ref drawingSettings,ref filteringSettings
             );
     }
 
@@ -101,5 +112,20 @@ public class CameraRenderer
             return true;
         }
         return false;
+    }
+
+    void DrawUnsupportedShaders()
+    {
+        var drawingSettings = new DrawingSettings(
+                legacyShaderTagIds[0],new SortingSettings(camera)
+            );
+        for (int i = 1; i < legacyShaderTagIds.Length; i++)
+        {
+            drawingSettings.SetShaderPassName(i,legacyShaderTagIds[i]);
+        }
+        var filteringSettings = FilteringSettings.defaultValue;
+        context.DrawRenderers(
+                cullingResults,ref drawingSettings,ref filteringSettings
+            );
     }
 }
