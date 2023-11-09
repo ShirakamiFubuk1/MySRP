@@ -5,9 +5,12 @@ using UnityEngine.Rendering;
 partial class CameraRenderer
 {
     partial void DrawGizmos();
+    
     partial void DrawUnsupportedShaders();
 
     partial void PrepareForSceneWindow();
+
+    partial void PrepareBuffer();
     
 #if UNITY_EDITOR
 
@@ -61,5 +64,11 @@ partial class CameraRenderer
             ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
         }
     }
+
+    partial void PrepareBuffer()
+    {
+        buffer.name = camera.name;
+    }
+    
 #endif
 }
