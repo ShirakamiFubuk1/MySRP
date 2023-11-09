@@ -24,6 +24,7 @@ public partial class CameraRenderer
         this.context = context;
         this.camera = camera;
 
+        PrepareForSceneWindow();
         //调用Setup之前调用Cull,如果失败则终止
         if (!Cull())
         {
