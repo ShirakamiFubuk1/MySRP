@@ -43,8 +43,15 @@ public partial class CameraRenderer
     {
         //用命令缓冲区名称将清除命令圈在一个范围内，省的把别的相机内容清除掉
         context.SetupCameraProperties(camera);
+        //1=Skybox,2=Color,3=Depth,4=Nothing
+        CameraClearFlags flags = camera.clearFlags;
         //清除图像缓存,前两个true控制是否应该清除深度和颜色数据，第三个是用于清楚的颜色。
-        buffer.ClearRenderTarget(true,true,Color.clear);
+        buffer.ClearRenderTarget
+        (
+            flags <= CameraClearFlags.Depth,
+            flags == CameraClearFlags.Color,
+            flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear
+            );
         //使用命令缓冲区诸如给Profiler
         buffer.BeginSample(SampleName);        
         ExecuteBuffer();
