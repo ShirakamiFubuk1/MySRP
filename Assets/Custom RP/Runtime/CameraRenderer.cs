@@ -33,6 +33,7 @@ public partial class CameraRenderer
         Setup();
         DrawVisibleGeometry();
         DrawUnsupportedShaders();
+        DrawGizmos();
         Submit();
     }
 
