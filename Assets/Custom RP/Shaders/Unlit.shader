@@ -10,11 +10,11 @@
         {
         HLSLPROGRAM
 
+        #include "UnlitPass.hlsl"
+        
         #pragma vertex UnlitPassVertex
         #pragma fragment UnlitPassFragment
 
-        #include "UnlitPass.hlsl"
-        
         ENDHLSL
         }
     }
