@@ -50,6 +50,7 @@ public partial class CameraRenderer
         (
             flags <= CameraClearFlags.Depth,
             flags == CameraClearFlags.Color,
+            //如果flags=2,即清除Color,则需要渲染一个线性空间的背景颜色
             flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear
             );
         //使用命令缓冲区诸如给Profiler
