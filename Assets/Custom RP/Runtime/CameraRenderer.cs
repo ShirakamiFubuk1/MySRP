@@ -17,7 +17,9 @@ public partial class CameraRenderer
     private CullingResults cullingResults;
 
     //指出使用哪种Pass
-    private static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+    private static ShaderTagId 
+        unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
+        litShaderTagId = new ShaderTagId("CustomLit");
     
     public void Render(ScriptableRenderContext context,Camera camera,bool useDynamicBatching,bool useGPUInstancing)
     {
@@ -87,6 +89,7 @@ public partial class CameraRenderer
             enableDynamicBatching = useDynamicBatching,
             enableInstancing = useGPUInstancing
         };
+        drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         
