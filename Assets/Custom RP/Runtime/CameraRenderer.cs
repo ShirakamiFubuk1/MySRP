@@ -19,7 +19,7 @@ public partial class CameraRenderer
     //指出使用哪种Pass
     private static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
     
-    public void Render(ScriptableRenderContext context,Camera camera)
+    public void Render(ScriptableRenderContext context,Camera camera,bool useDynamicBatching,bool useGPUInstancing)
     {
         this.context = context;
         this.camera = camera;
@@ -33,7 +33,7 @@ public partial class CameraRenderer
         }
 
         Setup();
-        DrawVisibleGeometry();
+        DrawVisibleGeometry(useDynamicBatching,useGPUInstancing);
         DrawUnsupportedShaders();
         DrawGizmos();
         Submit();
@@ -73,7 +73,7 @@ public partial class CameraRenderer
         buffer.Clear();
     }
     
-    void DrawVisibleGeometry()
+    void DrawVisibleGeometry(bool useDynamicBatching,bool useGPUInstancing)
     {
         //用于确定用正交还是透视
         var sortingSettings = new SortingSettings
@@ -82,7 +82,11 @@ public partial class CameraRenderer
         };
         var drawingSettings = new DrawingSettings(
                 unlitShaderTagId,sortingSettings
-            );
+            )
+        {
+            enableDynamicBatching = useDynamicBatching,
+            enableInstancing = useGPUInstancing
+        };
         //指出哪些Render队列是被允许的
         var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
         
