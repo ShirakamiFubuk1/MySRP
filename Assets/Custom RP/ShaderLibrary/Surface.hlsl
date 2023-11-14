@@ -4,6 +4,8 @@
 struct Surface
 {
     float alpha;
+    float metallic;
+    float smoothness;
     float2 normal;
     float3 color;
 };

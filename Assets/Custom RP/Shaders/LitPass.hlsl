@@ -17,6 +17,8 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseColor)
     UNITY_DEFINE_INSTANCED_PROP(float,_CutOff)
+    UNITY_DEFINE_INSTANCED_PROP(float,_Metallic)
+    UNITY_DEFINE_INSTANCED_PROP(float,_Smoothness)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
@@ -63,6 +65,8 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.normal = normalize(input.normalWS);
     surface.color = base.rgb;
     surface.alpha = base.a;
+    surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Metallic);
+    surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Smoothness);
         
 #if defined(_CLIPPING)
     clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));
