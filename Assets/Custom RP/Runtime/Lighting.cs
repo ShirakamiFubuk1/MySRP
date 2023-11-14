@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using Unity.Collections;
 
 public class Lighting
 {
@@ -15,10 +16,15 @@ public class Lighting
         dirLightColorId = Shader.PropertyToID("_DirectionalLightColor"),
         dirLightDirectionalId = Shader.PropertyToID("_DirectionalLightDirection");
 
-    public void Setup(ScriptableRenderContext context)
+    private CullingResults cullingResults;
+
+    public void Setup(ScriptableRenderContext context,CullingResults cullingResults)
     {
+        this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);
-        SetupDirectionalLight();
+        //支持多光源
+        //SetupDirectionalLight();
+        SetupLights();
         buffer.EndSample(bufferName);
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
@@ -32,5 +38,12 @@ public class Lighting
         //light.color是配置中的光照强度，真正的光照还受光照强度倍数影响，所以要乘以强度系数
         buffer.SetGlobalVector(dirLightColorId,light.color.linear * light.intensity);
         buffer.SetGlobalVector(dirLightDirectionalId, -light.transform.forward);
+    }
+
+    void SetupLights()
+    {
+        //通过visible获得所有可见光，通过Unity.Collections.NativeArray和visibleLight泛型。
+        //NativeArray是内存的索引数组，可以沟通脚本和引擎。
+        NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
     }
 }
