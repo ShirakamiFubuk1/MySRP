@@ -19,6 +19,7 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 struct Attributes
 {
     float2 baseUV : TEXCOORD0;
+    float3 normalOS : NORMAL;
     float3 positionOS : POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -26,6 +27,7 @@ struct Attributes
 struct Varyings
 {
     float2 baseUV : VAR_BASE_UV;
+    float3 normalWS : VAR_NORMAL;
     float4 positionCS : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -38,9 +40,10 @@ Varyings LitPassVertex(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input,output);
     float3 positionWS = TransformObjectToWorld(input.positionOS);
+    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
     output.positionCS = TransformWorldToHClip(positionWS);
-    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     return output;
 }
@@ -55,7 +58,8 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #if defined(_CLIPPING)
     clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));
 #endif
-    
+
+    base.rgb = input.normalWS; 
     return base;
 }
 
