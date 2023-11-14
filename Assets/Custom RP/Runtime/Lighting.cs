@@ -17,7 +17,7 @@ public class Lighting
         // dirLightDirectionalId = Shader.PropertyToID("_DirectionalLightDirection");
         dirLightCountId = Shader.PropertyToID("_DirectionalLightCount"),
         dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors"),
-        dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirectionals");
+        dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
 
     private static Vector4[]
         //由于着色器对struct支持不好，所以尽量少用struct
