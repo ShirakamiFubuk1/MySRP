@@ -34,6 +34,7 @@ struct Varyings
 {
     float2 baseUV : VAR_BASE_UV;
     float3 normalWS : VAR_NORMAL;
+    float3 positionWS : VAR_POSITION;
     float4 positionCS : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -45,9 +46,9 @@ Varyings LitPassVertex(Attributes input)
     //获得Instance的ID
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input,output);
-    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    output.positionWS = TransformObjectToWorld(input.positionOS);
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = TransformWorldToHClip(output.positionWS);
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
@@ -69,6 +70,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.alpha = base.a;
     surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Metallic);
     surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Smoothness);
+    surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
         
 #if defined(_CLIPPING)
     clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));

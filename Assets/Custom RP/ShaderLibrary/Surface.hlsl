@@ -8,6 +8,7 @@ struct Surface
     float smoothness;
     float2 normal;
     float3 color;
+    float3 viewDirection;
 };
 
 #endif

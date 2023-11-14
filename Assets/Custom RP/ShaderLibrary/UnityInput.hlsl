@@ -15,4 +15,6 @@ float4x4 unity_perv_MatrixM;
 float4x4 unity_perv_MatirxIM;
 float4x4 glstate_matrix_projection;
 
+float3 _WorldSpaceCameraPos;
+
 #endif
