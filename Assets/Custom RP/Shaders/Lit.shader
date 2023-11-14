@@ -25,6 +25,9 @@
 
             #include "LitPass.hlsl"
 
+            //由于WebGL1.0和OpenGL2.0不支持linear lighting
+            //设置target 3.5来防止生成WebGL1.0和OpenGL2.0的变体
+            #pragma target 3.5
             #pragma shader_feature _CLIPPING
             //使用这条语句会产生两个变体,一个有instacing一个没有
             #pragma multi_compile_instancing
