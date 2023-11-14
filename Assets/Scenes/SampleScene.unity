@@ -357,6 +357,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.9245283, g: 0.5582058, b: 0.81032956, a: 1}
   cutOff: 0.6
+  metallic: 0
+  smoothness: 0.5
 --- !u!1 &595811285
 GameObject:
   m_ObjectHideFlags: 0
@@ -465,6 +467,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   cutOff: 0.824
+  metallic: 0
+  smoothness: 0.5
 --- !u!1 &685860131
 GameObject:
   m_ObjectHideFlags: 0
@@ -499,6 +503,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.7330508, g: 0.6294055, b: 0.9811321, a: 1}
   cutOff: 0.311
+  metallic: 0
+  smoothness: 0.5
 --- !u!65 &685860133
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -791,6 +797,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.5958526, g: 0.82830954, b: 0.9716981, a: 1}
   cutOff: 0.953
+  metallic: 0
+  smoothness: 0.5
 --- !u!65 &826286993
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -973,6 +981,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.9006458, g: 0.6279815, b: 0.9245283, a: 1}
   cutOff: 0.903
+  metallic: 0
+  smoothness: 0.5
 --- !u!1 &874192505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,6 +1017,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.9716981, g: 0.8257217, b: 0.63252044, a: 1}
   cutOff: 0.15
+  metallic: 0
+  smoothness: 0.5
 --- !u!65 &874192507
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1383,6 +1395,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.95263755, g: 0.9528302, b: 0.6472054, a: 1}
   cutOff: 0.04
+  metallic: 0
+  smoothness: 0.5
 --- !u!65 &1248703296
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1562,6 +1576,7 @@ GameObject:
   - component: {fileID: 1684246707}
   - component: {fileID: 1684246706}
   - component: {fileID: 1684246705}
+  - component: {fileID: 1684246709}
   m_Layer: 0
   m_Name: Cube (3)
   m_TagString: Untagged
@@ -1643,6 +1658,22 @@ Transform:
   m_Father: {fileID: 2092911659}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: -20.811, z: 0}
+--- !u!114 &1684246709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684246704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2227c68604a841fd863a1e5443e868d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  cutOff: 0.5
+  metallic: 0
+  smoothness: 0.5
 --- !u!1 &1750922135
 GameObject:
   m_ObjectHideFlags: 0
@@ -1770,6 +1801,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.6561944, g: 0.9528302, b: 0.7365553, a: 1}
   cutOff: 0.688
+  metallic: 0
+  smoothness: 0.5
 --- !u!65 &1780187323
 BoxCollider:
   m_ObjectHideFlags: 0
