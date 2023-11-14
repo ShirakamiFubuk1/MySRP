@@ -5,6 +5,7 @@
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/BRDF.hlsl"
 
 // CBUFFER_START(UnityPerMaterial)
 //     float4 _BaseColor;
@@ -55,7 +56,8 @@ Varyings LitPassVertex(Attributes input)
 
 float4 LitPassFragment(Varyings input):SV_TARGET
 {
-    Surface surface;
+    Surface surface = (Surface)0;
+    BRDF brdf = GetBRDF(surface);
 
     UNITY_SETUP_INSTANCE_ID(input);
     float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
@@ -73,7 +75,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #endif
 
     base.rgb = normalize(input.normalWS);
-    float3 color = GetLighting(surface);
+    float3 color = GetLighting(surface,brdf);
     
     return float4(color,surface.alpha);
 }
