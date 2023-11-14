@@ -8,7 +8,10 @@ float3 IncomingLight (Surface surface,Light light)
 
 float3 GetLighting (Surface surface, BRDF brdf,Light light)
 {
-    return IncomingLight(surface,light) * surface.color * brdf.diffuse;
+    //非PBR
+    //return IncomingLight(surface,light) * surface.color * brdf.diffuse;
+    //PBR
+    return IncomingLight(surface,light) * DirectBRDF(surface, brdf, light);
 }
 
 float3 GetLighting (Surface surface, BRDF brdf)
