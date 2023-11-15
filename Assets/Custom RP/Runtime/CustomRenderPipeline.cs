@@ -7,6 +7,8 @@ public class CustomRenderPipeline : RenderPipeline
 
     private bool useDynamicBatching, useGPUInstancing;
 
+    private ShadowSettings shadowSettings;
+
     protected override void Render(
         ScriptableRenderContext context, Camera[] cameras
     )
@@ -17,8 +19,10 @@ public class CustomRenderPipeline : RenderPipeline
         }
     }
 
-    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing,bool useSRPBatcher)
+    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing,bool useSRPBatcher,ShadowSettings shadowSettings)
     {
+        //追踪阴影设置
+        this.shadowSettings = shadowSettings;
         this.useDynamicBatching = useDynamicBatching;
         this.useGPUInstancing = useGPUInstancing;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;

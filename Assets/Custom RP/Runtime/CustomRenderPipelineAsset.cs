@@ -8,6 +8,8 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset
     
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(useDynamicBatching,useGPUInstancing,useSRPBatcher);
+        return new CustomRenderPipeline(useDynamicBatching,useGPUInstancing,useSRPBatcher,shadows);
     }
+
+    [SerializeField] private ShadowSettings shadows = default;
 }
