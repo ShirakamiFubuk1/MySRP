@@ -28,10 +28,13 @@ public class Lighting
 
     private const int maxDirLightCount = 4;
 
-    public void Setup(ScriptableRenderContext context,CullingResults cullingResults,ShadowSettings sortingSettings)
+    private Shadows shadows = new Shadows();
+
+    public void Setup(ScriptableRenderContext context,CullingResults cullingResults,ShadowSettings shadowSettings)
     {
         this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);
+        shadows.Setup(context,cullingResults,shadowSettings);
         //支持多光源
         //SetupDirectionalLight();
         SetupLights();
