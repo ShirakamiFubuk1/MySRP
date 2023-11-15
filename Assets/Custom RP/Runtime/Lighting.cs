@@ -28,7 +28,7 @@ public class Lighting
 
     private const int maxDirLightCount = 4;
 
-    public void Setup(ScriptableRenderContext context,CullingResults cullingResults)
+    public void Setup(ScriptableRenderContext context,CullingResults cullingResults,ShadowSettings sortingSettings)
     {
         this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);

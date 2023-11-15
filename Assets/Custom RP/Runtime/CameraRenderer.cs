@@ -23,7 +23,8 @@ public partial class CameraRenderer
 
     private Lighting lighting = new Lighting();
     
-    public void Render(ScriptableRenderContext context,Camera camera,bool useDynamicBatching,bool useGPUInstancing)
+    public void Render(ScriptableRenderContext context, Camera camera,
+        bool useDynamicBatching, bool useGPUInstancing,ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -31,13 +32,13 @@ public partial class CameraRenderer
         PrepareBuffer();
         PrepareForSceneWindow();
         //调用Setup之前调用Cull,如果失败则终止
-        if (!Cull())
+        if (!Cull(shadowSettings.maxDistance))
         {
             return;
         }
 
         Setup();
-        lighting.Setup(context,cullingResults);
+        lighting.Setup(context,cullingResults,shadowSettings);
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing);
         DrawUnsupportedShaders();
         DrawGizmos();
@@ -112,12 +113,14 @@ public partial class CameraRenderer
             );
     }
 
-    bool Cull()
+    bool Cull(float maxShadowDistance)
     {
         //out的作用
         //当struct参数被定义为输出参数时当作一个对象引用,指向参数所在的内存堆栈上的位置
         if (camera.TryGetCullingParameters(out ScriptableCullingParameters p))
         {
+            //判断是先到达远平面还是maxShadowDistance
+            p.shadowDistance = Mathf.Min(camera.farClipPlane,maxShadowDistance);
             //ref用作优化项,以防止传递ScriptableCullingParameters结构的副本，因为其相当大
             cullingResults = context.Cull(ref p);
             return true;
