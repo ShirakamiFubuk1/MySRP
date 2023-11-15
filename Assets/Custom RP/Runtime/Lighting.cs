@@ -59,6 +59,7 @@ public class Lighting
         dirLightColors[index] = visibleLight.finalColor;
         //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
         dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        shadows.ReserveDirectionalShadows(visibleLight.light,index);
     }
 
     void SetupLights()
