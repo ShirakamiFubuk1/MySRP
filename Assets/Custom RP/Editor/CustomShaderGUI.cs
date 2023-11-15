@@ -152,7 +152,7 @@ public class CustomShaderGUI : ShaderGUI
 
     void TransparentPreset()
     {
-        if (PresetButton("Transparent"))
+        if (HasPremultiplyAlpha && PresetButton("Transparent"))
         {
             Clipping = false;
             PremultiplyAlpha = true;
@@ -162,4 +162,9 @@ public class CustomShaderGUI : ShaderGUI
             RenderQueue = RenderQueue.Transparent;
         }
     }
+
+    bool HasProperty(string name) =>
+        FindProperty(name, properties, false) != null;
+
+    private bool HasPremultiplyAlpha => HasProperty("_PremultiplyAlpha");
 }
