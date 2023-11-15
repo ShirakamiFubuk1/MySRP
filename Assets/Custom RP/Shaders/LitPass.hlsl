@@ -57,12 +57,17 @@ Varyings LitPassVertex(Attributes input)
 
 float4 LitPassFragment(Varyings input):SV_TARGET
 {
-    Surface surface = (Surface)0;
-
     UNITY_SETUP_INSTANCE_ID(input);
+
     float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
     float4 base = baseMap * baseColor;
+    
+#if defined(_CLIPPING)
+    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));
+#endif    
+
+    Surface surface = (Surface)0;   
     
     surface.normal = normalize(input.normalWS);
     surface.color = base.rgb;
@@ -70,14 +75,13 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Metallic);
     surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Smoothness);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-    
-    BRDF brdf = GetBRDF(surface);
-        
-#if defined(_CLIPPING)
-    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));
-#endif
 
-    base.rgb = normalize(input.normalWS);
+#if defined(_PREMULTIPLY_ALPHA)
+    BRDF brdf = GetBRDF(surface,true);
+#else
+    BRDF brdf = GetBRDF(surface);
+#endif
+    
     float3 color = GetLighting(surface,brdf);
     
     return float4(color,surface.alpha);
