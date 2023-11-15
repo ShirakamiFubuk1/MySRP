@@ -31,9 +31,16 @@ public class CustomShaderGUI : ShaderGUI
         }
     }
 
-    void SetProperty(string name, float value)
+    bool SetProperty(string name, float value)
     {
-        FindProperty(name, properties).floatValue = value;
+        MaterialProperty property = FindProperty(name, properties, false);
+        if (property != null)
+        {
+            property.floatValue = value;
+            return true;
+        }
+
+        return false;
     }
     
     void SetKeyword(string keyword, bool enabled)
@@ -56,8 +63,10 @@ public class CustomShaderGUI : ShaderGUI
 
     void SetProperty(string name, string keyword, bool value)
     {
-        SetProperty(name, value ? 1f : 0f);
-        SetKeyword(keyword,value);
+        if (SetProperty(name, value ? 1f : 0f))
+        {
+            SetKeyword(keyword,value);
+        }
     }
     
     bool Clipping {
