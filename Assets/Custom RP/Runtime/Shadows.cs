@@ -16,7 +16,7 @@ public class Shadows
 
     private ShadowSettings shadowSettings;
 
-    private const int maxShadowedDirectionalLightCount = 1;
+    private const int maxShadowedDirectionalLightCount = 4;
 
     struct ShadowedDirectionalLight
     {
@@ -91,16 +91,18 @@ public class Shadows
         buffer.BeginSample(bufferName);
         //处理buffer
         ExecuteBuffer();
+        int split = ShadowedDirectionalLightCount <= 1 ? 1 : 2;
+        int tileSize = atlasSize / split;
 
         for (int i = 0; i < ShadowedDirectionalLightCount; i++)
         {
-            RenderDirectionalShadows(i,atlasSize);
+            RenderDirectionalShadows(i,split,tileSize);
         }
         
         buffer.EndSample(bufferName);
     }
 
-    void RenderDirectionalShadows(int index, int tileSize)
+    void RenderDirectionalShadows(int index, int split ,int tileSize)
     {
         ShadowedDirectionalLight light = ShadowedDirectionalLights[index];
         var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
@@ -111,6 +113,7 @@ public class Shadows
             out ShadowSplitData splitData);
         //splitData包含cull信息，需要赋给splitData
         shadowSettings.splitData = splitData;
+        SetTileViewport(index,split,tileSize);
         buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
         ExecuteBuffer();
         //命令相机绘制阴影,且只会识别ShadowCasterPass
@@ -121,5 +124,14 @@ public class Shadows
     {
         buffer.ReleaseTemporaryRT(dirShadowAtlasId);
         ExecuteBuffer();
+    }
+
+    void SetTileViewport(int index, int split,float tileSize)
+    {
+        //转换成方形
+        Vector2 offset = new Vector2(index % split, index / split);
+        buffer.SetViewport(new Rect(
+            offset.x * tileSize,offset.y * tileSize,tileSize,tileSize
+            ));
     }
 }
