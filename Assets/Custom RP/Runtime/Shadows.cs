@@ -31,11 +31,12 @@ public class Shadows
 
     private static int dirShadowAtlasId = Shader.PropertyToID("_DirectionalShadowAtlas");
 
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings settings)
+    public void Setup(ScriptableRenderContext context, 
+        CullingResults cullingResults, ShadowSettings shadowSettings)
     {
         this.context = context;
         this.cullingResults = cullingResults;
-        this.shadowSettings = this.shadowSettings;
+        this.shadowSettings = shadowSettings;
         //初始化阴影的时候将该值设为0
         ShadowedDirectionalLightCount = 0;
     }
