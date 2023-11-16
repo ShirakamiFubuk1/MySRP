@@ -88,6 +88,8 @@ public class Shadows
             RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
         //1clearDepth,2clearColor
         buffer.ClearRenderTarget(true,false,Color.clear);
+        //处理buffer
+        ExecuteBuffer();
     }
 
     public void Cleanup()
