@@ -36,9 +36,13 @@ public partial class CameraRenderer
         {
             return;
         }
-
-        Setup();
+        
+        buffer.BeginSample(SampleName);
+        ExecuteBuffer();
+        //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings);
+        buffer.EndSample(SampleName);
+        Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing);
         DrawUnsupportedShaders();
         DrawGizmos();
