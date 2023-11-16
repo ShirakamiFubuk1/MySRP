@@ -113,6 +113,7 @@ public class Shadows
         shadowSettings.splitData = splitData;
         buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
         ExecuteBuffer();
+        //命令相机绘制阴影,且只会识别ShadowCasterPass
         context.DrawShadows(ref shadowSettings);
     }
 
