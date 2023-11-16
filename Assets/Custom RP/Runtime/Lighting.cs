@@ -38,6 +38,8 @@ public class Lighting
         //支持多光源
         //SetupDirectionalLight();
         SetupLights();
+        //渲染阴影
+        shadows.Render();
         buffer.EndSample(bufferName);
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
@@ -88,5 +90,10 @@ public class Lighting
         //使用索引ID和对应的数组设置Buffer
         buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
         buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirections);
+    }
+
+    public void Cleanup()
+    {
+        shadows.Cleanup();
     }
 }
