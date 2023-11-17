@@ -16,7 +16,9 @@ public class Shadows
 
     private ShadowSettings shadowSettings;
 
-    private const int maxShadowedDirectionalLightCount = 4;
+    private const int 
+        maxShadowedDirectionalLightCount = 4,
+        maxCascades = 4;
 
     struct ShadowedDirectionalLight
     {
@@ -34,7 +36,7 @@ public class Shadows
         dirShadowMatricesId = Shader.PropertyToID("_DirectionalShadowMatrices");
 
     private static Matrix4x4[]
-        dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount];
+        dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades];
 
     public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
@@ -64,7 +66,8 @@ public class Shadows
                 {
                     visibleLightIndex = visibleLightIndex
                 };
-            return new Vector2(light.shadowStrength, ShadowedDirectionalLightCount++);
+            return new Vector2(light.shadowStrength,  
+                shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++);
         }
         return Vector2.zero;
     }
@@ -98,7 +101,8 @@ public class Shadows
         buffer.BeginSample(bufferName);
         //处理buffer
         ExecuteBuffer();
-        int split = ShadowedDirectionalLightCount <= 1 ? 1 : 2;
+        int tiles = ShadowedDirectionalLightCount * shadowSettings.directional.cascadeCount;
+        int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
 
         for (int i = 0; i < ShadowedDirectionalLightCount; i++)
@@ -111,25 +115,33 @@ public class Shadows
         ExecuteBuffer();
     }
 
-    void RenderDirectionalShadows(int index, int split ,int tileSize)
+    void RenderDirectionalShadows(int index, int split, int tileSize)
     {
         ShadowedDirectionalLight light = ShadowedDirectionalLights[index];
-        var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
-        //234用于控制cascade,5贴图尺寸，6阴影近平面，78矩阵，9splitdata
-        cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-            light.visibleLightIndex,0,1,Vector3.zero,tileSize,0f,
-            out Matrix4x4 viewMatrix,out Matrix4x4 projectionMatrix,
-            out ShadowSplitData splitData);
-        //splitData包含cull信息，需要赋给splitData
-        shadowSettings.splitData = splitData;
-        //SetTileViewport(index,split,tileSize);
-        dirShadowMatrices[index] = ConvertToAtlasMatrix(
-            projectionMatrix * viewMatrix,SetTileViewport(index,split,tileSize),split
-            );
-        buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
-        ExecuteBuffer();
-        //命令相机绘制阴影,且只会识别ShadowCasterPass
-        context.DrawShadows(ref shadowSettings);
+        var shadowDrawingSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
+        int cascadeCount = shadowSettings.directional.cascadeCount;
+        int tileOffset = index * cascadeCount;
+        Vector3 ratios = shadowSettings.directional.CascadeRatios;
+
+        for (int i = 0; i < cascadeCount; i++)
+        {
+            //234用于控制cascade,5贴图尺寸，6阴影近平面，78矩阵，9splitdata
+            cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
+                light.visibleLightIndex,i,cascadeCount,ratios,tileSize,0f,
+                out Matrix4x4 viewMatrix,out Matrix4x4 projectionMatrix,
+                out ShadowSplitData splitData);
+            //splitData包含cull信息，需要赋给splitData
+            shadowDrawingSettings.splitData = splitData;
+            int tileIndex = tileOffset + i;
+            //SetTileViewport(index,split,tileSize);
+            dirShadowMatrices[index] = ConvertToAtlasMatrix(
+                projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
+                );
+            buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
+            ExecuteBuffer();
+            //命令相机绘制阴影,且只会识别ShadowCasterPass
+            context.DrawShadows(ref shadowDrawingSettings);
+        }
     }
 
     public void Cleanup()
