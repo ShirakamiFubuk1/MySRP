@@ -59,7 +59,7 @@ public class Shadows
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
             && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b))
         {
-            ShadowedDirectionalLights[ShadowedDirectionalLightCount++] =
+            ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
                 {
                     visibleLightIndex = visibleLightIndex
@@ -106,7 +106,9 @@ public class Shadows
             RenderDirectionalShadows(i,split,tileSize);
         }
         
+        buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         buffer.EndSample(bufferName);
+        ExecuteBuffer();
     }
 
     void RenderDirectionalShadows(int index, int split ,int tileSize)
