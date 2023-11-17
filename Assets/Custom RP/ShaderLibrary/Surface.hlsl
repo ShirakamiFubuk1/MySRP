@@ -3,13 +3,13 @@
 
 struct Surface
 {
-    
     float alpha;
     float metallic;
     float smoothness;
     float3 normal;
     float3 color;
     float3 viewDirection;
+    float3 position;
 };
 
 #endif

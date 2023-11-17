@@ -69,7 +69,8 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #endif    
 
     Surface surface = (Surface)0;   
-    
+
+    surface.position = input.positionWS;
     surface.normal = normalize(input.normalWS);
     surface.color = base.rgb;
     surface.alpha = base.a;
