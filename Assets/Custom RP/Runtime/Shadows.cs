@@ -33,10 +33,14 @@ public class Shadows
 
     private static int 
         dirShadowAtlasId = Shader.PropertyToID("_DirectionalShadowAtlas"),
-        dirShadowMatricesId = Shader.PropertyToID("_DirectionalShadowMatrices");
+        dirShadowMatricesId = Shader.PropertyToID("_DirectionalShadowMatrices"),
+        cascadeCountId = Shader.PropertyToID("_CascadeCount"),
+        cascadeCullingSpheresId = Shader.PropertyToID("_CascadeCullingSpheres");
 
     private static Matrix4x4[]
         dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades];
+
+    private static Vector4[] cascadeCullingSpheres = new Vector4[maxCascades];
 
     public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
@@ -110,6 +114,8 @@ public class Shadows
             RenderDirectionalShadows(i,split,tileSize);
         }
         
+        buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
+        buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
         buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
@@ -132,6 +138,12 @@ public class Shadows
                 out ShadowSplitData splitData);
             //splitData包含cull信息，需要赋给splitData
             shadowDrawingSettings.splitData = splitData;
+            if (index == 0)
+            {
+                Vector4 cullingSphere = splitData.cullingSphere;
+                cullingSphere.w *= cullingSphere.w;
+                cascadeCullingSpheres[i] = splitData.cullingSphere;
+            }
             int tileIndex = tileOffset + i;
             //SetTileViewport(index,split,tileSize);
             dirShadowMatrices[index] = ConvertToAtlasMatrix(
