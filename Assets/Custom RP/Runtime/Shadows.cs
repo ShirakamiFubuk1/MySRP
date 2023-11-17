@@ -53,7 +53,7 @@ public class Shadows
     }
 
     //用于给阴影贴图在阴影图集中预留位置以及存储相关渲染信息
-    public void ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector2 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
@@ -64,7 +64,9 @@ public class Shadows
                 {
                     visibleLightIndex = visibleLightIndex
                 };
+            return new Vector2(light.shadowStrength, ShadowedDirectionalLightCount++);
         }
+        return Vector2.zero;
     }
 
     public void Render()

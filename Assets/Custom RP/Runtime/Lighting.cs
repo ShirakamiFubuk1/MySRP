@@ -17,12 +17,14 @@ public class Lighting
         // dirLightDirectionalId = Shader.PropertyToID("_DirectionalLightDirection");
         dirLightCountId = Shader.PropertyToID("_DirectionalLightCount"),
         dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors"),
-        dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
+        dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections"),
+        dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData");
 
     private static Vector4[]
         //由于着色器对struct支持不好，所以尽量少用struct
         dirLightColors = new Vector4[maxDirLightCount],
-        dirLightDirections = new Vector4[maxDirLightCount];
+        dirLightDirections = new Vector4[maxDirLightCount],
+        dirLightShadowData = new Vector4[maxDirLightCount];
 
     private CullingResults cullingResults;
 
@@ -61,7 +63,7 @@ public class Lighting
         dirLightColors[index] = visibleLight.finalColor;
         //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
         dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
-        shadows.ReserveDirectionalShadows(visibleLight.light,index);
+        dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,index);
     }
 
     void SetupLights()
@@ -90,6 +92,8 @@ public class Lighting
         //使用索引ID和对应的数组设置Buffer
         buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
         buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirections);
+        //使用索引逐光照存储阴影信息
+        buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
     }
 
     public void Cleanup()
