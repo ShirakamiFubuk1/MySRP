@@ -146,7 +146,7 @@ public class Shadows
             }
             int tileIndex = tileOffset + i;
             //SetTileViewport(index,split,tileSize);
-            dirShadowMatrices[index] = ConvertToAtlasMatrix(
+            dirShadowMatrices[tileIndex] = ConvertToAtlasMatrix(
                 projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
                 );
             buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
