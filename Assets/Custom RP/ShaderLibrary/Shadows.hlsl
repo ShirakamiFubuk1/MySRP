@@ -47,6 +47,12 @@ ShadowData GetShadowData(Surface surfaceWS)
         float distanceSpr = DistanceSquared(surfaceWS.position,sphere.xyz);
         if(distanceSpr<sphere.w)
         {
+            if(i==_CascadeCount-1)
+            {
+                data.strength *= FadedShadowStrength(
+                    distanceSpr,1.0/sphere.w,_ShadowDistanceFade.z)
+                ;
+            }
             break;
         }
     }
