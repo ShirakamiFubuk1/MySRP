@@ -140,9 +140,9 @@ public class Shadows
             shadowDrawingSettings.splitData = splitData;
             if (index == 0)
             {
-                Vector4 cullingSphere = splitData.cullingSphere;
-                cullingSphere.w *= cullingSphere.w;
-                cascadeCullingSpheres[i] = splitData.cullingSphere;
+				Vector4 cullingSphere = splitData.cullingSphere;
+				cullingSphere.w *= cullingSphere.w;
+				cascadeCullingSpheres[i] = cullingSphere;
             }
             int tileIndex = tileOffset + i;
             //SetTileViewport(index,split,tileSize);
