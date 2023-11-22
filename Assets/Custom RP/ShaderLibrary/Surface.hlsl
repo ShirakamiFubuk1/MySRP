@@ -6,6 +6,7 @@ struct Surface
     float alpha;
     float metallic;
     float smoothness;
+    float depth;
     float3 normal;
     float3 color;
     float3 viewDirection;
