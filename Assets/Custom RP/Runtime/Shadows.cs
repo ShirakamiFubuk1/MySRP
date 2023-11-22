@@ -158,9 +158,11 @@ public class Shadows
                 projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
                 );
             buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
+            //buffer.SetGlobalDepthBias(1f,3f);
             ExecuteBuffer();
             //命令相机绘制阴影,且只会识别ShadowCasterPass
             context.DrawShadows(ref shadowDrawingSettings);
+            //buffer.SetGlobalDepthBias(0f,0f);
         }
     }
 
