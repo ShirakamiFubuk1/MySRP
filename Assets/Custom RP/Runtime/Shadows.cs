@@ -37,12 +37,15 @@ public class Shadows
         cascadeCountId = Shader.PropertyToID("_CascadeCount"),
         cascadeCullingSpheresId = Shader.PropertyToID("_CascadeCullingSpheres"),
         //shadowDistanceId = Shader.PropertyToID("_ShadowDistance"),
+        cascadeDataId = Shader.PropertyToID("_CascadeData"),
         shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade");
 
     private static Matrix4x4[]
         dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades];
 
-    private static Vector4[] cascadeCullingSpheres = new Vector4[maxCascades];
+    private static Vector4[] 
+        cascadeCullingSpheres = new Vector4[maxCascades],
+        cascadeData = new Vector4[maxCascades];
 
     public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
@@ -118,6 +121,7 @@ public class Shadows
         
         buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
+        buffer.SetGlobalVectorArray(cascadeDataId,cascadeData);
         buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
 
@@ -148,9 +152,7 @@ public class Shadows
             shadowDrawingSettings.splitData = splitData;
             if (index == 0)
             {
-				Vector4 cullingSphere = splitData.cullingSphere;
-				cullingSphere.w *= cullingSphere.w;
-				cascadeCullingSpheres[i] = cullingSphere;
+                SetCascadeData(i,splitData.cullingSphere,tileSize);
             }
             int tileIndex = tileOffset + i;
             //SetTileViewport(index,split,tileSize);
@@ -204,5 +206,12 @@ public class Shadows
         m.m22 = 0.5f * (m.m22 + m.m32);
         m.m23 = 0.5f * (m.m23 + m.m33);
         return m;
+    }
+
+    void SetCascadeData(int index, Vector4 cullingSphere, float tileSize)
+    {
+        cascadeData[index].x = 1f / cullingSphere.w;
+		cullingSphere.w *= cullingSphere.w;
+		cascadeCullingSpheres[index] = cullingSphere;        
     }
 }

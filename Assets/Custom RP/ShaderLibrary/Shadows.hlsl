@@ -13,6 +13,7 @@ CBUFFER_START(_CustomShadows)
     //float _ShadowDistance;
     float4 _ShadowDistanceFade;
     float4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
+    float4 _CascadeData[MAX_CASCADE_COUNT];
     float4x4 _DirectionalShadowMatrices
         [MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
 CBUFFER_END
@@ -50,7 +51,7 @@ ShadowData GetShadowData(Surface surfaceWS)
             if(i==_CascadeCount-1)
             {
                 data.strength *= FadedShadowStrength(
-                    distanceSpr,1.0/sphere.w,_ShadowDistanceFade.z)
+                    distanceSpr,_CascadeData[i].x,_ShadowDistanceFade.z)
                 ;
             }
             break;
