@@ -24,6 +24,7 @@ public class Shadows
     {
         public int visibleLightIndex;
         public float slopeScaleBias;
+        public float nearPlaneOffset;
     }
 
     //追踪shadowed light的信息
@@ -75,7 +76,8 @@ public class Shadows
                 new ShadowedDirectionalLight
                 {
                     visibleLightIndex = visibleLightIndex,
-                    slopeScaleBias = light.shadowBias
+                    slopeScaleBias = light.shadowBias,
+                    nearPlaneOffset = light.shadowNearPlane
                 };
             return new Vector3(light.shadowStrength,  
                 shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++,
@@ -149,9 +151,9 @@ public class Shadows
         {
             //234用于控制cascade,5贴图尺寸，6阴影近平面，78矩阵，9splitdata
             cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                light.visibleLightIndex,i,cascadeCount,ratios,tileSize,0f,
-                out Matrix4x4 viewMatrix,out Matrix4x4 projectionMatrix,
-                out ShadowSplitData splitData);
+                light.visibleLightIndex,i,cascadeCount,ratios,tileSize,
+                light.nearPlaneOffset, out Matrix4x4 viewMatrix,
+                out Matrix4x4 projectionMatrix, out ShadowSplitData splitData);
             //splitData包含cull信息，需要赋给splitData
             shadowDrawingSettings.splitData = splitData;
             if (index == 0)
