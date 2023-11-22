@@ -23,6 +23,7 @@ public class Shadows
     struct ShadowedDirectionalLight
     {
         public int visibleLightIndex;
+        public float slopeScaleBias;
     }
 
     //追踪shadowed light的信息
@@ -64,7 +65,7 @@ public class Shadows
     }
 
     //用于给阴影贴图在阴影图集中预留位置以及存储相关渲染信息
-    public Vector2 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
@@ -73,12 +74,15 @@ public class Shadows
             ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
                 {
-                    visibleLightIndex = visibleLightIndex
+                    visibleLightIndex = visibleLightIndex,
+                    slopeScaleBias = light.shadowBias
                 };
-            return new Vector2(light.shadowStrength,  
-                shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++);
+            return new Vector3(light.shadowStrength,  
+                shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++,
+                light.shadowNormalBias
+                );
         }
-        return Vector2.zero;
+        return Vector3.zero;
     }
 
     public void Render()
@@ -160,11 +164,11 @@ public class Shadows
                 projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
                 );
             buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
-            //buffer.SetGlobalDepthBias(1f,3f);
+            buffer.SetGlobalDepthBias(0f,light.slopeScaleBias);
             ExecuteBuffer();
             //命令相机绘制阴影,且只会识别ShadowCasterPass
             context.DrawShadows(ref shadowDrawingSettings);
-            //buffer.SetGlobalDepthBias(0f,0f);
+            buffer.SetGlobalDepthBias(0f,0f);
         }
     }
 
