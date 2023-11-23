@@ -33,6 +33,13 @@ public class ShadowSettings
             new Vector3(cascadeRatio1, cascadeRatio2, cascadeRatio3);
 
         [Range(0.001f, 1f)] public float cascadeFade;
+        
+        public enum CascadeBlendMode
+        {
+            Hard,Soft,Dither
+        }
+
+        public CascadeBlendMode cascadeBlend;
     }
 
     public Directional directional = new Directional

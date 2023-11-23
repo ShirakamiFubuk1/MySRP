@@ -84,6 +84,15 @@ ShadowData GetShadowData(Surface surfaceWS)
     {
         data.strength=0;
     }
+    #if defined(_CASCADE_BLEND_DITHER)
+        else if(data.cascadeBlend < surfaceWS.dither)
+        {
+            i +=1;
+        }
+    #endif
+    #if !defined(_CASCADE_BLEND_SOFT)
+        data.cascadeBlend = 1.0;
+    #endif
     data.cascadeIndex = i;
     return data;
 }

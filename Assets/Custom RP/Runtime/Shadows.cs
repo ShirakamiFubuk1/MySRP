@@ -57,6 +57,12 @@ public class Shadows
         "_DIRECTIONAL_PCF7"
     };
 
+    private static string[] cascadeBlendKeywords =
+    {
+        "_CASCADE_BLEND_SOFT",
+        "_CASCADE_BLEND_DITHER"
+    };
+
 public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
     {
@@ -143,7 +149,12 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalVector(shadowDistanceFadeId,
             new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
             );
-        SetKeywords();
+        SetKeywords(
+            directionalFilterKeywords,(int)shadowSettings.directional.filter - 1
+            );
+        SetKeywords(
+            cascadeBlendKeywords,(int)shadowSettings.directional.cascadeBlend - 1
+            );
         buffer.SetGlobalVector(
             shadowAtlasSizeId,new Vector4(atlasSize,1f / atlasSize)
             );
@@ -237,18 +248,18 @@ public void Setup(ScriptableRenderContext context,
         cascadeData[index] = new Vector4(1f / cullingSphere.w, filterSize * 1.4142136f);
     }
 
-    void SetKeywords()
+    void SetKeywords(string[] keywords,int enabledIndex)
     {
-        int enabledIndex = (int)shadowSettings.directional.filter - 1;
-        for (int i = 0; i < directionalFilterKeywords.Length; i++)
+        //int enabledIndex = (int)shadowSettings.directional.filter - 1;
+        for (int i = 0; i < keywords.Length; i++)
         {
             if (i == enabledIndex)
             {
-                buffer.EnableShaderKeyword(directionalFilterKeywords[i]);
+                buffer.EnableShaderKeyword(keywords[i]);
             }
             else
             {
-                buffer.DisableShaderKeyword(directionalFilterKeywords[i]);
+                buffer.DisableShaderKeyword(keywords[i]);
             }
         }
     }
