@@ -169,6 +169,7 @@ public void Setup(ScriptableRenderContext context,
         int cascadeCount = shadowSettings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
         Vector3 ratios = shadowSettings.directional.CascadeRatios;
+        float cullingFactor = Mathf.Max(0f, 0.8f - shadowSettings.directional.cascadeFade);
 
         for (int i = 0; i < cascadeCount; i++)
         {
@@ -177,6 +178,7 @@ public void Setup(ScriptableRenderContext context,
                 light.visibleLightIndex,i,cascadeCount,ratios,tileSize,
                 light.nearPlaneOffset, out Matrix4x4 viewMatrix,
                 out Matrix4x4 projectionMatrix, out ShadowSplitData splitData);
+            splitData.shadowCascadeBlendCullingFactor = cullingFactor;
             //splitData包含cull信息，需要赋给splitData
             shadowDrawingSettings.splitData = splitData;
             if (index == 0)
