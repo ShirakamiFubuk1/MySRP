@@ -23,7 +23,7 @@ MonoBehaviour:
       filter: 1
       cascadeCount: 4
       cascadeRatio1: 0.1
-      cascadeRatio2: 0.25
-      cascadeRatio3: 0.5
+      cascadeRatio2: 0.2
+      cascadeRatio3: 0.3
       cascadeFade: 0.1
       cascadeBlend: 2
