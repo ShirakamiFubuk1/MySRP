@@ -130,6 +130,7 @@ public void Setup(ScriptableRenderContext context,
         buffer.BeginSample(bufferName);
         //处理buffer
         ExecuteBuffer();
+        //分割Buffer给对应的light,用来支持最多四个直接光
         int tiles = ShadowedDirectionalLightCount * shadowSettings.directional.cascadeCount;
         int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
@@ -159,11 +160,13 @@ public void Setup(ScriptableRenderContext context,
             shadowAtlasSizeId,new Vector4(atlasSize,1f / atlasSize)
             );
         buffer.EndSample(bufferName);
+        //处理Buffer
         ExecuteBuffer();
     }
 
     void RenderDirectionalShadows(int index, int split, int tileSize)
     {
+        //按照索引获取开启阴影的光照
         ShadowedDirectionalLight light = ShadowedDirectionalLights[index];
         var shadowDrawingSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
         int cascadeCount = shadowSettings.directional.cascadeCount;
@@ -173,7 +176,8 @@ public void Setup(ScriptableRenderContext context,
 
         for (int i = 0; i < cascadeCount; i++)
         {
-            //234用于控制cascade,5贴图尺寸，6阴影近平面，78矩阵，9splitdata
+            //234用于控制cascade,5贴图尺寸，6阴影近平面
+            //7 Shadow Projection Matrix,8 Shadow View Matrix,9 splitdata
             cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
                 light.visibleLightIndex,i,cascadeCount,ratios,tileSize,
                 light.nearPlaneOffset, out Matrix4x4 viewMatrix,
@@ -187,6 +191,7 @@ public void Setup(ScriptableRenderContext context,
             }
             int tileIndex = tileOffset + i;
             //SetTileViewport(index,split,tileSize);
+            //通过将光的Shadow Projection Matrix和View Matrix相乘来获得世界空间转换到光空间的矩阵
             dirShadowMatrices[tileIndex] = ConvertToAtlasMatrix(
                 projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
                 );
@@ -214,16 +219,22 @@ public void Setup(ScriptableRenderContext context,
             ));
         return offset;
     }
-
+    
     Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
     {
+        //最直观的做法是让0表示零深度,1表示最大深度.由于深度缓冲区精度有限,而且为非线性存储
+        //所以我们反转缓冲区来更高效利用高效率部分.
         if (SystemInfo.usesReversedZBuffer) {
             m.m20 = -m.m20;
             m.m21 = -m.m21;
             m.m22 = -m.m22;
             m.m23 = -m.m23;
         }
+        //Clip Space是一个正方型,从-1到1,中心是0.但是纹理坐标和深度都是从0到1
+        //通过XYZ缩放和偏移一半将其烘焙到矩阵中
+        //由于矩阵乘法运算量过大,且会导致大量无意义的零乘法,此处直接调整矩阵
         float scale = 1f / split;
+        //利用预先计算好的Offset和scale可以节约大量计算量
         m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale;
         m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
         m.m02 = (0.5f * (m.m02 + m.m32) + offset.x * m.m32) * scale;

@@ -37,6 +37,7 @@ public partial class CameraRenderer
             return;
         }
         
+        //将Shadows渲染在对应相机样本内
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
         //使阴影信息在几何前绘制
@@ -46,6 +47,7 @@ public partial class CameraRenderer
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing);
         DrawUnsupportedShaders();
         DrawGizmos();
+        //清除ShadowAtlas申请的RT
         lighting.Cleanup();
         Submit();
     }
