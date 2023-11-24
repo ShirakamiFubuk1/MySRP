@@ -58,14 +58,17 @@ ShadowData GetShadowData(Surface surfaceWS)
     ShadowData data;
 
     data.cascadeBlend = 1.0;
+    //不再将strength初始化为0,而是根据FadedShadowStrength提供的衰减值判断
     data.strength = FadedShadowStrength(
         surfaceWS.depth,_ShadowDistanceFade.x,_ShadowDistanceFade.y
         );
     int i;
     for(i = 0;i<_CascadeCount;i++)
     {
+        //w为该Cascade球的半径平方
         float4 sphere = _CascadeCullingSpheres[i];
         float distanceSpr = DistanceSquared(surfaceWS.position,sphere.xyz);
+        //如果点离球心的距离小于cascade球半径平方则在当前级联球内
         if(distanceSpr<sphere.w)
         {
             float fade = FadedShadowStrength(
@@ -82,6 +85,7 @@ ShadowData GetShadowData(Surface surfaceWS)
             break;
         }
     }
+    //不在阴影范围内
     if(i==_CascadeCount)
     {
         data.strength=0;
@@ -95,6 +99,7 @@ ShadowData GetShadowData(Surface surfaceWS)
     #if !defined(_CASCADE_BLEND_SOFT)
         data.cascadeBlend = 1.0;
     #endif
+    //获得当前片段对应的Cascade级数
     data.cascadeIndex = i;
     return data;
 }

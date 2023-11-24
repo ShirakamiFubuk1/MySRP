@@ -77,6 +77,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Metallic);
     surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Smoothness);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
+    //视图空间和世界空间深度值是相同的，因为只进行了旋转和便宜
     surface.depth = -TransformWorldToView(input.positionWS).z;
     surface.dither = InterleavedGradientNoise(input.positionCS.xy,0);
 

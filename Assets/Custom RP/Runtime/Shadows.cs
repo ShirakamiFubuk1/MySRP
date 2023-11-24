@@ -140,13 +140,16 @@ public void Setup(ScriptableRenderContext context,
             RenderDirectionalShadows(i,split,tileSize);
         }
         
+        //渲染级联后，将级联计数和对应的球体发送给GPU
         buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
         buffer.SetGlobalVectorArray(cascadeDataId,cascadeData);
         buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
 
+        //使级联圆边缘平滑
         float f = 1f - shadowSettings.directional.cascadeFade;
+        //将maxDistance和distanceFade的倒数发给GPU,避免在着色器中使用除法
         buffer.SetGlobalVector(shadowDistanceFadeId,
             new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
             );
@@ -256,6 +259,7 @@ public void Setup(ScriptableRenderContext context,
         float texelSize = 2f * cullingSphere.w / tileSize;
         float filterSize = texelSize * ((float)shadowSettings.directional.filter + 1.0f);
         cullingSphere.w -= filterSize;
+        //通过比较球体中心的距离平方与球的半径平方来判断是否在球内
 		cullingSphere.w *= cullingSphere.w;
 		cascadeCullingSpheres[index] = cullingSphere;
         cascadeData[index] = new Vector4(1f / cullingSphere.w, filterSize * 1.4142136f);

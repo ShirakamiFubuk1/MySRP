@@ -16,6 +16,7 @@ float3 GetLighting (Surface surface, BRDF brdf,Light light)
 
 float3 GetLighting (Surface surfaceWS, BRDF brdf)
 {
+    //将影子数据传递给GetLighting
     ShadowData shadowData = GetShadowData(surfaceWS);
     float3 color = 0.0;
     for(int i = 0;i<GetDirectionalLightCount();i++)
