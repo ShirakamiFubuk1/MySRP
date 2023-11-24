@@ -18,6 +18,8 @@
 #define MAX_CASCADE_COUNT 4
 
 TEXTURE2D_SHADOW(_DirectionalShadowAtlas);
+//因为只有一种合适的方法可以对阴影贴图进行采样,因此显示定义一个采样器
+//而不是依赖Unity的宏TEXTURE2D_SHADOWSAMPLER_CMP为纹理采样器推断状态
 #define SHADOW_SAMPLER sampler_linear_clamp_compare
 SAMPLER_CMP(SHADOW_SAMPLER);
 
@@ -99,6 +101,7 @@ ShadowData GetShadowData(Surface surfaceWS)
 
 float SampleDirectionalShadowAtlas(float3 positionSTS)
 {
+    //对阴影贴图进行采样.
     return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas,SHADOW_SAMPLER,positionSTS);
 }
 
@@ -122,6 +125,7 @@ float FilterDirectionalShadow(float3 positionSTS)
     #endif
 }
 
+//计算此处被光照遮蔽的程度
 float GetDirectionalShadowAttenuation(
     DirectionalShadowData directional,ShadowData global, Surface surfaceWS)
 {
@@ -135,9 +139,11 @@ float GetDirectionalShadowAttenuation(
     }
     float3 normalBias = surfaceWS.normal *
         (directional.normalBias * _CascadeData[global.cascadeIndex].y);
+    //影子空间位置
     float3 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex],
         float4(surfaceWS.position + normalBias, 1.0)
     ).xyz;
+    //采样阴影
     float shadow = FilterDirectionalShadow(positionSTS);
     if(global.cascadeBlend < 1.0)
     {
@@ -150,6 +156,9 @@ float GetDirectionalShadowAttenuation(
             FilterDirectionalShadow(positionSTS),shadow,global.cascadeBlend
             );
     }
+    //阴影的衰减因子是一个0-1的值,如果片段完全被遮蔽则为0，没有被遮挡则为1，0-1表示部分被遮蔽
+    //当光的阴影强度降低为0时，衰减就不受其影响而为1
+    //故最终的衰减应该为1和采样到的阴影进行线性插值
     return lerp(1.0,shadow,directional.strength);
 }
 

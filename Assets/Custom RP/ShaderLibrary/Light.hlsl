@@ -35,6 +35,7 @@ int GetDirectionalLightCount()
 
 DirectionalShadowData GetDirectionalShadowData(int lightIndex,ShadowData shadowData)
 {
+    //获取对应光的阴影数据
     DirectionalShadowData data;
     data.strength = _DirectionalLightShadowData[lightIndex].x * shadowData.strength;
     data.tileIndex = _DirectionalLightShadowData[lightIndex].y + shadowData.cascadeIndex;
@@ -48,6 +49,7 @@ Light GetDirectionalLight(int index,Surface surfaceWS,ShadowData shadowData)
     Light light;
     light.color = _DirectionalLightColors[index].rgb;
     light.direction = _DirectionalLightDirections[index].xyz;
+    //检索阴影数据并将其用于光照的衰减
     DirectionalShadowData dirShadowData = GetDirectionalShadowData(index,shadowData);
     light.attenuation = GetDirectionalShadowAttenuation(dirShadowData,shadowData,surfaceWS);
     //light.attenuation = shadowData.cascadeIndex * 0.25;

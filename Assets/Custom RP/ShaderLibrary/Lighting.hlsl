@@ -20,6 +20,7 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf)
     float3 color = 0.0;
     for(int i = 0;i<GetDirectionalLightCount();i++)
     {
+        //将surface信息传递给GetDirectionalLight
         Light light = GetDirectionalLight(i,surfaceWS,shadowData);
         //叠加多个光照颜色
         color += GetLighting(surfaceWS,brdf,light);
