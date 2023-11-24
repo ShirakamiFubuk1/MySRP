@@ -32,7 +32,7 @@
             //由于WebGL1.0和OpenGL2.0不支持linear lighting
             //设置target 3.5来防止生成WebGL1.0和OpenGL2.0的变体
             #pragma target 3.5
-            #pragma shader_feature _CLIPPING
+            //#pragma shader_feature _CLIPPING
             #pragma shader_feature _PREMULTIPLY_ALPHA
             #pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
             
