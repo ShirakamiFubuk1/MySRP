@@ -32,6 +32,7 @@ public class CustomShaderGUI : ShaderGUI
     
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
+        //设置GUI更改时调用
         EditorGUI.BeginChangeCheck();
         base.OnGUI(materialEditor,properties);
         editor = materialEditor;
@@ -47,7 +48,8 @@ public class CustomShaderGUI : ShaderGUI
             FadePreset();
             TransparentPreset();            
         }
-
+        
+        //结束检查,查看是否有任何更改,如果有则调用函数重新检测是否要打开阴影
         if (EditorGUI.EndChangeCheck())
         {
             SetShadowCasterPass();
@@ -194,12 +196,13 @@ public class CustomShaderGUI : ShaderGUI
     
     void SetShadowCasterPass()
     {
+        //检查着色器是否存在这个属性，以及所有选定的材质是否都是同一个属性.
         MaterialProperty shadows = FindProperty("_Shadows", properties, false);
         if (shadows == null || shadows.hasMixedValue)
         {
             return;
         }
-
+        //Off为第四个，数值为3，所以当shadow.floatValue小于的时候就是需要渲染阴影
         bool enabled = shadows.floatValue < (float)ShadowMode.Off;
         foreach (Material m in materials)
         {
