@@ -50,7 +50,8 @@ public class ShadowSettings
         cascadeRatio1 = 0.1f,
         cascadeRatio2 = 0.25f,
         cascadeRatio3 = 0.5f,
-        cascadeFade = 0.1f
+        cascadeFade = 0.1f,
+        cascadeBlend = Directional.CascadeBlendMode.Hard
     };
 
 }

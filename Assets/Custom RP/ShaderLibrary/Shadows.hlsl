@@ -1,6 +1,7 @@
 #ifndef CUSTOM_SHADOWS_INCLUDED
 #define CUSTOM_SHADOWS_INCLUDED
 
+//使用HLSL文件中定义的函数
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 
 #if defined(_DIRECTIONAL_PCF3)
@@ -29,6 +30,7 @@ CBUFFER_START(_CustomShadows)
     float4 _ShadowAtlasSize;
     float4 _ShadowDistanceFade;
     float4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
+    //将级联数据添加到_CustomShadows中的缓冲区中
     float4 _CascadeData[MAX_CASCADE_COUNT];
     float4x4 _DirectionalShadowMatrices
         [MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
@@ -48,6 +50,7 @@ struct ShadowData
     float cascadeBlend;
 };
 
+//计算混合效果
 float FadedShadowStrength(float distance,float scale,float fade)
 {
     return saturate((1.0 - distance * scale) * fade);
@@ -71,6 +74,7 @@ ShadowData GetShadowData(Surface surfaceWS)
         //如果点离球心的距离小于cascade球半径平方则在当前级联球内
         if(distanceSpr<sphere.w)
         {
+            //直接使用球半径平方倒数作为参数，以做优化项
             float fade = FadedShadowStrength(
                 distanceSpr,_CascadeData[i].x,_ShadowDistanceFade.z
                 );
@@ -90,12 +94,14 @@ ShadowData GetShadowData(Surface surfaceWS)
     {
         data.strength=0;
     }
+    ////当使用抖动混合时，如果不在上一个级联中，且混合值小于抖动值，则跳转到下一个级联
     #if defined(_CASCADE_BLEND_DITHER)
         else if(data.cascadeBlend < surfaceWS.dither)
         {
             i +=1;
         }
     #endif
+    //在不适用软混合时，将级联混合设置为0，来剔除这个分支
     #if !defined(_CASCADE_BLEND_SOFT)
         data.cascadeBlend = 1.0;
     #endif
@@ -112,10 +118,12 @@ float SampleDirectionalShadowAtlas(float3 positionSTS)
 
 float FilterDirectionalShadow(float3 positionSTS)
 {
+    //只在定义时采样一次，其余时间只用调用
     #if defined(DIRECTIONAL_FILTER_SETUP)
         float weights[DIRECTIONAL_FILTER_SAMPLES];
         float2 positions[DIRECTIONAL_FILTER_SAMPLES];
         float4 size = _ShadowAtlasSize.yyxx;
+        //1 xy表示texelsize zw表示整个贴图尺寸，2 原始采样位置，34 输出每个部分的权重和位置
         DIRECTIONAL_FILTER_SETUP(size,positionSTS.xy,weights,positions);
         float shadow = 0;
         for(int i = 0;i < DIRECTIONAL_FILTER_SAMPLES;i++)
@@ -142,6 +150,7 @@ float GetDirectionalShadowAttenuation(
     {
         return 1.0;
     }
+    //通过沿着表面法线方向乘以texel贴片和固定便宜获得法线偏移
     float3 normalBias = surfaceWS.normal *
         (directional.normalBias * _CascadeData[global.cascadeIndex].y);
     //影子空间位置
@@ -149,7 +158,9 @@ float GetDirectionalShadowAttenuation(
         float4(surfaceWS.position + normalBias, 1.0)
     ).xyz;
     //采样阴影
-    float shadow = FilterDirectionalShadow(positionSTS);
+    float shadow =  FilterDirectionalShadow(positionSTS);
+    //在检索第一个阴影值之后检查cascadeBlend是否小于1，小于则处于过渡区
+    //还必须从下一个级联中采样，并在两个值中进行插值
     if(global.cascadeBlend < 1.0)
     {
         normalBias = surfaceWS.normal *
@@ -157,6 +168,7 @@ float GetDirectionalShadowAttenuation(
         positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex + 1],
             float4(surfaceWS.position + normalBias,1.0)
             ).xyz;
+        //混合第一层第二层之间的阴影
         shadow = lerp(
             FilterDirectionalShadow(positionSTS),shadow,global.cascadeBlend
             );

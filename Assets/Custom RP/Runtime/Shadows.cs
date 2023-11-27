@@ -40,6 +40,7 @@ public class Shadows
         cascadeCullingSpheresId = Shader.PropertyToID("_CascadeCullingSpheres"),
         //shadowDistanceId = Shader.PropertyToID("_ShadowDistance"),
         cascadeDataId = Shader.PropertyToID("_CascadeData"),
+        //收集着色器中图集atlas大小和texel纹素大小
         shadowAtlasSizeId = Shader.PropertyToID("_ShadowAtlasSize"),
         shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade");
 
@@ -86,6 +87,7 @@ public void Setup(ScriptableRenderContext context,
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
             && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b))
         {
+            //从灯光中获取各种属性
             ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
                 {
@@ -93,6 +95,7 @@ public void Setup(ScriptableRenderContext context,
                     slopeScaleBias = light.shadowBias,
                     nearPlaneOffset = light.shadowNearPlane
                 };
+            //将灯光的默认偏移放入返回数据中
             return new Vector3(light.shadowStrength,  
                 shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++,
                 light.shadowNormalBias
@@ -143,6 +146,8 @@ public void Setup(ScriptableRenderContext context,
         //渲染级联后，将级联计数和对应的球体发送给GPU
         buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
+        //由于阴影粉刺(shadow-acne)的大小取决于世界空间纹素(texel)的大小,
+        //因此需要添加一个cascadeData来存储纹素大小等信息并发给GPU以提高通讯效率
         buffer.SetGlobalVectorArray(cascadeDataId,cascadeData);
         buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
@@ -153,9 +158,11 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalVector(shadowDistanceFadeId,
             new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
             );
+        //设置关键字调用不同的滤波器种类
         SetKeywords(
             directionalFilterKeywords,(int)shadowSettings.directional.filter - 1
             );
+        //调整关键字数组和索引，设置级联混合关键字
         SetKeywords(
             cascadeBlendKeywords,(int)shadowSettings.directional.cascadeBlend - 1
             );
@@ -175,6 +182,7 @@ public void Setup(ScriptableRenderContext context,
         int cascadeCount = shadowSettings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
         Vector3 ratios = shadowSettings.directional.CascadeRatios;
+        //缩小阴影投射器的采集范围，防止采集用不到的地方造成额外的开销
         float cullingFactor = Mathf.Max(0f, 0.8f - shadowSettings.directional.cascadeFade);
 
         for (int i = 0; i < cascadeCount; i++)
@@ -199,6 +207,7 @@ public void Setup(ScriptableRenderContext context,
                 projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
                 );
             buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
+            //bias的用法是在渲染时应用全局深度偏差，在渲染前调用缓冲区设置值，渲染后改为0,读取灯光中的固定偏移值            
             buffer.SetGlobalDepthBias(0f,light.slopeScaleBias);
             ExecuteBuffer();
             //命令相机绘制阴影,且只会识别ShadowCasterPass
@@ -256,15 +265,20 @@ public void Setup(ScriptableRenderContext context,
     void SetCascadeData(int index, Vector4 cullingSphere, float tileSize)
     {
         //cascadeData[index].x = 1f / cullingSphere.w;
+        //通过球面半径获得直径，除以tileSize获得单个贴片长度
         float texelSize = 2f * cullingSphere.w / tileSize;
+        //法线bias需要增加偏置来匹配滤波器尺寸，通过将纹素大小乘以一加滤波模式来进行此项操作
         float filterSize = texelSize * ((float)shadowSettings.directional.filter + 1.0f);
+        //因为增加了采样区域，需要在平方运算之前将球体半径减去过滤器尺寸
         cullingSphere.w -= filterSize;
         //通过比较球体中心的距离平方与球的半径平方来判断是否在球内
 		cullingSphere.w *= cullingSphere.w;
 		cascadeCullingSpheres[index] = cullingSphere;
+        //将级联球的半径平方的倒数存在X,因为texel贴片是正方型，最坏的情况下要乘以根号二
         cascadeData[index] = new Vector4(1f / cullingSphere.w, filterSize * 1.4142136f);
     }
 
+    //设置关键字
     void SetKeywords(string[] keywords,int enabledIndex)
     {
         //int enabledIndex = (int)shadowSettings.directional.filter - 1;

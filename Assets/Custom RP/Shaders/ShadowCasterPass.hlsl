@@ -38,6 +38,7 @@ Varyings ShadowCasterPassVertex(Attributes input)
     output.positionCS = TransformWorldToHClip(positionWS);
     output.baseUV = input.baseUV * baseST.xy + baseST.zw;
 
+//通过定义UNITY_REVERSED_Z,防止部分区域在屏幕外时被裁减导致阴影也被裁剪出现shadow pancake问题
 #if UNITY_REVERSED_Z
     output.positionCS.z = min(output.positionCS.z,output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #else
