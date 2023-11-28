@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Ball
   m_Shader: {fileID: 4800000, guid: 636118e65b714c1492964e6451106317, type: 3}
-  m_ShaderKeywords: _CLIPPING _PREMUTIPLY_ALPHA _RECEIVE_SHADOWS _SHADOWS_DITHER
+  m_ShaderKeywords: _CLIPPING _PREMUTIPLY_ALPHA _RECEIVE_SHADOWS _SHADOWS_CLIP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -62,7 +62,7 @@ Material:
     m_Floats:
     - _BumpScale: 1
     - _Clipping: 1
-    - _CutOff: 0.282
+    - _CutOff: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -75,7 +75,7 @@ Material:
     - _Parallax: 0.02
     - _PremultiplyAlpha: 1
     - _ReceiveShadows: 1
-    - _Shadows: 2
+    - _Shadows: 1
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
