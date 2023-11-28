@@ -41,6 +41,7 @@
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
+            #pragma multi_compile _ LIGHTMAP_ON
             //使用这条语句会产生两个变体,一个有instacing一个没有
             #pragma multi_compile_instancing
             #pragma vertex LitPassVertex

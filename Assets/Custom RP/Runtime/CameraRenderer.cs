@@ -98,7 +98,9 @@ public partial class CameraRenderer
             )
         {
             enableDynamicBatching = useDynamicBatching,
-            enableInstancing = useGPUInstancing
+            enableInstancing = useGPUInstancing,
+            //传递per-object data给drawing settings
+            perObjectData = PerObjectData.Lightmaps
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
