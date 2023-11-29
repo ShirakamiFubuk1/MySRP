@@ -12,6 +12,7 @@ struct Attributes
 {
     float3 positionOS:POSITION;
     float2 baseUV:TEXCOORD0;
+    float2 lightMapUV:TEXCOORD1;
 };
 
 struct Varyings
@@ -23,7 +24,11 @@ struct Varyings
 Varyings MetaPassVertex(Attributes input)
 {
     Varyings output;
-    output.positionCS = 0.0;
+
+    input.positionOS.xy =
+        input.lightMapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+    input.positionOS.z = input.positionOS.z > 0.0 ? FLT_MIN : 0.0;
+    output.positionCS = TransformWorldToHClip(input.positionOS);
     output.baseUV = TransformBaseUV(input.baseUV);
 
     return output;
