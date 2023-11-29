@@ -70,7 +70,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     float4 base = GetBase(input.baseUV);
     
 #if defined(_CLIPPING)
-    clip(base.a - GetCutoff(input.baseUV));
+    clip(base.a - GetCutOff(input.baseUV));
 #endif    
 
     Surface surface = (Surface)0;   
