@@ -78,6 +78,24 @@
             
             ENDHLSL
         }
+
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "Meta"
+            }
+            
+            Cull Off
+            
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex MetaPassVertex
+            #pragma fragment MetaPassFragment
+            #include "MetaPass.hlsl"
+
+            ENDHLSL
+        }
     }
     CustomEditor "CustomShaderGUI"
 }
