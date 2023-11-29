@@ -15,6 +15,17 @@ CBUFFER_START(UnityPerDraw)
     //光照贴图也适用于GPU实例化，所有数据会在需要时实例化
     float4 unity_LightmapST;
     float4 unity_DynamicLightmapST;
+
+    //球谐函数,需要七个float4向量分别代表多项式中的红绿蓝
+    //分别被命名为unity_SH*,*代表A,B或C
+    //前两个参数有三种版本,用r,g和b后缀代表
+    float4 unity_SHAr;
+    float4 unity_SHAg;
+    float4 unity_SHAb;
+    float4 unity_SHBr;
+    float4 unity_SHBg;
+    float4 unity_SHBb;
+    float4 unity_SHC;
 CBUFFER_END
 
 float4x4 unity_MatrixVP;
