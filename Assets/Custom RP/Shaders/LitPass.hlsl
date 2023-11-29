@@ -1,7 +1,7 @@
 #ifndef CUSTOM_LIT_PASS_INCLUDED
 #define CUSTOM_LIT_PASS_INCLUDED
 
-#include "../ShaderLibrary/Common.hlsl"
+//#include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
@@ -13,16 +13,16 @@
 //     float4 _BaseColor;
 // CBUFFER_END
 
-TEXTURE2D(_BaseMap);
-SAMPLER(sampler_BaseMap);
+// TEXTURE2D(_BaseMap);
+// SAMPLER(sampler_BaseMap);
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-    UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
-    UNITY_DEFINE_INSTANCED_PROP(float4,_BaseColor)
-    UNITY_DEFINE_INSTANCED_PROP(float,_CutOff)
-    UNITY_DEFINE_INSTANCED_PROP(float,_Metallic)
-    UNITY_DEFINE_INSTANCED_PROP(float,_Smoothness)
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+// UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+//     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
+//     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseColor)
+//     UNITY_DEFINE_INSTANCED_PROP(float,_CutOff)
+//     UNITY_DEFINE_INSTANCED_PROP(float,_Metallic)
+//     UNITY_DEFINE_INSTANCED_PROP(float,_Smoothness)
+// UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
 {
@@ -53,9 +53,9 @@ Varyings LitPassVertex(Attributes input)
     //获得GI数据,即LightMaps数据
     TRANSFER_GI_DATA(input,output);
     output.positionWS = TransformObjectToWorld(input.positionOS);
-    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
+    //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
     output.positionCS = TransformWorldToHClip(output.positionWS);
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.baseUV = TransformBaseUV(input.baseUV);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     return output;
@@ -65,12 +65,12 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
-    float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
-    float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
-    float4 base = baseMap * baseColor;
+    // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
+    // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
+    float4 base = GetBase(input.baseUV);
     
 #if defined(_CLIPPING)
-    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_CutOff));
+    clip(base.a - GetCutoff(input.baseUV));
 #endif    
 
     Surface surface = (Surface)0;   
@@ -79,8 +79,8 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.normal = normalize(input.normalWS);
     surface.color = base.rgb;
     surface.alpha = base.a;
-    surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Metallic);
-    surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Smoothness);
+    surface.metallic = GetMetallic(input.baseUV);
+    surface.smoothness = GetSmoothness(input.baseUV);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
     //视图空间和世界空间深度值是相同的，因为只进行了旋转和平移
     surface.depth = -TransformWorldToView(input.positionWS).z;

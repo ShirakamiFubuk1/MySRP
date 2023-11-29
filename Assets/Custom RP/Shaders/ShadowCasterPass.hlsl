@@ -1,16 +1,16 @@
 #ifndef CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 #define CUSTOM_SHADOW_CASTER_PASS_INCLUDED
 
-#include "../ShaderLibrary/Common.hlsl"
-
-TEXTURE2D(_BaseMap);
-SAMPLER(sampler_BaseMap);
-
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-    UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
-    UNITY_DEFINE_INSTANCED_PROP(float4,_BaseColor)
-    UNITY_DEFINE_INSTANCED_PROP(float,_CutOff)
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+// #include "../ShaderLibrary/Common.hlsl"
+//
+// TEXTURE2D(_BaseMap);
+// SAMPLER(sampler_BaseMap);
+//
+// UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+//     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseMap_ST)
+//     UNITY_DEFINE_INSTANCED_PROP(float4,_BaseColor)
+//     UNITY_DEFINE_INSTANCED_PROP(float,_CutOff)
+// UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
 {
@@ -36,7 +36,7 @@ Varyings ShadowCasterPassVertex(Attributes input)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
     float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
     output.positionCS = TransformWorldToHClip(positionWS);
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.baseUV = TransformBaseUV(input.baseUV);
 
 //通过定义UNITY_REVERSED_Z,防止部分区域在屏幕外时被裁减导致阴影也被裁剪出现shadow pancake问题
 #if UNITY_REVERSED_Z
