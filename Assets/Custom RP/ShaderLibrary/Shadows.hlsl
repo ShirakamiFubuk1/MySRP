@@ -163,10 +163,11 @@ float MixBakedAndRealtimeShadows(ShadowData global,float shadow,float strength)
     float baked = GetBakedShadow(global.shadowMask);
     if(global.shadowMask.distance)
     {
-        shadow = baked;
+        shadow = lerp(baked,shadow,global.strength);
+        return lerp(1.0,shadow,strength);
     }
 
-    return lerp(1.0,shadow,strength);
+    return lerp(1.0,shadow,strength * global.strength);
 }
 
 float GetCascadedShadow(
