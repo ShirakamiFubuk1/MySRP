@@ -41,6 +41,7 @@ struct DirectionalShadowData
     float strength;
     float normalBias;
     int tileIndex;
+    int shadowMaskChannel;
 };
 
 struct ShadowMask
@@ -150,29 +151,30 @@ float FilterDirectionalShadow(float3 positionSTS)
     #endif
 }
 
-float GetBakedShadow(ShadowMask mask)
+float GetBakedShadow(ShadowMask mask,int channel)
 {
     float shadow = 1.0;
     if(mask.always || mask.distance)
     {
-        shadow = mask.shadows.r;
+        if(channel >= 0)
+        {
+            shadow = mask.shadows.r;
+        }
     }
     return shadow;
 }
 
-float GetBakedShadow(ShadowMask mask,float strength)
+float GetBakedShadow(ShadowMask mask, int channel , float strength)
 {
-    float shadow = 1.0;
-    if(mask.always || mask.distance)
-    {
-        shadow = mask.shadows.r;
+    if (mask.always || mask.distance) {
+        return lerp(1.0, GetBakedShadow(mask, channel), strength);
     }
-    return shadow;
+    return 1.0;
 }
 
-float MixBakedAndRealtimeShadows(ShadowData global,float shadow,float strength)
+float MixBakedAndRealtimeShadows(ShadowData global,float shadow,int shadowMaskChannel,float strength)
 {
-    float baked = GetBakedShadow(global.shadowMask);
+    float baked = GetBakedShadow(global.shadowMask,shadowMaskChannel);
     if(global.shadowMask.always)
     {
         shadow = lerp(1.0,shadow,global.strength);
@@ -229,12 +231,12 @@ float GetDirectionalShadowAttenuation(
     float shadow;
     if(directional.strength * global.strength <= 0.0)
     {
-        shadow = GetBakedShadow(global.shadowMask,abs(directional.strength));
+        shadow = GetBakedShadow(global.shadowMask,directional.shadowMaskChannel,abs(directional.strength));
     }
     else
     {
         shadow = GetCascadedShadow(directional,global,surfaceWS);
-        shadow = MixBakedAndRealtimeShadows(global,shadow,directional.strength);
+        shadow = MixBakedAndRealtimeShadows(global,shadow,directional.shadowMaskChannel,directional.strength);
     }
 
     //阴影的衰减因子是一个0-1的值,如果片段完全被遮蔽则为0，没有被遮挡则为1，0-1表示部分被遮蔽
