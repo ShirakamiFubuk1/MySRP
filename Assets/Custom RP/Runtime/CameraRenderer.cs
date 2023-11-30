@@ -103,7 +103,8 @@ public partial class CameraRenderer
             perObjectData = 
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                 PerObjectData.LightProbe | PerObjectData.OcclusionProbe
-                | PerObjectData.LightProbeProxyVolume
+                | PerObjectData.LightProbeProxyVolume |
+                PerObjectData.OcclusionProbeProxyVolume
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
