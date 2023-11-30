@@ -7,6 +7,8 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     real4 unity_WorldTransformParams;
 
+    float4 unity_ProbesOcclusion;
+
     //光照贴图坐标通常由Unity按照网格自动生成,或者由导入的网格数据生成一部分。
     //它定义了一个纹理的展开，使网格扁平，映射到纹理坐标.
     //展开在光照贴图中按照对象进行缩放和定位，因此每个实例都有自己的空间。

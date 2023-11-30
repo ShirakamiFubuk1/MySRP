@@ -93,7 +93,7 @@ float4 SampleBakedShadows(float2 lightMapUV)
     #if defined(LIGHTMAP_ON)
         return SAMPLE_TEXTURE2D(unity_ShadowMask,samplerunity_ShadowMask,lightMapUV);
     #else
-        return 1.0;
+        return unity_ProbesOcclusion;
     #endif
 }
 
