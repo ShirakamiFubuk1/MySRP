@@ -94,7 +94,8 @@ public void Setup(ScriptableRenderContext context,
     {
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
-            && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b))
+            // && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b)
+            )
         {
             LightBakingOutput lightBaking = light.bakingOutput;
             if (
@@ -103,6 +104,13 @@ public void Setup(ScriptableRenderContext context,
             )
             {
                 useShadowMask = true;
+            }
+            //需要先判断光源是否使用阴影蒙版，之后在检查是否有实时阴影投射器
+            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+            {
+                //当阴影强度大于0时，着色器将对阴影贴图进行采样，即便这是不正确的
+                //这种情况我们可以通过将阴影强度取反来避免。
+                return new Vector3(-light.shadowStrength, 0f, 0f);
             }
             //从灯光中获取各种属性
             ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
