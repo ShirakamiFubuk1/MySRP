@@ -12,7 +12,7 @@
 #define UNITY_MATRIX_P glstate_matrix_projection
 
 //Mask数据实例化，防止打破instancing
-#if defined(_SHADOW_MASK_DISTANCE)
+#if defined(_SHADOW_MASK_ALWAYS) || defined(_SHADOW_MASK_DISTANCE)
     #define SHADOWS_SHADOWMASK
 #endif
 

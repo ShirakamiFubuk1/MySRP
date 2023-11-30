@@ -60,6 +60,7 @@ public class Shadows
         },
         shadowMaskKeywords =
         {
+            "_SHADOW_MASK_ALWAYS",
             "_SHADOW_MASK_DISTANCE"
         };
 
@@ -143,7 +144,9 @@ public void Setup(ScriptableRenderContext context,
         }
         buffer.BeginSample(bufferName);
         //在buffer中设置shadowMask关键字来启用
-        SetKeywords(shadowMaskKeywords,useShadowMask ? 0 : -1);
+        SetKeywords(shadowMaskKeywords,useShadowMask ? 
+            QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 
+            : -1);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
     }

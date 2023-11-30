@@ -45,6 +45,7 @@ struct DirectionalShadowData
 
 struct ShadowMask
 {
+    bool always;
     bool distance;
     float4 shadows;
 };
@@ -68,6 +69,7 @@ ShadowData GetShadowData(Surface surfaceWS)
     ShadowData data;
 
     //初始化shadowMask
+    data.shadowMask.always = true;
     data.shadowMask.distance = false;
     data.shadowMask.shadows = 1.0;
     data.cascadeBlend = 1.0;
@@ -151,7 +153,7 @@ float FilterDirectionalShadow(float3 positionSTS)
 float GetBakedShadow(ShadowMask mask)
 {
     float shadow = 1.0;
-    if(mask.distance)
+    if(mask.always || mask.distance)
     {
         shadow = mask.shadows.r;
     }
@@ -161,7 +163,7 @@ float GetBakedShadow(ShadowMask mask)
 float GetBakedShadow(ShadowMask mask,float strength)
 {
     float shadow = 1.0;
-    if(mask.distance)
+    if(mask.always || mask.distance)
     {
         shadow = mask.shadows.r;
     }
@@ -171,6 +173,13 @@ float GetBakedShadow(ShadowMask mask,float strength)
 float MixBakedAndRealtimeShadows(ShadowData global,float shadow,float strength)
 {
     float baked = GetBakedShadow(global.shadowMask);
+    if(global.shadowMask.always)
+    {
+        shadow = lerp(1.0,shadow,global.strength);
+        shadow = min(baked,shadow);
+
+        return lerp(1.0,shadow,strength);
+    }
     if(global.shadowMask.distance)
     {
         shadow = lerp(baked,shadow,global.strength);
