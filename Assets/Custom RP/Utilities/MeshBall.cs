@@ -61,10 +61,12 @@ public class MeshBall : MonoBehaviour {
                 //第三个用于遮挡的参数，故我们用null
                 //因为此参数只用一次，不需要使用list，因为会产生一条新的变体
                 var lightProbes = new SphericalHarmonicsL2[1023];
+                var occlusionProbes = new Vector4[1023];
                 LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
-                    positions,lightProbes,null
+                    positions,lightProbes,occlusionProbes
                 );
-                block.CopySHCoefficientArraysFrom(lightProbes);                
+                block.CopySHCoefficientArraysFrom(lightProbes);
+                block.CopyProbeOcclusionArrayFrom(occlusionProbes);
             }
         }
         //1 网格mesh, 2 子网格submesh, 3 材质, 4 transform矩阵, 5数量 ,6MaterialProperties
