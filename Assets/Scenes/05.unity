@@ -781,7 +781,7 @@ MonoBehaviour:
   cutOff: 0.5
   metallic: 0
   smoothness: 0.5
-  emissionColor: {r: 0, g: 0, b: 0, a: 1}
+  emissionColor: {r: 0.4811321, g: 0.4811321, b: 0.4811321, a: 1}
 --- !u!65 &508849327
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3630,7 +3630,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 7.428572, z: 7.4285717, w: -8.571429}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
