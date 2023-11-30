@@ -43,11 +43,18 @@ struct DirectionalShadowData
     int tileIndex;
 };
 
+struct ShadowMask
+{
+    bool distance;
+    float4 shadows;
+};
+
 struct ShadowData
 {
     int cascadeIndex;
     float strength;
     float cascadeBlend;
+    ShadowMask shadowMask;
 };
 
 //计算混合效果
@@ -60,6 +67,9 @@ ShadowData GetShadowData(Surface surfaceWS)
 {
     ShadowData data;
 
+    //初始化shadowMask
+    data.shadowMask.distance = false;
+    data.shadowMask.shadows = 1.0;
     data.cascadeBlend = 1.0;
     //不再将strength初始化为0,而是根据FadedShadowStrength提供的衰减值判断
     data.strength = FadedShadowStrength(

@@ -101,8 +101,8 @@ public partial class CameraRenderer
             enableInstancing = useGPUInstancing,
             //传递per-object data给drawing settings
             perObjectData = 
-                PerObjectData.Lightmaps | PerObjectData.LightProbe |
-                PerObjectData.LightProbeProxyVolume
+                PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
+                PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
