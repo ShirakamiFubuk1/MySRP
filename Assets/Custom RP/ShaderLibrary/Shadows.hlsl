@@ -148,18 +148,30 @@ float FilterDirectionalShadow(float3 positionSTS)
     #endif
 }
 
-//计算此处被光照遮蔽的程度
-float GetDirectionalShadowAttenuation(
-    DirectionalShadowData directional,ShadowData global, Surface surfaceWS)
+float GetBakedShadow(ShadowMask mask)
 {
-#if !defined(_RECEIVE_SHADOWS)
-    return 1.0;
-#endif
-    
-    if(directional.strength <= 0.0)
+    float shadow = 1.0;
+    if(mask.distance)
     {
-        return 1.0;
+        shadow = mask.shadows.r;
     }
+    return shadow;
+}
+
+float MixBakedAndRealtimeShadows(ShadowData global,float shadow,float strength)
+{
+    float baked = GetBakedShadow(global.shadowMask);
+    if(global.shadowMask.distance)
+    {
+        shadow = baked;
+    }
+
+    return lerp(1.0,shadow,strength);
+}
+
+float GetCascadedShadow(
+    DirectionalShadowData directional,ShadowData global,Surface surfaceWS)
+{
     //通过沿着表面法线方向乘以texel贴片和固定便宜获得法线偏移
     float3 normalBias = surfaceWS.normal *
         (directional.normalBias * _CascadeData[global.cascadeIndex].y);
@@ -181,12 +193,34 @@ float GetDirectionalShadowAttenuation(
         //混合第一层第二层之间的阴影
         shadow = lerp(
             FilterDirectionalShadow(positionSTS),shadow,global.cascadeBlend
-            );
+        );
     }
+    return shadow;
+}
+
+//计算此处被光照遮蔽的程度
+float GetDirectionalShadowAttenuation(
+    DirectionalShadowData directional,ShadowData global, Surface surfaceWS)
+{
+#if !defined(_RECEIVE_SHADOWS)
+    return 1.0;
+#endif
+
+    float shadow;
+    if(directional.strength <= 0.0)
+    {
+        shadow = 1.0;
+    }
+    else
+    {
+        shadow = GetCascadedShadow(directional,global,surfaceWS);
+        shadow = MixBakedAndRealtimeShadows(global,shadow,directional.strength);
+    }
+
     //阴影的衰减因子是一个0-1的值,如果片段完全被遮蔽则为0，没有被遮挡则为1，0-1表示部分被遮蔽
     //当光的阴影强度降低为0时，衰减就不受其影响而为1
     //故最终的衰减应该为1和采样到的阴影进行线性插值
-    return lerp(1.0,shadow,directional.strength);
+    return shadow;
 }
 
 #endif
