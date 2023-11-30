@@ -51,18 +51,25 @@ public class Shadows
         cascadeCullingSpheres = new Vector4[maxCascades],
         cascadeData = new Vector4[maxCascades];
 
-    private static string[] directionalFilterKeywords =
-    {
-        "_DIRECTIONAL_PCF3",
-        "_DIRECTIONAL_PCF5",
-        "_DIRECTIONAL_PCF7"
-    };
+    private static string[] 
+        directionalFilterKeywords =
+        {
+            "_DIRECTIONAL_PCF3",
+            "_DIRECTIONAL_PCF5",
+            "_DIRECTIONAL_PCF7"
+        },
+        shadowMaskKeywords =
+        {
+            "_SHADOW_MASK_DISTANCE"
+        };
 
     private static string[] cascadeBlendKeywords =
     {
         "_CASCADE_BLEND_SOFT",
         "_CASCADE_BLEND_DITHER"
     };
+
+    private bool useShadowMask;
 
 public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
@@ -72,6 +79,8 @@ public void Setup(ScriptableRenderContext context,
         this.shadowSettings = shadowSettings;
         //初始化阴影的时候将该值设为0
         ShadowedDirectionalLightCount = 0;
+        //启用shadowMask
+        useShadowMask = false;
     }
 
     void ExecuteBuffer()
@@ -87,6 +96,14 @@ public void Setup(ScriptableRenderContext context,
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
             && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b))
         {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            if (
+                lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+                lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask
+            )
+            {
+                useShadowMask = true;
+            }
             //从灯光中获取各种属性
             ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
@@ -116,6 +133,11 @@ public void Setup(ScriptableRenderContext context,
             buffer.GetTemporaryRT(dirShadowAtlasId,1,1,32,
                 FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
         }
+        buffer.BeginSample(bufferName);
+        //在buffer中设置shadowMask关键字来启用
+        SetKeywords(shadowMaskKeywords,useShadowMask ? 0 : -1);
+        buffer.EndSample(bufferName);
+        ExecuteBuffer();
     }
 
     void RenderDirectionalShadows()
