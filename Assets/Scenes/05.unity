@@ -190,13 +190,13 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 4
+  m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 8.24e-43, y: 1.0652403e-27, z: 8.24e-43, w: 0}
+  m_BoundingSphereOverride: {x: 1.75, y: 0, z: 1.8888837e+31, w: 1.0961122e-27}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -3722,7 +3722,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 9.188e-41, y: 2.75506e-40, z: 5.142788e-39, w: 2.222706e-38}
+  m_BoundingSphereOverride: {x: -1.1428572, y: 9.714286, z: 4, w: -13.1428585}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
