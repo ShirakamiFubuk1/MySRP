@@ -91,13 +91,14 @@ public void Setup(ScriptableRenderContext context,
     }
 
     //用于给阴影贴图在阴影图集中预留位置以及存储相关渲染信息
-    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
             // && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b)
             )
         {
+            float maskChannel = -1;
             LightBakingOutput lightBaking = light.bakingOutput;
             if (
                 lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
@@ -105,13 +106,14 @@ public void Setup(ScriptableRenderContext context,
             )
             {
                 useShadowMask = true;
+                maskChannel = lightBaking.occlusionMaskChannel;
             }
             //需要先判断光源是否使用阴影蒙版，之后在检查是否有实时阴影投射器
             if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
             {
                 //当阴影强度大于0时，着色器将对阴影贴图进行采样，即便这是不正确的
                 //这种情况我们可以通过将阴影强度取反来避免。
-                return new Vector3(-light.shadowStrength, 0f, 0f);
+                return new Vector4(-light.shadowStrength, 0f, 0f,maskChannel);
             }
             //从灯光中获取各种属性
             ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
@@ -122,12 +124,12 @@ public void Setup(ScriptableRenderContext context,
                     nearPlaneOffset = light.shadowNearPlane
                 };
             //将灯光的默认偏移放入返回数据中
-            return new Vector3(light.shadowStrength,  
+            return new Vector4(light.shadowStrength,  
                 shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++,
-                light.shadowNormalBias
+                light.shadowNormalBias,maskChannel
                 );
         }
-        return Vector3.zero;
+        return new Vector4(0f,0f,0f,-1f);
     }
 
     public void Render()
