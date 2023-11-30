@@ -1,5 +1,5 @@
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class MeshBall : MonoBehaviour {
 
@@ -47,7 +47,26 @@ public class MeshBall : MonoBehaviour {
             block.SetVectorArray(baseColorId, baseColors);
             block.SetFloatArray(metallicId, metallic);
             block.SetFloatArray(smoothnessId, smoothness);
+
+            var positions = new Vector3[1023];
+            for (int i = 0; i < matrices.Length; i++)
+            {
+                //配置实例块时需要访问实力位置。通过获得矩阵的第三行
+                positions[i] = matrices[i].GetColumn(3);
+            }
+
+            //光照探针必须通过矩阵提供。它通过使用位置和光探针数组作为参数来调用。
+            //第三个用于遮挡的参数，故我们用null
+            //因为此参数只用一次，不需要使用list，因为会产生一条新的变体
+            var lightProbes = new SphericalHarmonicsL2[1023];
+            LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
+                positions,lightProbes,null
+            );
+            block.CopySHCoefficientArraysFrom(lightProbes);
         }
-        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block);
+        //1 网格mesh, 2 子网格submesh, 3 材质, 4 transform矩阵, 5数量 ,6MaterialProperties
+        //7 开启阴影投射模式, 8 是否接收阴影, 9 图层,默认0, 10 camera, 11 设置光探针模式
+        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block,
+            ShadowCastingMode.On,true,0,null,LightProbeUsage.CustomProvided);
     }
 }
