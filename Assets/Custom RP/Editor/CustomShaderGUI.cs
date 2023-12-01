@@ -214,6 +214,9 @@ public class CustomShaderGUI : ShaderGUI
 
     void BakedEmission()
     {
+        //因为Unity在烘焙时会避免单独的emission通道，如果材质的emission设置为0，则忽略这个材料
+        //但是这并未考虑每个材质的属性，当emissions发生更改时，我们可以通过禁用所有选定材料的属性
+        //的默认标志来覆盖此行为，这也意味着仅在需要时启用该选项
         EditorGUI.BeginChangeCheck();
         editor.LightmapEmissionProperty();
         if (EditorGUI.EndChangeCheck())

@@ -66,6 +66,8 @@ float4 MetaPassFragment(Varyings input):SV_TARGET{
         //使用Unity提供的数据对rgb进行处理
         meta.rgb = min(PositivePow(meta.rgb,unity_OneOverOutputBoost),unity_MaxOutputValue);
     }
+    //自发光通过单独的通道进行烘焙
+    //当unity_MetaFragmentControl.y被设置时,将返回Emission的RGB,A用1.0
     else if(unity_MetaFragmentControl.y)
     {
         meta = float4(GetEmission(input.baseUV),1.0);
