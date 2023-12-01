@@ -29,6 +29,7 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBb;
     float4 unity_SHC;
 
+    //LPPV相关的输入
     float4 unity_ProbeVolumeParams;
     float4 unity_ProbeVolumeSizeInv;
     float4 unity_ProbeVolumeMin;

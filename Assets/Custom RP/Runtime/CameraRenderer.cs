@@ -100,6 +100,8 @@ public partial class CameraRenderer
             enableDynamicBatching = useDynamicBatching,
             enableInstancing = useGPUInstancing,
             //传递per-object data给drawing settings
+            //插值的光照探针数据必须传递给GPU。通过PerObjectData.LightProbe启用
+            //通过PerObjectData.LightProbeProxyVolume启用LPPV
             perObjectData = 
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                 PerObjectData.LightProbe | PerObjectData.OcclusionProbe

@@ -9,6 +9,7 @@ SAMPLER(samplerunity_Lightmap);
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
 
+//体积数据存储在3D纹理中.通过宏添加它的采集器状态
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
@@ -56,12 +57,14 @@ float3 SampleLightmap(float2 lightmapUV)
     #endif
 }
 
+//对光照探针进行采样。需要一个方向，故提供surfaceWS
+////如果此对象正在使用光照贴图，则返回0，否则进行下一步判断
 float3 SampleLightProbe (Surface surfaceWS)
 {
 #if defined(LIGHTMAP_ON)
     return 0.0;
 #else
-    //通过unity_ProbeVolumeParams来与Unity通信
+    //通过unity_ProbeVolumeParams来与Unity通信，如果设置了它，就会对体积进行采样
     if(unity_ProbeVolumeParams.x)
     {
         //首先采样体积,通过SampleProbeVolumeSH4
@@ -72,7 +75,9 @@ float3 SampleLightProbe (Surface surfaceWS)
             TEXTURE3D_ARGS(unity_ProbeVolumeSH,samplerunity_ProbeVolumeSH),
             //世界位置和世界法线
             surfaceWS.position,surfaceWS.normal,
+            //转换矩阵
             unity_ProbeVolumeWorldToObject,
+            //y,z分量,min和size-inv数据的xyz部分
             unity_ProbeVolumeParams.y,unity_ProbeVolumeParams.z,
             unity_ProbeVolumeMin.xyz,unity_ProbeVolumeSizeInv.xyz
         );
@@ -117,6 +122,7 @@ float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
 GI GetGI(float2 lightMapUV,Surface surfaceWS)
 {
     GI gi;
+    //分别加上LightMap和LightProbe
     gi.diffuse = SampleLightmap(lightMapUV) + SampleLightProbe(surfaceWS);
     //由于shadowMask需要烘焙到GI里面，故在这里也需要初始化
     gi.shadowMask.always = false;
