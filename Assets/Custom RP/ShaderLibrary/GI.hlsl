@@ -12,6 +12,7 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
+//定义宏刚开始定义为0,如果定义了LIGHTMAP_ON我们需要添加lightMapUV对应的结构,
 #if defined(LIGHTMAP_ON)
     #define GI_ATTRIBUTE_DATA float2 lightmapUV : TEXCOORD1;
     #define GI_VARYINGS_DATA float2 lightmapUV : VAR_LIGHT_MAP_UV;
@@ -33,17 +34,21 @@ struct GI
     ShadowMask shadowMask;
 };
 
+//该函数在使用光照贴图时调用,否则返回0,它用来设置漫反射光
 float3 SampleLightmap(float2 lightmapUV)
 {
     #if defined(LIGHTMAP_ON)
         return SampleSingleLightmap(
+            //12 LightMap采样器,3 UV,4 平移缩放
 			TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV,
 			float4(1.0, 1.0, 0.0, 0.0),
+			//用于指示光照贴图是否被压缩
 			#if defined(UNITY_LIGHTMAP_FULL_HDR)
 				false,
 			#else
 				true,
 			#endif
+			//指导解码
 			float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0)
             );
     #else

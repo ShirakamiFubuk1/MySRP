@@ -29,6 +29,7 @@ struct Attributes
     float2 baseUV : TEXCOORD0;
     float3 normalOS : NORMAL;
     float3 positionOS : POSITION;
+    //GI在Attribute中对应的宏，来开启对应的功能
     GI_ATTRIBUTE_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -39,6 +40,7 @@ struct Varyings
     float3 normalWS : VAR_NORMAL;
     float3 positionWS : VAR_POSITION;
     float4 positionCS : SV_POSITION;
+    //GI在VARYINGS中对应的宏
     GI_VARYINGS_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -50,7 +52,7 @@ Varyings LitPassVertex(Attributes input)
     //获得Instance的ID
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input,output);
-    //获得GI数据,即LightMaps数据
+    //获得GI数据,即LightMaps数据，并转换数据
     TRANSFER_GI_DATA(input,output);
     output.positionWS = TransformObjectToWorld(input.positionOS);
     //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
@@ -93,6 +95,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     BRDF brdf = GetBRDF(surface);
 #endif
 
+    //输出从unity中获得的数据，如光照贴图等
     GI gi = GetGI(GI_FRAGMENT_DATA(input),surface);
     float3 color = GetLighting(surface,brdf,gi);
     color += GetEmission(input.baseUV);
