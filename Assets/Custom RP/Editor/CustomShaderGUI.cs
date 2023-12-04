@@ -229,6 +229,8 @@ public class CustomShaderGUI : ShaderGUI
         }
     }
 
+    //确保该属性指向相同的纹理，使用相同的UV转换.两种颜色也相同
+    //使用此方法,如果进行了更改且相关属性存在,则会复制其值
     void CopyLightMappingProperties()
     {
         MaterialProperty mainTex = FindProperty("_MainTex", properties, false);

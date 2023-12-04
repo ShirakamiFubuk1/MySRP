@@ -17,6 +17,9 @@
         [KeywordEnum(On,Clip,Dither,Off)] _Shadows("Shadows",Float) = 0
         [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("Receive Shadows",Float) = 1
         
+        //由于Unity的光照贴图编辑器控制透明度的方法是写死的，通过材质的队列来控制透明,裁剪,还是不透明
+        //通过_MainTex和_Color的透明度相乘获得真实透明度,通过_CutOff来确定Alpha裁剪
+        //补全缺少的_MainTex和_Color,为shader提供对应的属性,同时使用隐藏标签以便不显示在检查器中
         [HideInInspector] _MainTex("Texture for Lightmap",2D) = "white"{}
         [HideInInspector] _Color("Color for Lightmap",Color) = (0.5,0.5,0.5,1.0)
     }

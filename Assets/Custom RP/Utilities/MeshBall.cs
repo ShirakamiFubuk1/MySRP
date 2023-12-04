@@ -50,6 +50,8 @@ public class MeshBall : MonoBehaviour {
             
             if (!lightProbeVolume)
             {
+                //因为需要给所有实例手动生成插值的lightProbe并添加到MaterialPropertiesBlock中
+                //这意味着需要提供位置,我们通过矩阵第三行来获得位置信息
                 var positions = new Vector3[1023];
                 for (int i = 0; i < matrices.Length; i++)
                 {
@@ -65,12 +67,15 @@ public class MeshBall : MonoBehaviour {
                 LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
                     positions,lightProbes,occlusionProbes
                 );
+                //复制lightProbe和LPPV
                 block.CopySHCoefficientArraysFrom(lightProbes);
                 block.CopyProbeOcclusionArrayFrom(occlusionProbes);
             }
         }
         //1 网格mesh, 2 子网格submesh, 3 材质, 4 transform矩阵, 5数量 ,6MaterialProperties
         //7 开启阴影投射模式, 8 是否接收阴影, 9 图层,默认0, 10 camera, 11 设置光探针模式
+        //开启ShadowCastingMode,开启CastShadow,layer设置为0,相机设置为null,即为所有对象渲染
+        //最后设置lightProbeMode
         Graphics.DrawMeshInstanced(mesh, 0, material, matrices, 1023, block,
             ShadowCastingMode.On,true,0,null,
             lightProbeVolume ? 
