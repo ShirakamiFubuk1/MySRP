@@ -63,12 +63,14 @@ public class MeshBall : MonoBehaviour {
                 //第三个用于遮挡的参数，故我们用null
                 //因为此参数只用一次，不需要使用list，因为会产生一条新的变体
                 var lightProbes = new SphericalHarmonicsL2[1023];
+                //创建遮挡探针来获得遮挡数据
                 var occlusionProbes = new Vector4[1023];
                 LightProbes.CalculateInterpolatedLightAndOcclusionProbes(
                     positions,lightProbes,occlusionProbes
                 );
                 //复制lightProbe和LPPV
                 block.CopySHCoefficientArraysFrom(lightProbes);
+                //获取遮挡探针数据
                 block.CopyProbeOcclusionArrayFrom(occlusionProbes);
             }
         }

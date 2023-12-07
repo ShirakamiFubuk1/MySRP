@@ -54,6 +54,7 @@
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
+            //启用shader关键字，将相应的多编译指令添加到着色器的传递中
             #pragma multi_compile _ _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
             //使用LIGHTMAP_ON的编译宏来创建对应的分支
             #pragma multi_compile _ LIGHTMAP_ON

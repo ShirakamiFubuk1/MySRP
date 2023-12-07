@@ -6,6 +6,7 @@
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 
+//采样阴影贴图
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
 
@@ -98,6 +99,7 @@ float3 SampleLightProbe (Surface surfaceWS)
 #endif
 }
 
+//采样ShadowMask
 float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
 {
     #if defined(LIGHTMAP_ON)
@@ -105,6 +107,7 @@ float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
     #else
         if(unity_ProbeVolumeParams.x)
         {
+            //使用LPPVs，方式类似于获取光照，只是使用的函数不再是SampleProbeVolumeSH4
             return SampleProbeOcclusion(
                 TEXTURE3D_ARGS(unity_ProbeVolumeSH,samplerunity_ProbeVolumeSH),
                 surfaceWS.position,unity_ProbeVolumeWorldToObject,
@@ -114,6 +117,7 @@ float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
         }
         else
         {
+            //将遮挡探针中的数据返回给动态对象
             return unity_ProbesOcclusion;            
         }
     #endif
@@ -129,6 +133,7 @@ GI GetGI(float2 lightMapUV,Surface surfaceWS)
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;
 
+    //定义了对应的模式则将相应的数据传递过来
     #if defined(_SHADOW_MASK_ALWAYS)
         gi.shadowMask.always = true;
         gi.shadowMask.shadows = SampleBakedShadows(lightMapUV,surfaceWS);

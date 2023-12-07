@@ -69,7 +69,7 @@ ShadowData GetShadowData(Surface surfaceWS)
 {
     ShadowData data;
 
-    //初始化shadowMask
+    //初始化shadowMask,默认使用alwasy
     data.shadowMask.always = true;
     data.shadowMask.distance = false;
     data.shadowMask.shadows = 1.0;

@@ -7,6 +7,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     real4 unity_WorldTransformParams;
 
+    //由于动态对象没有阴影蒙版数据.他们使用光照探针而不是使用光照贴图.
+    //但是Unity还会将阴影遮罩数据烘焙到光照贴图探针中，将其称作遮挡探针
+    //可以通过unity_ProbesOcclusion从Unity缓冲区中访问此数据
     float4 unity_ProbesOcclusion;
 
     //光照贴图坐标通常由Unity按照网格自动生成,或者由导入的网格数据生成一部分。

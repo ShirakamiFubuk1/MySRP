@@ -102,6 +102,8 @@ public partial class CameraRenderer
             //传递per-object data给drawing settings
             //插值的光照探针数据必须传递给GPU。通过PerObjectData.LightProbe启用
             //通过PerObjectData.LightProbeProxyVolume启用LPPV
+            //使用PerObjectData.ShadowMask启用将相关数据发送到GPU中
+            //设置OcclusionProbe关键字来启用该功能的数据传输
             perObjectData = 
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                 PerObjectData.LightProbe | PerObjectData.OcclusionProbe

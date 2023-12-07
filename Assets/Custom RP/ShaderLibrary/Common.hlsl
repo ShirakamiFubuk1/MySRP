@@ -12,6 +12,7 @@
 #define UNITY_MATRIX_P glstate_matrix_projection
 
 //Mask数据实例化，防止打破instancing
+//遮挡数据可以自动实例化，但只有在定义时才会这样做.因此在Include之前需要定义它
 #if defined(_SHADOW_MASK_ALWAYS) || defined(_SHADOW_MASK_DISTANCE)
     #define SHADOWS_SHADOWMASK
 #endif

@@ -58,6 +58,7 @@ public class Shadows
             "_DIRECTIONAL_PCF5",
             "_DIRECTIONAL_PCF7"
         },
+        //用于控制shadowMask类型的关键字
         shadowMaskKeywords =
         {
             "_SHADOW_MASK_ALWAYS",
@@ -99,8 +100,10 @@ public void Setup(ScriptableRenderContext context,
             )
         {
             float maskChannel = -1;
+            //由于需要判断是否需要使用shadowMask,必须检测是否有使用它的灯
             LightBakingOutput lightBaking = light.bakingOutput;
             if (
+                //光照模式为Mixed同时光照混合模式设为shadowMask时使用阴影蒙版
                 lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
                 lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask
             )
@@ -144,6 +147,7 @@ public void Setup(ScriptableRenderContext context,
             buffer.GetTemporaryRT(dirShadowAtlasId,1,1,32,
                 FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
         }
+        //给是否使用关键字添加开关，即使不使用任何光照贴图也需要进行此操作，因为shadowMask不是实时的
         buffer.BeginSample(bufferName);
         //在buffer中设置shadowMask关键字来启用
         SetKeywords(shadowMaskKeywords,useShadowMask ? 
