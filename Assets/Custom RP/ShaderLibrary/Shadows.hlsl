@@ -166,7 +166,7 @@ float GetBakedShadow(ShadowMask mask,int channel)
         //达到最大距离则切换为shadowMask阴影，根据channel判断
         if(channel >= 0)
         {
-            shadow = mask.shadows.r;
+            shadow = mask.shadows[channel];
         }
     }
     return shadow;

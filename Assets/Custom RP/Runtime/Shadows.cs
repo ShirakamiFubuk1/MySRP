@@ -67,6 +67,11 @@ public class Shadows
             "_SHADOW_MASK_ALWAYS",
             //距离模式
             "_SHADOW_MASK_DISTANCE"
+            //关于Subtractive mixed lighting mode
+            //减法模式是另一种将烘焙光照和阴影的方式,只用一个单独的光照贴图
+            //方法是完全烘焙光照但同时也是用实时光照,然后计算实时光照的漫反射,采样实时阴影
+            //用这些来确定哪些漫反射光照需要被shadowed,是那些你从漫反射GI中减去的
+            //虽然最后得到了烘焙照明的静态对象,但是也计算了漫反射实时照明(脱裤子放屁)
         };
 
     private static string[] cascadeBlendKeywords =
