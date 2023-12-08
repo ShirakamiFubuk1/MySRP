@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Ball
+  m_Name: LOD0
   m_Shader: {fileID: 4800000, guid: 636118e65b714c1492964e6451106317, type: 3}
   m_ShaderKeywords: _CLIPPING _PREMUTIPLY_ALPHA _RECEIVE_SHADOWS _SHADOWS_CLIP
   m_LightmapFlags: 4
@@ -83,6 +83,6 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.40583837, g: 0.4422023, b: 0.754717, a: 1}
-    - _Color: {r: 0.40583837, g: 0.4422023, b: 0.754717, a: 1}
+    - _BaseColor: {r: 1, g: 0.5388314, b: 0.5188679, a: 1}
+    - _Color: {r: 1, g: 0.5388314, b: 0.5188679, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
