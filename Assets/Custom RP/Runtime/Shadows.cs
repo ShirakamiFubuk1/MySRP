@@ -61,7 +61,11 @@ public class Shadows
         //用于控制shadowMask类型的关键字
         shadowMaskKeywords =
         {
+            //shadowMask模式,它的工作方式与shadowMaskDistance完全相同
+            //只是Unity将会忽略所有使用shadowMask的灯光的staticShadowCaster
+            //因为shadowMask模式随处可用,所以可以全部使用来减少实时阴影,但是效果会差一些
             "_SHADOW_MASK_ALWAYS",
+            //距离模式
             "_SHADOW_MASK_DISTANCE"
         };
 
@@ -96,9 +100,11 @@ public void Setup(ScriptableRenderContext context,
     {
         if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
+            //防止跳过没有实时shadowCaster的光源
             // && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b)
             )
         {
+            //如果不使用shadowMask则返回-1,故初始化为-1
             float maskChannel = -1;
             //由于需要判断是否需要使用shadowMask,必须检测是否有使用它的灯
             LightBakingOutput lightBaking = light.bakingOutput;
@@ -109,6 +115,7 @@ public void Setup(ScriptableRenderContext context,
             )
             {
                 useShadowMask = true;
+                //通过occlusionMaskChannel来获得光照mask的通道index
                 maskChannel = lightBaking.occlusionMaskChannel;
             }
             //需要先判断光源是否使用阴影蒙版，之后在检查是否有实时阴影投射器
@@ -116,6 +123,7 @@ public void Setup(ScriptableRenderContext context,
             {
                 //当阴影强度大于0时，着色器将对阴影贴图进行采样，即便这是不正确的
                 //这种情况我们可以通过将阴影强度取反来避免。
+                //如果不使用shadowMask则返回-1
                 return new Vector4(-light.shadowStrength, 0f, 0f,maskChannel);
             }
             //从灯光中获取各种属性
@@ -151,6 +159,7 @@ public void Setup(ScriptableRenderContext context,
         buffer.BeginSample(bufferName);
         //在buffer中设置shadowMask关键字来启用
         SetKeywords(shadowMaskKeywords,useShadowMask ? 
+            //通过查询QualitySettings中的shadowMaskMode来决定应该启用哪个关键字
             QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 
             : -1);
         buffer.EndSample(bufferName);

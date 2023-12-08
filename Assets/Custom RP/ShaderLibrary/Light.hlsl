@@ -40,6 +40,8 @@ DirectionalShadowData GetDirectionalShadowData(int lightIndex,ShadowData shadowD
     DirectionalShadowData data;
     //将原有强度乘以strength以剔除对应级联范围以外的阴影
     //data.strength = _DirectionalLightShadowData[lightIndex].x * shadowData.strength;
+    //如果不使用shadowMask也不使用shadowCasetr,则需要通过将strength改为负数来关闭shadowMask采集
+    //故此时data.shrength有概率为负数,使用时需要使用绝对值
     data.strength = _DirectionalLightShadowData[lightIndex].x;
     data.tileIndex = _DirectionalLightShadowData[lightIndex].y + shadowData.cascadeIndex;
     data.normalBias = _DirectionalLightShadowData[lightIndex].z;

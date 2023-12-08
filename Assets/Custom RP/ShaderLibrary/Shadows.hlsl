@@ -41,6 +41,13 @@ struct DirectionalShadowData
     float strength;
     float normalBias;
     int tileIndex;
+    //由于shadowMask有四个通道,因此最多可以支持四个混合光源
+    //烘焙时最重要的灯获得红色通道,第二盏灯获得绿色通道,以此类推
+    //当混合模式灯光超过四个,Unity会将前四个以外的所有混合模式灯光转换为完全烘焙的灯光
+    //除了直接光之外其他光源类型影响范围有限,因此可以将同一通道用于多个光源
+    //由于灯光顺序在运行中可能会发生变化,因为灯光可能更改或者禁用,故不能依赖灯光顺序
+    //因此我们通过检索光源的shadowMaskChannel索引shadowMask的RGBA通道
+    //当灯光不使用shadowMask通过设置返回-1
     int shadowMaskChannel;
 };
 
@@ -156,6 +163,7 @@ float GetBakedShadow(ShadowMask mask,int channel)
     float shadow = 1.0;
     if(mask.always || mask.distance)
     {
+        //达到最大距离则切换为shadowMask阴影，根据channel判断
         if(channel >= 0)
         {
             shadow = mask.shadows.r;
@@ -172,11 +180,14 @@ float GetBakedShadow(ShadowMask mask, int channel , float strength)
     return 1.0;
 }
 
-float MixBakedAndRealtimeShadows(ShadowData global,float shadow,int shadowMaskChannel,float strength)
+float MixBakedAndRealtimeShadows(
+    ShadowData global,float shadow,int shadowMaskChannel,float strength)
 {
     float baked = GetBakedShadow(global.shadowMask,shadowMaskChannel);
     if(global.shadowMask.always)
     {
+        //阴影必须通过全局强度进行控制改变强度,然后选取baked和shadow的最小值来组合两种阴影
+        //然后再用灯光的阴影强度应用合并后的阴影
         shadow = lerp(1.0,shadow,global.strength);
         shadow = min(baked,shadow);
 
@@ -184,13 +195,16 @@ float MixBakedAndRealtimeShadows(ShadowData global,float shadow,int shadowMaskCh
     }
     if(global.shadowMask.distance)
     {
+        //基于全局强度在烘焙阴影和实时阴影之间进行插值,然后应用光源的阴影强度
         shadow = lerp(baked,shadow,global.strength);
         return lerp(1.0,shadow,strength);
     }
 
+    //当不适用shadowMask时仅仅是把强度组合并应用于实时阴影
     return lerp(1.0,shadow,strength * global.strength);
 }
 
+//拆分GetDirectionalShadowAttenuation的功能防止高耦合
 float GetCascadedShadow(
     DirectionalShadowData directional,ShadowData global,Surface surfaceWS)
 {
@@ -229,6 +243,7 @@ float GetDirectionalShadowAttenuation(
 #endif
 
     float shadow;
+    //检测组合强度是否小于0,若小于则直接返回烘焙阴影并跳过实时阴影采样
     if(directional.strength * global.strength <= 0.0)
     {
         shadow = GetBakedShadow(global.shadowMask,directional.shadowMaskChannel,abs(directional.strength));
