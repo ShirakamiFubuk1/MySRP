@@ -14,6 +14,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _CutOff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+	UNITY_DEFINE_INSTANCED_PROP(float, _Occlusion)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -61,6 +62,14 @@ float3 GetEmission(float2 baseUV)
 	float4 color = INPUT_PROP(_EmissionColor);
 
 	return map.rgb * color.rgb;
+}
+
+float GetOcclusion(float2 baseUV)
+{
+	float strength = INPUT_PROP(_Occlusion);
+	float occlusion = GetMask(baseUV).g;
+	occlusion = lerp(occlusion,1.0,strength);
+	return occlusion;
 }
 
 #endif

@@ -5,6 +5,7 @@ struct Surface
 {
     float alpha;
     float metallic;
+    float occlusion;
     float smoothness;
     float fresnelStrength;
     float depth;
