@@ -45,7 +45,9 @@ float GetMetallic (float2 baseUV) {
 }
 
 float GetSmoothness (float2 baseUV) {
-	return INPUT_PROP(_Smoothness);
+	float smoothness = INPUT_PROP(_Smoothness);
+	smoothness *= GetMask(baseUV).a;
+	return smoothness;
 }
 
 float GetFresnel(float2 baseUV)
