@@ -75,7 +75,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
-    float4 base = GetBase(input.baseUV);
+    float4 base = GetBase(input.baseUV,input.detailUV);
     
 #if defined(_CLIPPING)
     clip(base.a - GetCutOff(input.baseUV));
