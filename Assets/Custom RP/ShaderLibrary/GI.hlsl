@@ -14,6 +14,10 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
+//采样周围环境
+TEXTURECUBE(unity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
+
 //定义宏刚开始定义为0,如果定义了LIGHTMAP_ON我们需要添加lightMapUV对应的结构,
 #if defined(LIGHTMAP_ON)
     #define GI_ATTRIBUTE_DATA float2 lightmapUV : TEXCOORD1;
@@ -33,6 +37,7 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 struct GI
 {
     float3 diffuse;
+    float3 specular;
     ShadowMask shadowMask;
 };
 
@@ -123,11 +128,21 @@ float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
     #endif
 }
 
+float3 SampleEnvironment(Surface surfaceWS)
+{
+    float3 uvw = reflect(-surfaceWS.viewDirection,surfaceWS.normal);
+    float4 environment = SAMPLE_TEXTURECUBE_LOD(
+        unity_SpecCube0,samplerunity_SpecCube0,uvw,0.0
+        );
+    return environment.rgb;
+}
+
 GI GetGI(float2 lightMapUV,Surface surfaceWS)
 {
     GI gi;
     //分别加上LightMap和LightProbe
     gi.diffuse = SampleLightmap(lightMapUV) + SampleLightProbe(surfaceWS);
+    gi.specular = SampleEnvironment(surfaceWS);
     //由于shadowMask需要烘焙到GI里面，故在这里也需要初始化
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;

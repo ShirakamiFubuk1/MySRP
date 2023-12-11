@@ -105,6 +105,7 @@ public partial class CameraRenderer
             //使用PerObjectData.ShadowMask启用将相关数据发送到GPU中
             //设置OcclusionProbe关键字来启用该功能的数据传输
             perObjectData = 
+                PerObjectData.ReflectionProbes |
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                 PerObjectData.LightProbe | PerObjectData.OcclusionProbe
                 | PerObjectData.LightProbeProxyVolume |

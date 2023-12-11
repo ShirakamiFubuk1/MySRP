@@ -22,7 +22,7 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
     //Debug项,用于观察shadowMaskData
     //return gi.shadowMask.shadows.rgb;
     
-    float3 color = IndirectBRDF(surfaceWS,brdf,gi.diffuse,1.0);
+    float3 color = IndirectBRDF(surfaceWS,brdf,gi.diffuse,gi.specular);
     for(int i = 0;i<GetDirectionalLightCount();i++)
     {
         //将surface信息传递给GetDirectionalLight
