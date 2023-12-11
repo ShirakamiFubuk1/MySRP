@@ -37,6 +37,7 @@ struct Attributes
 struct Varyings
 {
     float2 baseUV : VAR_BASE_UV;
+    float2 detailUV : VAR_DETAIL_UV;
     float3 normalWS : VAR_NORMAL;
     float3 positionWS : VAR_POSITION;
     float4 positionCS : SV_POSITION;
@@ -58,6 +59,7 @@ Varyings LitPassVertex(Attributes input)
     //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
     output.positionCS = TransformWorldToHClip(output.positionWS);
     output.baseUV = TransformBaseUV(input.baseUV);
+    output.detailUV = TransformDetailUV(input.baseUV);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     return output;

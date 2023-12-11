@@ -8,8 +8,12 @@ TEXTURE2D(_MaskMap);
 TEXTURE2D(_EmissionMap);
 SAMPLER(sampler_BaseMap);
 
+TEXTURE2D(_DetailMap);
+SAMPLER(sampler_DetailMap);
+
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _CutOff)
@@ -22,6 +26,11 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 float2 TransformBaseUV (float2 baseUV) {
 	float4 baseST = INPUT_PROP(_BaseMap_ST);
 	return baseUV * baseST.xy + baseST.zw;
+}
+
+float2 TransformDetailUV (float2 detailUV) {
+	float4 detailST = INPUT_PROP(_DetailMap_ST);
+	return detailUV * detailST.xy + detailST.zw;
 }
 
 float4 GetBase (float2 baseUV) {
@@ -70,6 +79,12 @@ float GetOcclusion(float2 baseUV)
 	float occlusion = GetMask(baseUV).g;
 	occlusion = lerp(occlusion,1.0,strength);
 	return occlusion;
+}
+
+float4 GetDetail(float2 detailUV)
+{
+	float4 map = SAMPLE_TEXTURE2D(_DetailMap,sampler_DetailMap,detailUV);
+	return map;
 }
 
 #endif
