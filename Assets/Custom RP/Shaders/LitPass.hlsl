@@ -100,7 +100,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #endif
 
     //输出从unity中获得的数据，如光照贴图等
-    GI gi = GetGI(GI_FRAGMENT_DATA(input),surface);
+    GI gi = GetGI(GI_FRAGMENT_DATA(input),surface,brdf);
     float3 color = GetLighting(surface,brdf,gi);
     color += GetEmission(input.baseUV);
     
