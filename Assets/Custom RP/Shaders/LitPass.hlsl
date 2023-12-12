@@ -89,7 +89,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.alpha = base.a;
     surface.metallic = GetMetallic(input.baseUV);
     surface.occlusion = GetOcclusion(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV);
+    surface.smoothness = GetSmoothness(input.baseUV,input.detailUV);
     surface.fresnelStrength = GetFresnel(input.baseUV);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
     //视图空间和世界空间深度值是相同的，因为只进行了旋转和平移
