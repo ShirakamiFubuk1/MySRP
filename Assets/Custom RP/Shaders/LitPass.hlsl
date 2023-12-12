@@ -83,10 +83,11 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
-    float4 base = GetBase(input.baseUV,input.detailUV);
+    InputConfig config = GetInputConfig(input.baseUV,input.detailUV);
+    float4 base = GetBase(config);
     
 #if defined(_CLIPPING)
-    clip(base.a - GetCutOff(input.baseUV));
+    clip(base.a - GetCutOff(config));
 #endif    
 
     Surface surface = (Surface)0;   
@@ -94,7 +95,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     surface.position = input.positionWS;
 #if defined(_NORMAL_MAP)
     surface.normal =
-        NormalTangentToWorld(GetNormalTS(input.baseUV,input.detailUV),input.normalWS,input.tangentWS);
+        NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);
     surface.interpolatedNormal = input.normalWS;
 #else
     surface.normal = normalize(input.normalWS);
@@ -102,10 +103,10 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #endif
     surface.color = base.rgb;
     surface.alpha = base.a;
-    surface.metallic = GetMetallic(input.baseUV);
-    surface.occlusion = GetOcclusion(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV,input.detailUV);
-    surface.fresnelStrength = GetFresnel(input.baseUV);
+    surface.metallic = GetMetallic(config);
+    surface.occlusion = GetOcclusion(config);
+    surface.smoothness = GetSmoothness(config);
+    surface.fresnelStrength = GetFresnel(config);
     surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
     //视图空间和世界空间深度值是相同的，因为只进行了旋转和平移
     surface.depth = -TransformWorldToView(input.positionWS).z;
@@ -121,7 +122,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     //输出从unity中获得的数据，如光照贴图等
     GI gi = GetGI(GI_FRAGMENT_DATA(input),surface,brdf);
     float3 color = GetLighting(surface,brdf,gi);
-    color += GetEmission(input.baseUV);
+    color += GetEmission(config);
     
     return float4(color,surface.alpha);
 }
