@@ -9,6 +9,7 @@
         _Occlusion("Occlusion",Range(0,1)) = 1
         _Smoothness("Smoothness",Range(0,1)) = 0.5
         _Fresnel("Fresnel",Range(0,1)) = 1
+        [Toggle(_NORMAL_MAP)] _NormalMapToggle("Normal Map",Float) = 0
         [NoScaleOffset] _NormalMap("Normals",2D) = "bump"{}
         _NormalScale("Normal Scale",Range(0,1)) = 1
         [NoScaleOffset] _EmissionMap("Emission",2D) = "white"{}
@@ -60,6 +61,8 @@
             #pragma shader_feature _PREMULTIPLY_ALPHA
             //#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
             #pragma shader_feature _RECEIVE_SHADOWS
+
+            #pragma shader_feature _NORMAL_MAP
 
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7

@@ -40,7 +40,9 @@ struct Varyings
     float2 baseUV : VAR_BASE_UV;
     float2 detailUV : VAR_DETAIL_UV;
     float3 normalWS : VAR_NORMAL;
+#if defined(_NORMAL_MAP)
     float4 tangentWS : VAR_TANGENT;
+#endif
     float3 positionWS : VAR_POSITION;
     float4 positionCS : SV_POSITION;
     //GI在VARYINGS中对应的宏
@@ -63,9 +65,11 @@ Varyings LitPassVertex(Attributes input)
     output.baseUV = TransformBaseUV(input.baseUV);
     output.detailUV = TransformDetailUV(input.baseUV);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+#if defined(_NORMAL_MAP)
     output.tangentWS =
         float4(TransformObjectToWorldDir(input.tangentOS.xyz),input.tangentOS.w);
-
+#endif
+    
     return output;
 }
 
@@ -88,9 +92,14 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     Surface surface = (Surface)0;   
 
     surface.position = input.positionWS;
+#if defined(_NORMAL_MAP)
     surface.normal =
         NormalTangentToWorld(GetNormalTS(input.baseUV,input.detailUV),input.normalWS,input.tangentWS);
     surface.interpolatedNormal = input.normalWS;
+#else
+    surface.normal = normalize(input.normalWS);
+    surface.interpolatedNormal = surface.normal;
+#endif
     surface.color = base.rgb;
     surface.alpha = base.a;
     surface.metallic = GetMetallic(input.baseUV);
