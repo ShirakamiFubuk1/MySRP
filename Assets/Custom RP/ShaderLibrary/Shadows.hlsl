@@ -209,7 +209,7 @@ float GetCascadedShadow(
     DirectionalShadowData directional,ShadowData global,Surface surfaceWS)
 {
     //通过沿着表面法线方向乘以texel贴片和固定便宜获得法线偏移
-    float3 normalBias = surfaceWS.normal *
+    float3 normalBias = surfaceWS.interpolatedNormal *
         (directional.normalBias * _CascadeData[global.cascadeIndex].y);
     //影子空间位置
     float3 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex],
@@ -221,7 +221,7 @@ float GetCascadedShadow(
     //还必须从下一个级联中采样，并在两个值中进行插值
     if(global.cascadeBlend < 1.0)
     {
-        normalBias = surfaceWS.normal *
+        normalBias = surfaceWS.interpolatedNormal *
             (directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
         positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex + 1],
             float4(surfaceWS.position + normalBias,1.0)
