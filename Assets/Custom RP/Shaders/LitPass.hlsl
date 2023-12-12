@@ -89,7 +89,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 
     surface.position = input.positionWS;
     surface.normal =
-        NormalTangentToWorld(GetNormalTS(input.baseUV),input.normalWS,input.tangentWS);
+        NormalTangentToWorld(GetNormalTS(input.baseUV,input.detailUV),input.normalWS,input.tangentWS);
     surface.interpolatedNormal = input.normalWS;
     surface.color = base.rgb;
     surface.alpha = base.a;
