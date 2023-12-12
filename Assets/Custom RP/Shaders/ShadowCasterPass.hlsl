@@ -39,7 +39,7 @@ void ShadowCasterPassFragment (Varyings input) {
 	
 	float4 base = GetBase(config);
 	#if defined(_SHADOWS_CLIP)
-		clip(base.a - GetCutoff(config));
+		clip(base.a - GetCutOff(config));
 	#elif defined(_SHADOWS_DITHER)
 		float dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 		clip(base.a - dither);
