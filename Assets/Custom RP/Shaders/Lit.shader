@@ -4,6 +4,7 @@
     {
         _BaseMap("Texture",2D) = "white"{}
         _BaseColor("Color",Color) = (0.5,0.5,0.5,1.0)
+        [Toggle(_MASK_MAP)] _MaskMapToggle("Mask Map",Float) = 0
         [NoScaleOffset] _MaskMap("Mask (MODS)",2D) = "white"{}
         _Metallic("Metallic",Range(0,1)) = 0
         _Occlusion("Occlusion",Range(0,1)) = 1
@@ -61,6 +62,7 @@
             #pragma shader_feature _RECEIVE_SHADOWS
 
             #pragma shader_feature _NORMAL_MAP
+            #pragma shader_feature _MASK_MAP
 
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
