@@ -28,6 +28,7 @@ struct Attributes
 {
     float2 baseUV : TEXCOORD0;
     float3 normalOS : NORMAL;
+    float4 tangentOS : TANGENT;
     float3 positionOS : POSITION;
     //GI在Attribute中对应的宏，来开启对应的功能
     GI_ATTRIBUTE_DATA
@@ -39,6 +40,7 @@ struct Varyings
     float2 baseUV : VAR_BASE_UV;
     float2 detailUV : VAR_DETAIL_UV;
     float3 normalWS : VAR_NORMAL;
+    float4 tangentWS : VAR_TANGENT;
     float3 positionWS : VAR_POSITION;
     float4 positionCS : SV_POSITION;
     //GI在VARYINGS中对应的宏
@@ -61,6 +63,8 @@ Varyings LitPassVertex(Attributes input)
     output.baseUV = TransformBaseUV(input.baseUV);
     output.detailUV = TransformDetailUV(input.baseUV);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+    output.tangentWS =
+        float4(TransformObjectToWorldDir(input.tangentOS.xyz),input.tangentOS.w);
 
     return output;
 }
@@ -84,7 +88,8 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     Surface surface = (Surface)0;   
 
     surface.position = input.positionWS;
-    surface.normal = normalize(input.normalWS);
+    surface.normal =
+        NormalTangentToWorld(GetNormalTS(input.baseUV),input.normalWS,input.tangentWS);
     surface.color = base.rgb;
     surface.alpha = base.a;
     surface.metallic = GetMetallic(input.baseUV);
