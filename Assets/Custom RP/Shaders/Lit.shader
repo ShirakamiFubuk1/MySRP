@@ -15,6 +15,7 @@
         _NormalScale("Normal Scale",Range(0,1)) = 1
         [NoScaleOffset] _EmissionMap("Emission",2D) = "white"{}
         [HDR] _EmissionColor("Emission",Color) = (0.0,0.0,0.0,0.0)
+        [Toggle(_DETAIL_MAP)] _DetailMapToggle("Detail Maps",Float) = 0
         _DetailMap("Details",2D) = "linearGrey"{}
         [NoScaleOffset] _DetailNormalMap("Detail Normals",2D) = "bump"{}
         _DetailAlbedo("Detail Albedo",Range(0,1)) = 1
@@ -63,6 +64,7 @@
 
             #pragma shader_feature _NORMAL_MAP
             #pragma shader_feature _MASK_MAP
+            #pragma shader_feature _DETAIL_MAP
 
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7

@@ -63,7 +63,9 @@ Varyings LitPassVertex(Attributes input)
     //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
     output.positionCS = TransformWorldToHClip(output.positionWS);
     output.baseUV = TransformBaseUV(input.baseUV);
+#if defined(_DETAIL_MAP)
     output.detailUV = TransformDetailUV(input.baseUV);
+#endif
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 #if defined(_NORMAL_MAP)
     output.tangentWS =
@@ -86,6 +88,9 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     InputConfig config = GetInputConfig(input.baseUV,input.detailUV);
 #if defined(_MASK_MAP)
     config.useMask = true;
+#endif
+#if defined(_DETAIL_MAP)
+    config.useDetail = true;
 #endif
     float4 base = GetBase(config);
     
