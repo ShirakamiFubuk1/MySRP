@@ -85,15 +85,30 @@ public class Lighting
         for(int i = 0;i < visibleLights.Length; i++)
         {
             VisibleLight visibleLight = visibleLights[i];
-            //检测是否是平行光
-            if (visibleLight.lightType == LightType.Directional)
+            // //检测是否是平行光
+            // if (visibleLight.lightType == LightType.Directional)
+            // {
+            //     //先执行dirLightCount再++,ref是优化项                
+            //     SetupDirectionalLight(dirLightCount++,ref visibleLight);
+            //     if (dirLightCount >= maxDirLightCount)
+            //     {
+            //         break;
+            //     }                
+            // }
+            switch (visibleLight.lightType)
             {
-                //先执行dirLightCount再++,ref是优化项                
-                SetupDirectionalLight(dirLightCount++,ref visibleLight);
-                if (dirLightCount >= maxDirLightCount)
-                {
+                case LightType.Directional:
+                    if (dirLightCount < maxDirLightCount)
+                    {
+                        SetupDirectionalLight(dirLightCount++,ref visibleLight);
+                    }
                     break;
-                }                
+                case LightType.Point:
+                    if (otherLightCount < maxOtherLightCount)
+                    {
+                        SetupPointLight(otherLightCount++,ref visibleLight);
+                    }
+                    break;
             }
         }
         
@@ -118,5 +133,11 @@ public class Lighting
     public void Cleanup()
     {
         shadows.Cleanup();
+    }
+
+    void SetupPointLight(int index, ref VisibleLight visibleLight)
+    {
+        otherLightColors[index] = visibleLight.finalColor;
+        otherLightPositions[index] = visibleLight.localToWorldMatrix.GetColumn(3);
     }
 }
