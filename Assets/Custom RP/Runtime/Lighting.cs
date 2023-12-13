@@ -89,7 +89,7 @@ public class Lighting
             }
         }
         
-        buffer.SetGlobalInt(dirLightCountId,visibleLights.Length);
+        buffer.SetGlobalInt(dirLightCountId,dirLightCount);
         //使用索引ID和对应的数组设置Buffer
         buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
         //使用索引获取对应光照的方向
