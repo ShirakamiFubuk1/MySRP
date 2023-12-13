@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-public class CustomRenderPipeline : RenderPipeline
+public partial class CustomRenderPipeline : RenderPipeline
 {
     private CameraRenderer renderer = new CameraRenderer();
 
@@ -19,7 +19,8 @@ public class CustomRenderPipeline : RenderPipeline
         }
     }
 
-    public CustomRenderPipeline(bool useDynamicBatching,bool useGPUInstancing,bool useSRPBatcher,ShadowSettings shadowSettings)
+    public CustomRenderPipeline(bool useDynamicBatching,
+        bool useGPUInstancing,bool useSRPBatcher,ShadowSettings shadowSettings)
     {
         //追踪阴影设置
         this.shadowSettings = shadowSettings;
@@ -28,5 +29,7 @@ public class CustomRenderPipeline : RenderPipeline
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         //设置全局使用线性颜色
         GraphicsSettings.lightsUseLinearIntensity = true;
+
+        InitializeForEditor();
     }
 }
