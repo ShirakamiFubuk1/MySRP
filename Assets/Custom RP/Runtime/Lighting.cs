@@ -22,7 +22,7 @@ public class Lighting
         dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData"),
         otherLightCountId = Shader.PropertyToID("_OtherLightCount"),
         otherLightColorsId = Shader.PropertyToID("_OtherLightColors"),
-        otherLightPositionId = Shader.PropertyToID("_OtherLightPositions");
+        otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions");
 
     private static Vector4[]
         //由于着色器对struct支持不好，所以尽量少用struct
@@ -122,11 +122,11 @@ public class Lighting
             //使用索引逐光照存储阴影信息
             buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
         }
-        buffer.SetGlobalInt(otherLightColorsId,otherLightCount);
+        buffer.SetGlobalInt(otherLightCountId,otherLightCount);
         if (otherLightCount > 0)
         {
             buffer.SetGlobalVectorArray(otherLightColorsId,otherLightColors);
-            buffer.SetGlobalVectorArray(otherLightPositionId,otherLightPositions);
+            buffer.SetGlobalVectorArray(otherLightPositionsId,otherLightPositions);
         }
     }
 
