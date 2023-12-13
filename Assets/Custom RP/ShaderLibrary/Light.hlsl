@@ -20,8 +20,8 @@ CBUFFER_START(_CustomLight)
     float4 _DirectionalLightShadowData[MAX_DIRECTIONAL_LIGHT_COUNT];
 
     int _OtherLightCount;
-    float4 _OtherLightColors;
-    float4 _OtherLightPositions;
+    float4 _OtherLightColors[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
 
 Light GetDirectionalLight(int index)
