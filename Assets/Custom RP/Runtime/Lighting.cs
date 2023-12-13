@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
@@ -18,17 +19,24 @@ public class Lighting
         dirLightCountId = Shader.PropertyToID("_DirectionalLightCount"),
         dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors"),
         dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections"),
-        dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData");
+        dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData"),
+        otherLightCountId = Shader.PropertyToID("_OtherLightCount"),
+        otherLightColorsId = Shader.PropertyToID("_OtherLightColors"),
+        otherLightPositionId = Shader.PropertyToID("_OtherLightPositions");
 
     private static Vector4[]
         //由于着色器对struct支持不好，所以尽量少用struct
         dirLightColors = new Vector4[maxDirLightCount],
         dirLightDirections = new Vector4[maxDirLightCount],
-        dirLightShadowData = new Vector4[maxDirLightCount];
+        dirLightShadowData = new Vector4[maxDirLightCount],
+        otherLightColors = new Vector4[maxOtherLightCount],
+        otherLightPositions = new Vector4[maxOtherLightCount];
 
     private CullingResults cullingResults;
 
-    private const int maxDirLightCount = 4;
+    private const int 
+        maxDirLightCount = 4,
+        maxOtherLightCount = 64;
 
     private Shadows shadows = new Shadows();
 
@@ -72,7 +80,7 @@ public class Lighting
         //通过visible获得所有可见光，通过Unity.Collections.NativeArray和visibleLight泛型。
         //NativeArray是内存的索引数组，可以沟通脚本和引擎。
         NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
-        int dirLightCount = 0;
+        int dirLightCount = 0 , otherLightCount = 0;
         
         for(int i = 0;i < visibleLights.Length; i++)
         {
@@ -90,12 +98,21 @@ public class Lighting
         }
         
         buffer.SetGlobalInt(dirLightCountId,dirLightCount);
-        //使用索引ID和对应的数组设置Buffer
-        buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
-        //使用索引获取对应光照的方向
-        buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirections);
-        //使用索引逐光照存储阴影信息
-        buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
+        if (dirLightCount > 0)
+        {
+            //使用索引ID和对应的数组设置Buffer
+            buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
+            //使用索引获取对应光照的方向
+            buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirections);
+            //使用索引逐光照存储阴影信息
+            buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
+        }
+        buffer.SetGlobalInt(otherLightColorsId,otherLightCount);
+        if (otherLightCount > 0)
+        {
+            buffer.SetGlobalVectorArray(otherLightColorsId,otherLightColors);
+            buffer.SetGlobalVectorArray(otherLightPositionId,otherLightPositions);
+        }
     }
 
     public void Cleanup()
