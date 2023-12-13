@@ -75,4 +75,15 @@ int GetOtherLightCount()
     return _OtherLightCount;
 }
 
+Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData)
+{
+    Light light;
+    light.color = _OtherLightColors[index].rgb;
+    float3 ray = _OtherLightPositions[index].xyz - surfaceWS.position;
+    light.direction = normalize(ray);
+    light.attenuation = 1.0;
+
+    return light;
+}
+
 #endif
