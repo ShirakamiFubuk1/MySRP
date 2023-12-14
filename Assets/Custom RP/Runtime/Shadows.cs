@@ -57,7 +57,8 @@ public class Shadows
         shadowAtlasSizeId = Shader.PropertyToID("_ShadowAtlasSize"),
         shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade"),
         otherShadowAtlasId = Shader.PropertyToID("_OtherShadowAtlas"),
-        otherShadowMatricesId = Shader.PropertyToID("_OtherShadowMatrices");
+        otherShadowMatricesId = Shader.PropertyToID("_OtherShadowMatrices"),
+        shadowPancakingId = Shader.PropertyToID("_ShadowPancaking");
 
     private static Matrix4x4[]
         dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades],
@@ -225,6 +226,7 @@ public void Setup(ScriptableRenderContext context,
             RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
         //1clearDepth,2clearColor
         buffer.ClearRenderTarget(true,false,Color.clear);
+        buffer.SetGlobalFloat(shadowPancakingId,1f);
         buffer.BeginSample(bufferName);
         //处理buffer
         ExecuteBuffer();
@@ -283,6 +285,7 @@ public void Setup(ScriptableRenderContext context,
             RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
         //1clearDepth,2clearColor
         buffer.ClearRenderTarget(true,false,Color.clear);
+        buffer.SetGlobalFloat(shadowPancakingId,0f);
         buffer.BeginSample(bufferName);
         //处理buffer
         ExecuteBuffer();
