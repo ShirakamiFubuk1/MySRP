@@ -29,7 +29,7 @@ public class Shadows
     }
 
     //追踪shadowed light的信息
-    private ShadowedDirectionalLight[] ShadowedDirectionalLights =
+    private ShadowedDirectionalLight[] shadowedDirectionalLights =
         new ShadowedDirectionalLight[maxShadowedDirectionalLightCount];
 
     private int 
@@ -45,10 +45,13 @@ public class Shadows
         cascadeDataId = Shader.PropertyToID("_CascadeData"),
         //收集着色器中图集atlas大小和texel纹素大小
         shadowAtlasSizeId = Shader.PropertyToID("_ShadowAtlasSize"),
-        shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade");
+        shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade"),
+        otherShadowAtlasId = Shader.PropertyToID("_OtherShadowAtlas"),
+        otherShadowMatricesId = Shader.PropertyToID("_OtherShadowMatrices");
 
     private static Matrix4x4[]
-        dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades];
+        dirShadowMatrices = new Matrix4x4[maxShadowedDirectionalLightCount * maxCascades],
+        otherShadowMatrices = new Matrix4x4[maxShadowedOtherLightCount];
 
     private static Vector4[]
         cascadeCullingSpheres = new Vector4[maxCascades],
@@ -75,6 +78,12 @@ public class Shadows
             //方法是完全烘焙光照但同时也是用实时光照,然后计算实时光照的漫反射,采样实时阴影
             //用这些来确定哪些漫反射光照需要被shadowed,是那些你从漫反射GI中减去的
             //虽然最后得到了烘焙照明的静态对象,但是也计算了漫反射实时照明(脱裤子放屁)
+        },
+        otherFilterKeywords =
+        {
+            "_OTHER_PCF3",
+            "_OTHER_PCF5",
+            "_OTHER_PCF7"
         };
 
     private static string[] cascadeBlendKeywords =
@@ -84,6 +93,8 @@ public class Shadows
     };
 
     private bool useShadowMask;
+
+    private Vector4 atlasSizes;
 
 public void Setup(ScriptableRenderContext context, 
         CullingResults cullingResults, ShadowSettings shadowSettings)
@@ -135,7 +146,7 @@ public void Setup(ScriptableRenderContext context,
                 return new Vector4(-light.shadowStrength, 0f, 0f,maskChannel);
             }
             //从灯光中获取各种属性
-            ShadowedDirectionalLights[shadowedDirectionalLightCount] =
+            shadowedDirectionalLights[shadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
                 {
                     visibleLightIndex = visibleLightIndex,
@@ -163,6 +174,15 @@ public void Setup(ScriptableRenderContext context,
             buffer.GetTemporaryRT(dirShadowAtlasId,1,1,32,
                 FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
         }
+
+        if (shadowedOtherLightCount > 0)
+        {
+            RenderOtherShadows();
+        }
+        else
+        {
+            buffer.SetGlobalTexture(otherShadowAtlasId,dirShadowAtlasId);
+        }
         //给是否使用关键字添加开关，即使不使用任何光照贴图也需要进行此操作，因为shadowMask不是实时的
         buffer.BeginSample(bufferName);
         //在buffer中设置shadowMask关键字来启用
@@ -176,6 +196,7 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalVector(shadowDistanceFadeId,new Vector4(
             1f/shadowSettings.maxDistance,1/shadowSettings.distanceFade,
             1f / (1f - f * f)));
+        buffer.SetGlobalVector(shadowAtlasSizeId,atlasSizes);
         buffer.EndSample(bufferName);
         ExecuteBuffer();
     }
@@ -183,6 +204,8 @@ public void Setup(ScriptableRenderContext context,
     void RenderDirectionalShadows()
     {
         int atlasSize = (int)shadowSettings.directional.atlasSize;
+        atlasSizes.x = atlasSize;
+        atlasSizes.y = 1f / atlasSize;
         //声明一个方形RT,1属性id，2宽，3高，4缓存深度，越高越高，5过滤模式，6RT类型
         buffer.GetTemporaryRT(dirShadowAtlasId,atlasSize,atlasSize,
             32,FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
@@ -228,9 +251,67 @@ public void Setup(ScriptableRenderContext context,
         SetKeywords(
             cascadeBlendKeywords,(int)shadowSettings.directional.cascadeBlend - 1
             );
-        buffer.SetGlobalVector(
-            shadowAtlasSizeId,new Vector4(atlasSize,1f / atlasSize)
+        // buffer.SetGlobalVector(
+        //     shadowAtlasSizeId,new Vector4(atlasSize,1f / atlasSize)
+        //     );
+        buffer.EndSample(bufferName);
+        //处理Buffer
+        ExecuteBuffer();
+    }
+    
+        void RenderOtherShadows()
+    {
+        int atlasSize = (int)shadowSettings.other.atlasSize;
+        atlasSizes.z = atlasSize;
+        atlasSizes.w = 1f / atlasSize;
+        //声明一个方形RT,1属性id，2宽，3高，4缓存深度，越高越高，5过滤模式，6RT类型
+        buffer.GetTemporaryRT(otherShadowAtlasId,atlasSize,atlasSize,
+            32,FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
+        //因为我们的RT只需要从中获得shadowdata，所以不需要管他的初始状态，因为存完信息就删除了
+        //故LoadAction选DontCare，StoreAction选Store
+        buffer.SetRenderTarget(otherShadowAtlasId,
+            RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
+        //1clearDepth,2clearColor
+        buffer.ClearRenderTarget(true,false,Color.clear);
+        buffer.BeginSample(bufferName);
+        //处理buffer
+        ExecuteBuffer();
+        //分割Buffer给对应的light,用来支持最多四个直接光
+        int tiles = shadowedOtherLightCount;
+        int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
+        int tileSize = atlasSize / split;
+
+        for (int i = 0; i < shadowedOtherLightCount; i++)
+        {
+            // RenderDirectionalShadows(i,split,tileSize);
+        }
+        
+        // //渲染级联后，将级联计数和对应的球体发送给GPU
+        // buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
+        //buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
+        // //由于阴影粉刺(shadow-acne)的大小取决于世界空间纹素(texel)的大小,
+        // //因此需要添加一个cascadeData来存储纹素大小等信息并发给GPU以提高通讯效率
+        // buffer.SetGlobalVectorArray(cascadeDataId,cascadeData);
+        buffer.SetGlobalMatrixArray(otherShadowMatricesId,otherShadowMatrices);
+        //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
+
+        // //使级联圆边缘平滑
+        // float f = 1f - shadowSettings.directional.cascadeFade;
+        // //将maxDistance和distanceFade的倒数发给GPU,避免在着色器中使用除法
+        // buffer.SetGlobalVector(shadowDistanceFadeId,
+        //     new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
+        //     );
+        //设置关键字调用不同的滤波器种类
+        SetKeywords(
+            otherFilterKeywords,(int)shadowSettings.other.filter - 1
             );
+        // //调整关键字数组和索引，设置级联混合关键字
+        // SetKeywords(
+        //     cascadeBlendKeywords,(int)shadowSettings.directional.cascadeBlend - 1
+        //     );
+        // buffer.SetGlobalVector(
+        //     shadowAtlasSizeId,new Vector4(atlasSize,1f / atlasSize)
+        //     );
         buffer.EndSample(bufferName);
         //处理Buffer
         ExecuteBuffer();
@@ -239,7 +320,7 @@ public void Setup(ScriptableRenderContext context,
     void RenderDirectionalShadows(int index, int split, int tileSize)
     {
         //按照索引获取开启阴影的光照
-        ShadowedDirectionalLight light = ShadowedDirectionalLights[index];
+        ShadowedDirectionalLight light = shadowedDirectionalLights[index];
         var shadowDrawingSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
         int cascadeCount = shadowSettings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
@@ -281,6 +362,10 @@ public void Setup(ScriptableRenderContext context,
     public void Cleanup()
     {
         buffer.ReleaseTemporaryRT(dirShadowAtlasId);
+        if (shadowedOtherLightCount > 0)
+        {
+            buffer.ReleaseTemporaryRT(otherShadowAtlasId);
+        }
         ExecuteBuffer();
     }
 
