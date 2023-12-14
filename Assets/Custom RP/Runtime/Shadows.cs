@@ -32,6 +32,16 @@ public class Shadows
     private ShadowedDirectionalLight[] shadowedDirectionalLights =
         new ShadowedDirectionalLight[maxShadowedDirectionalLightCount];
 
+    struct ShadowedOtherLight
+    {
+        public int visibleLightIndex;
+        public float slopeScaleBias;
+        public float normalBias;
+    }
+
+    private ShadowedOtherLight[] shadowedOtherLights =
+        new ShadowedOtherLight[maxShadowedOtherLightCount];
+    
     private int 
         shadowedDirectionalLightCount,
         shadowedOtherLightCount;
@@ -284,6 +294,7 @@ public void Setup(ScriptableRenderContext context,
         for (int i = 0; i < shadowedOtherLightCount; i++)
         {
             // RenderDirectionalShadows(i,split,tileSize);
+            RenderSpotShadows(i,split,tileSize);
         }
         
         // //渲染级联后，将级联计数和对应的球体发送给GPU
@@ -465,8 +476,36 @@ public void Setup(ScriptableRenderContext context,
         {
             return new Vector4(-light.shadowStrength, 0f, 0f, maskChannel);
         }
+
+        shadowedOtherLights[shadowedOtherLightCount] = new ShadowedOtherLight
+        {
+            visibleLightIndex = visibleLightIndex,
+            slopeScaleBias = light.shadowBias,
+            normalBias = light.shadowNormalBias
+        };
+        
         return new Vector4(light.shadowStrength, shadowedOtherLightCount++, 0f, 
             maskChannel);
         // return new Vector4(0f, 0f, 0f, -1f);
+    }
+
+    void RenderSpotShadows(int index, int split, int tileSize)
+    {
+        ShadowedOtherLight light = shadowedOtherLights[index];
+        var shadowDrawingSettings = new ShadowDrawingSettings(
+            cullingResults,light.visibleLightIndex);
+        cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(
+            light.visibleLightIndex,out Matrix4x4 viewMatrix,
+            out Matrix4x4 projectionMatrix,out ShadowSplitData splitData
+            );
+        shadowDrawingSettings.splitData = splitData;
+        otherShadowMatrices[index] = ConvertToAtlasMatrix(
+            projectionMatrix * viewMatrix,
+            SetTileViewport(index,split,tileSize),split);
+        buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
+        buffer.SetGlobalDepthBias(0f,light.slopeScaleBias);
+        ExecuteBuffer();
+        context.DrawShadows(ref shadowDrawingSettings);
+        buffer.SetGlobalDepthBias(0f,0f);
     }
 }

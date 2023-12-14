@@ -75,13 +75,13 @@ public class Lighting
     //     buffer.SetGlobalVector(dirLightDirectionalId, -light.transform.forward);
     // }
     
-    void SetupDirectionalLight(int index,ref VisibleLight visibleLight)
+    void SetupDirectionalLight(int index,int visibleIndex,ref VisibleLight visibleLight)
     {
         dirLightColors[index] = visibleLight.finalColor;
         //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
         dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
         //初始化可接受阴影的光
-        dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,index);
+        dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,visibleIndex);
     }
 
     void SetupLights(bool useLightsPerObject)
@@ -112,21 +112,21 @@ public class Lighting
                 case LightType.Directional:
                     if (dirLightCount < maxDirLightCount)
                     {
-                        SetupDirectionalLight(dirLightCount++,ref visibleLight);
+                        SetupDirectionalLight(dirLightCount++,i,ref visibleLight);
                     }
                     break;
                 case LightType.Point:
                     if (otherLightCount < maxOtherLightCount)
                     {
                         newIndex = otherLightCount;
-                        SetupPointLight(otherLightCount++,ref visibleLight);
+                        SetupPointLight(otherLightCount++,i,ref visibleLight);
                     }
                     break;
                 case LightType.Spot:
                     if (otherLightCount < maxOtherLightCount)
                     {
                         newIndex = otherLightCount;
-                        SetupSpotLight(otherLightCount++,ref visibleLight);
+                        SetupSpotLight(otherLightCount++,i,ref visibleLight);
                     }
                     break;
             }
@@ -178,7 +178,7 @@ public class Lighting
         shadows.Cleanup();
     }
 
-    void SetupPointLight(int index, ref VisibleLight visibleLight)
+    void SetupPointLight(int index,int visibleIndex, ref VisibleLight visibleLight)
     {
         otherLightColors[index] = visibleLight.finalColor;
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
@@ -187,10 +187,10 @@ public class Lighting
         otherLightPositions[index] = position;
         otherLightSpotAngles[index] = new Vector4(0f, 1f);
         Light light = visibleLight.light;
-        otherLightShadowData[index] = shadows.ReserveOtherShadows(light, index);
+        otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
     }
     
-    void SetupSpotLight(int index, ref VisibleLight visibleLight)
+    void SetupSpotLight(int index,int visibleIndex, ref VisibleLight visibleLight)
     {
         otherLightColors[index] = visibleLight.finalColor;
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
@@ -206,6 +206,6 @@ public class Lighting
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
         otherLightSpotAngles[index] = 
             new Vector4(angleRangeInv, -outerCos * angleRangeInv);
-        otherLightShadowData[index] = shadows.ReserveOtherShadows(light, index);
+        otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
     }
 }
