@@ -24,7 +24,8 @@ public partial class CameraRenderer
     private Lighting lighting = new Lighting();
     
     public void Render(ScriptableRenderContext context, Camera camera,
-        bool useDynamicBatching, bool useGPUInstancing,ShadowSettings shadowSettings)
+        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
+        ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -44,7 +45,7 @@ public partial class CameraRenderer
         lighting.Setup(context,cullingResults,shadowSettings);
         buffer.EndSample(SampleName);
         Setup();
-        DrawVisibleGeometry(useDynamicBatching,useGPUInstancing);
+        DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
         DrawUnsupportedShaders();
         DrawGizmos();
         //清除ShadowAtlas申请的RT
@@ -86,8 +87,13 @@ public partial class CameraRenderer
         buffer.Clear();
     }
     
-    void DrawVisibleGeometry(bool useDynamicBatching,bool useGPUInstancing)
+    void DrawVisibleGeometry(
+        bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject)
     {
+        PerObjectData lightsPerObjectFlags =
+            useLightsPerObject ? 
+                PerObjectData.LightData | PerObjectData.LightIndices : 
+                PerObjectData.None;
         //用于确定用正交还是透视
         var sortingSettings = new SortingSettings
         {
@@ -109,7 +115,8 @@ public partial class CameraRenderer
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                 PerObjectData.LightProbe | PerObjectData.OcclusionProbe
                 | PerObjectData.LightProbeProxyVolume |
-                PerObjectData.OcclusionProbeProxyVolume
+                PerObjectData.OcclusionProbeProxyVolume |
+                lightsPerObjectFlags
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
