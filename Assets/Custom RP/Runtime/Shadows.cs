@@ -167,6 +167,12 @@ public void Setup(ScriptableRenderContext context,
             //通过查询QualitySettings中的shadowMaskMode来决定应该启用哪个关键字
             QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 
             : -1);
+        buffer.SetGlobalInt(cascadeCountId, ShadowedDirectionalLightCount > 0 ? 
+            shadowSettings.directional.cascadeCount : 0);
+        float f = 1f - shadowSettings.directional.cascadeFade;
+        buffer.SetGlobalVector(shadowDistanceFadeId,new Vector4(
+            1f/shadowSettings.maxDistance,1/shadowSettings.distanceFade,
+            1f / (1f - f * f)));
         buffer.EndSample(bufferName);
         ExecuteBuffer();
     }
