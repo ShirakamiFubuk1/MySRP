@@ -30,11 +30,21 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
         //叠加多个光照颜色
         color += GetLighting(surfaceWS,brdf,light);
     }
-    for(int j = 0;j<GetOtherLightCount();j++)
-    {
-        Light light = GetOtherLight(j,surfaceWS,shadowData);
-        color += GetLighting(surfaceWS,brdf,light);
-    }
+    #if !defined(LIGHTS_PER_OBJECT)
+        for(int j = 0;j < min(unity_LightData.y,8);j++)
+        {
+            int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
+            Light light = GetOtherLight(lightIndex,surfaceWS,shadowData);
+            color += GetLighting(surfaceWS,brdf,light);
+        }
+    #else
+        for(int j = 0;j<GetOtherLightCount();j++)
+        {
+            Light light = GetOtherLight(j,surfaceWS,shadowData);
+            color += GetLighting(surfaceWS,brdf,light);
+        }
+    #endif
+
     
     return color;
 }

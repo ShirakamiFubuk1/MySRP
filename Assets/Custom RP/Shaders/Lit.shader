@@ -66,6 +66,7 @@
             #pragma shader_feature _MASK_MAP
             #pragma shader_feature _DETAIL_MAP
 
+            #pragma multi_compile _ _LIGHTS_PER_OBJECT
             //为三个关键字的传递添加指令，并为2x2配备无关键字添加加号和下划线
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             //添加一个多编译开关
