@@ -18,6 +18,7 @@ public class Shadows
 
     private const int
         maxShadowedDirectionalLightCount = 4,
+        maxShadowedOtherLightCount = 16,
         maxCascades = 4;
 
     struct ShadowedDirectionalLight
@@ -31,7 +32,9 @@ public class Shadows
     private ShadowedDirectionalLight[] ShadowedDirectionalLights =
         new ShadowedDirectionalLight[maxShadowedDirectionalLightCount];
 
-    private int ShadowedDirectionalLightCount;
+    private int 
+        shadowedDirectionalLightCount,
+        shadowedOtherLightCount;
 
     private static int
         dirShadowAtlasId = Shader.PropertyToID("_DirectionalShadowAtlas"),
@@ -89,7 +92,7 @@ public void Setup(ScriptableRenderContext context,
         this.cullingResults = cullingResults;
         this.shadowSettings = shadowSettings;
         //初始化阴影的时候将该值设为0
-        ShadowedDirectionalLightCount = 0;
+        shadowedDirectionalLightCount = shadowedOtherLightCount = 0;
         //启用shadowMask
         useShadowMask = false;
     }
@@ -103,7 +106,7 @@ public void Setup(ScriptableRenderContext context,
     //用于给阴影贴图在阴影图集中预留位置以及存储相关渲染信息
     public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
-        if (ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
+        if (shadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None && light.shadowStrength > 0f
             //防止跳过没有实时shadowCaster的光源
             // && cullingResults.GetShadowCasterBounds(visibleLightIndex,out Bounds b)
@@ -132,7 +135,7 @@ public void Setup(ScriptableRenderContext context,
                 return new Vector4(-light.shadowStrength, 0f, 0f,maskChannel);
             }
             //从灯光中获取各种属性
-            ShadowedDirectionalLights[ShadowedDirectionalLightCount] =
+            ShadowedDirectionalLights[shadowedDirectionalLightCount] =
                 new ShadowedDirectionalLight
                 {
                     visibleLightIndex = visibleLightIndex,
@@ -141,7 +144,7 @@ public void Setup(ScriptableRenderContext context,
                 };
             //将灯光的默认偏移放入返回数据中
             return new Vector4(light.shadowStrength,  
-                shadowSettings.directional.cascadeCount * ShadowedDirectionalLightCount++,
+                shadowSettings.directional.cascadeCount * shadowedDirectionalLightCount++,
                 light.shadowNormalBias,maskChannel
                 );
         }
@@ -150,7 +153,7 @@ public void Setup(ScriptableRenderContext context,
 
     public void Render()
     {
-        if (ShadowedDirectionalLightCount > 0)
+        if (shadowedDirectionalLightCount > 0)
         {
             RenderDirectionalShadows();
         }
@@ -167,7 +170,7 @@ public void Setup(ScriptableRenderContext context,
             //通过查询QualitySettings中的shadowMaskMode来决定应该启用哪个关键字
             QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 
             : -1);
-        buffer.SetGlobalInt(cascadeCountId, ShadowedDirectionalLightCount > 0 ? 
+        buffer.SetGlobalInt(cascadeCountId, shadowedDirectionalLightCount > 0 ? 
             shadowSettings.directional.cascadeCount : 0);
         float f = 1f - shadowSettings.directional.cascadeFade;
         buffer.SetGlobalVector(shadowDistanceFadeId,new Vector4(
@@ -193,11 +196,11 @@ public void Setup(ScriptableRenderContext context,
         //处理buffer
         ExecuteBuffer();
         //分割Buffer给对应的light,用来支持最多四个直接光
-        int tiles = ShadowedDirectionalLightCount * shadowSettings.directional.cascadeCount;
+        int tiles = shadowedDirectionalLightCount * shadowSettings.directional.cascadeCount;
         int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
 
-        for (int i = 0; i < ShadowedDirectionalLightCount; i++)
+        for (int i = 0; i < shadowedDirectionalLightCount; i++)
         {
             RenderDirectionalShadows(i,split,tileSize);
         }
@@ -356,18 +359,29 @@ public void Setup(ScriptableRenderContext context,
 
     public Vector4 ReserveOtherShadows(Light light, int visibleLightIndex)
     {
-        if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
+        if (light.shadows == LightShadows.None || light.shadowStrength <= 0f)
         {
-            LightBakingOutput lightBaking = light.bakingOutput;
-            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
-                lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
-            {
-                useShadowMask = true;
-                return new Vector4(light.shadowStrength, 0f, 0f, 
-                    lightBaking.occlusionMaskChannel);
-            }
+            return new Vector4(0f, 0f, 0f, -1f);
         }
 
-        return new Vector4(0f, 0f, 0f, -1f);
+        float maskChannel = -1f;
+        // if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
+        // {
+        LightBakingOutput lightBaking = light.bakingOutput;
+        if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+            lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+        {
+            useShadowMask = true;
+            maskChannel = lightBaking.occlusionMaskChannel;
+        }
+        // }
+        if (shadowedOtherLightCount >= maxShadowedOtherLightCount ||
+            !cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+        {
+            return new Vector4(-light.shadowStrength, 0f, 0f, maskChannel);
+        }
+        return new Vector4(light.shadowStrength, shadowedOtherLightCount++, 0f, 
+            maskChannel);
+        // return new Vector4(0f, 0f, 0f, -1f);
     }
 }
