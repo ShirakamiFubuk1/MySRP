@@ -66,6 +66,12 @@ struct ShadowData
     ShadowMask shadowMask;
 };
 
+struct OtherShadowData
+{
+    float strength;
+    int shadowMaskChannel;
+};
+
 //计算混合效果
 float FadedShadowStrength(float distance,float scale,float fade)
 {
@@ -257,6 +263,24 @@ float GetDirectionalShadowAttenuation(
     //阴影的衰减因子是一个0-1的值,如果片段完全被遮蔽则为0，没有被遮挡则为1，0-1表示部分被遮蔽
     //当光的阴影强度降低为0时，衰减就不受其影响而为1
     //故最终的衰减应该为1和采样到的阴影进行线性插值
+    return shadow;
+}
+
+float GetOtherShadowAttenuation(OtherShadowData other,ShadowData global,Surface surfaceWS)
+{
+    #if !defined(_RECEIVE_SHADOWS)
+    return 1.0;
+    #endif
+
+    float shadow;
+    if(other.strength > 0.0)
+    {
+        shadow = GetBakedShadow(global.shadowMask,other.shadowMaskChannel,other.strength);
+    }
+    else
+    {
+        shadow = 1.0;
+    }
     return shadow;
 }
 
