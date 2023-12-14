@@ -42,7 +42,7 @@ public partial class CameraRenderer
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
         //使阴影信息在几何前绘制
-        lighting.Setup(context,cullingResults,shadowSettings);
+        lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);

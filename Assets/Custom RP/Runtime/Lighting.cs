@@ -46,14 +46,17 @@ public class Lighting
 
     private Shadows shadows = new Shadows();
 
-    public void Setup(ScriptableRenderContext context,CullingResults cullingResults,ShadowSettings shadowSettings)
+    private static string lightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
+
+    public void Setup(ScriptableRenderContext context,CullingResults cullingResults,
+        ShadowSettings shadowSettings,bool useLightsPerObject)
     {
         this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);
         shadows.Setup(context,cullingResults,shadowSettings);
         //支持多光源
         //SetupDirectionalLight();
-        SetupLights();
+        SetupLights(useLightsPerObject);
         //渲染阴影
         shadows.Render();
         buffer.EndSample(bufferName);
@@ -81,15 +84,18 @@ public class Lighting
         dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,index);
     }
 
-    void SetupLights()
+    void SetupLights(bool useLightsPerObject)
     {
+        NativeArray<int> indexMap = useLightsPerObject ?
+            cullingResults.GetLightIndexMap(Allocator.Temp) : default;
         //通过visible获得所有可见光，通过Unity.Collections.NativeArray和visibleLight泛型。
         //NativeArray是内存的索引数组，可以沟通脚本和引擎。
         NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
         int dirLightCount = 0 , otherLightCount = 0;
-        
-        for(int i = 0;i < visibleLights.Length; i++)
+        int i;
+        for( i = 0;i < visibleLights.Length; i++)
         {
+            int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
             // //检测是否是平行光
             // if (visibleLight.lightType == LightType.Directional)
@@ -112,16 +118,38 @@ public class Lighting
                 case LightType.Point:
                     if (otherLightCount < maxOtherLightCount)
                     {
+                        newIndex = otherLightCount;
                         SetupPointLight(otherLightCount++,ref visibleLight);
                     }
                     break;
                 case LightType.Spot:
                     if (otherLightCount < maxOtherLightCount)
                     {
+                        newIndex = otherLightCount;
                         SetupSpotLight(otherLightCount++,ref visibleLight);
                     }
                     break;
             }
+
+            if (useLightsPerObject)
+            {
+                indexMap[i] = newIndex;
+            }
+        }
+
+        if (useLightsPerObject)
+        {
+            for (; i < indexMap.Length; i++)
+            {
+                indexMap[i] = -1;
+            }
+            cullingResults.SetLightIndexMap(indexMap);
+            indexMap.Dispose();
+            Shader.EnableKeyword(lightsPerObjectKeyword);
+        }
+        else
+        {
+            Shader.DisableKeyword(lightsPerObjectKeyword);
         }
         
         buffer.SetGlobalInt(dirLightCountId,dirLightCount);
