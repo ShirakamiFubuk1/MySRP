@@ -45,6 +45,7 @@ CBUFFER_START(_CustomShadows)
     float4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
     //将级联数据添加到_CustomShadows中的缓冲区中
     float4 _CascadeData[MAX_CASCADE_COUNT];
+    float4 _OtherShadowTiles[MAX_SHADOWED_OTHER_LIGHT_COUNT];
     float4x4 _DirectionalShadowMatrices
         [MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
     float4x4 _OtherShadowMatrices[MAX_SHADOWED_OTHER_LIGHT_COUNT];
@@ -85,6 +86,8 @@ struct OtherShadowData
     float strength;
     int tileIndex;
     int shadowMaskChannel;
+    float3 lightPositionWS;
+    float3 spotDirectionWS;
 };
 
 //计算混合效果
@@ -312,7 +315,10 @@ float GetDirectionalShadowAttenuation(
 
 float GetOtherShadow(OtherShadowData other,ShadowData global,Surface surfaceWS)
 {
-    float3 normalBias = surfaceWS.interpolatedNormal * 0.0;
+    float4 tileData = _OtherShadowTiles[other.tileIndex];
+    float3 surfaceToLight = other.lightPositionWS - surfaceWS.position;
+    float distanceToLightPlane = dot(surfaceToLight,other.spotDirectionWS);
+    float3 normalBias = surfaceWS.interpolatedNormal * (distanceToLightPlane * tileData.w);
     float4 positionSTS = mul(
         _OtherShadowMatrices[other.tileIndex],
         float4(surfaceWS.position + normalBias,1.0));

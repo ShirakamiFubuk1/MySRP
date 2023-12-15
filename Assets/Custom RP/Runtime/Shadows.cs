@@ -58,6 +58,7 @@ public class Shadows
         shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade"),
         otherShadowAtlasId = Shader.PropertyToID("_OtherShadowAtlas"),
         otherShadowMatricesId = Shader.PropertyToID("_OtherShadowMatrices"),
+        otherShadowTilesId = Shader.PropertyToID("_OtherShadowTiles"),
         shadowPancakingId = Shader.PropertyToID("_ShadowPancaking");
 
     private static Matrix4x4[]
@@ -66,7 +67,8 @@ public class Shadows
 
     private static Vector4[]
         cascadeCullingSpheres = new Vector4[maxCascades],
-        cascadeData = new Vector4[maxCascades];
+        cascadeData = new Vector4[maxCascades],
+        otherShadowTiles = new Vector4[maxShadowedOtherLightCount];
 
     private static string[] 
         directionalFilterKeywords =
@@ -307,6 +309,7 @@ public void Setup(ScriptableRenderContext context,
         // //因此需要添加一个cascadeData来存储纹素大小等信息并发给GPU以提高通讯效率
         // buffer.SetGlobalVectorArray(cascadeDataId,cascadeData);
         buffer.SetGlobalMatrixArray(otherShadowMatricesId,otherShadowMatrices);
+        buffer.SetGlobalVectorArray(otherShadowTilesId,otherShadowTiles);
         //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
 
         // //使级联圆边缘平滑
@@ -502,6 +505,10 @@ public void Setup(ScriptableRenderContext context,
             out Matrix4x4 projectionMatrix,out ShadowSplitData splitData
             );
         shadowDrawingSettings.splitData = splitData;
+        float texelSize = 2f / (tileSize * projectionMatrix.m00);
+        float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
+        float bias = light.normalBias * filterSize * 1.4142136f;
+        SetOtherTileData(index,bias);
         otherShadowMatrices[index] = ConvertToAtlasMatrix(
             projectionMatrix * viewMatrix,
             SetTileViewport(index,split,tileSize),split);
@@ -510,5 +517,12 @@ public void Setup(ScriptableRenderContext context,
         ExecuteBuffer();
         context.DrawShadows(ref shadowDrawingSettings);
         buffer.SetGlobalDepthBias(0f,0f);
+    }
+
+    void SetOtherTileData(int index, float bias)
+    {
+        Vector4 data = Vector4.zero;
+        data.w = bias;
+        otherShadowTiles[index] = data;
     }
 }
