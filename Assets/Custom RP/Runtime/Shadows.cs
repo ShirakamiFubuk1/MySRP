@@ -344,7 +344,8 @@ public void Setup(ScriptableRenderContext context,
         Vector3 ratios = shadowSettings.directional.CascadeRatios;
         //缩小阴影投射器的采集范围，防止采集用不到的地方造成额外的开销
         float cullingFactor = Mathf.Max(0f, 0.8f - shadowSettings.directional.cascadeFade);
-
+        float tileScale = 1f / split;
+        
         for (int i = 0; i < cascadeCount; i++)
         {
             //234用于控制cascade,5贴图尺寸，6阴影近平面
@@ -364,7 +365,8 @@ public void Setup(ScriptableRenderContext context,
             //SetTileViewport(index,split,tileSize);
             //通过将光的Shadow Projection Matrix和View Matrix相乘来获得世界空间转换到光空间的矩阵
             dirShadowMatrices[tileIndex] = ConvertToAtlasMatrix(
-                projectionMatrix * viewMatrix,SetTileViewport(tileIndex,split,tileSize),split
+                projectionMatrix * viewMatrix,
+                SetTileViewport(tileIndex,split,tileSize),tileScale
                 );
             buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
             //bias的用法是在渲染时应用全局深度偏差，在渲染前调用缓冲区设置值，渲染后改为0,读取灯光中的固定偏移值            
@@ -396,7 +398,7 @@ public void Setup(ScriptableRenderContext context,
         return offset;
     }
     
-    Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
+    Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, float scale)
     {
         //最直观的做法是让0表示零深度,1表示最大深度.由于深度缓冲区精度有限,而且为非线性存储
         //所以我们反转缓冲区来更高效利用高效率部分.
@@ -406,10 +408,10 @@ public void Setup(ScriptableRenderContext context,
             m.m22 = -m.m22;
             m.m23 = -m.m23;
         }
-        //Clip Space是一个正方型,从-1到1,中心是0.但是纹理坐标和深度都是从0到1
-        //通过XYZ缩放和偏移一半将其烘焙到矩阵中
-        //由于矩阵乘法运算量过大,且会导致大量无意义的零乘法,此处直接调整矩阵
-        float scale = 1f / split;
+        // //Clip Space是一个正方型,从-1到1,中心是0.但是纹理坐标和深度都是从0到1
+        // //通过XYZ缩放和偏移一半将其烘焙到矩阵中
+        // //由于矩阵乘法运算量过大,且会导致大量无意义的零乘法,此处直接调整矩阵
+        // float scale = 1f / split;
         //利用预先计算好的Offset和scale可以节约大量计算量
         m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale;
         m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
@@ -508,10 +510,11 @@ public void Setup(ScriptableRenderContext context,
         float texelSize = 2f / (tileSize * projectionMatrix.m00);
         float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
         float bias = light.normalBias * filterSize * 1.4142136f;
-        SetOtherTileData(index,bias);
+        Vector2 offset = SetTileViewport(index, split, tileSize);
+        float tileScale = 1f / split;
+        SetOtherTileData(index,offset,tileScale,bias);
         otherShadowMatrices[index] = ConvertToAtlasMatrix(
-            projectionMatrix * viewMatrix,
-            SetTileViewport(index,split,tileSize),split);
+            projectionMatrix * viewMatrix,offset,tileScale);
         buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
         buffer.SetGlobalDepthBias(0f,light.slopeScaleBias);
         ExecuteBuffer();
@@ -519,9 +522,13 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalDepthBias(0f,0f);
     }
 
-    void SetOtherTileData(int index, float bias)
+    void SetOtherTileData(int index,Vector2 offset,float scale,float bias)
     {
-        Vector4 data = Vector4.zero;
+        float border = atlasSizes.w * 0.5f;
+        Vector4 data;
+        data.x = offset.x * scale + border;
+        data.y = offset.y * scale + border;
+        data.z = scale - border - border;
         data.w = bias;
         otherShadowTiles[index] = data;
     }

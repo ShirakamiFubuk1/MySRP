@@ -160,8 +160,9 @@ float SampleDirectionalShadowAtlas(float3 positionSTS)
     return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas,SHADOW_SAMPLER,positionSTS);
 }
 
-float SampleOtherShadowAtlas(float3 positionSTS)
+float SampleOtherShadowAtlas(float3 positionSTS,float3 bounds)
 {
+    positionSTS.xy = clamp(positionSTS.xy,bounds.xy,bounds.xy + bounds.z);
     //对阴影贴图进行采样.
     return SAMPLE_TEXTURE2D_SHADOW(_OtherShadowAtlas,SHADOW_SAMPLER,positionSTS);
 }
@@ -189,7 +190,7 @@ float FilterDirectionalShadow(float3 positionSTS)
     #endif
 }
 
-float FilterOtherShadow(float3 positionSTS)
+float FilterOtherShadow(float3 positionSTS,float3 bounds)
 {
     //只在定义时采样一次，其余时间只用调用
     #if defined(OTHER_FILTER_SETUP)
@@ -202,12 +203,12 @@ float FilterOtherShadow(float3 positionSTS)
     for(int i = 0;i < OTHER_FILTER_SAMPLES;i++)
     {
         shadow += weights[i] * SampleOtherShadowAtlas(
-            float3(positions[i].xy,positionSTS.z)
+            float3(positions[i].xy,positionSTS.z),bounds
             );
     }
     return shadow;
 #else
-    return SampleOtherShadowAtlas(positionSTS);
+    return SampleOtherShadowAtlas(positionSTS,bounds);
 #endif
 }
 
@@ -322,7 +323,7 @@ float GetOtherShadow(OtherShadowData other,ShadowData global,Surface surfaceWS)
     float4 positionSTS = mul(
         _OtherShadowMatrices[other.tileIndex],
         float4(surfaceWS.position + normalBias,1.0));
-    return FilterOtherShadow(positionSTS.xyz / positionSTS.w);
+    return FilterOtherShadow(positionSTS.xyz / positionSTS.w,tileData.xyz);
 }
 
 float GetOtherShadowAttenuation(OtherShadowData other,ShadowData global,Surface surfaceWS)
