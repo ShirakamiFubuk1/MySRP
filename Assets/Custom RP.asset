@@ -18,7 +18,7 @@ MonoBehaviour:
   useLightsPerObject: 1
   shadows:
     maxDistance: 20
-    distanceFade: 0.1
+    distanceFade: 1
     directional:
       atlasSize: 1024
       filter: 1
@@ -30,4 +30,4 @@ MonoBehaviour:
       cascadeBlend: 2
     other:
       atlasSize: 1024
-      filter: 0
+      filter: 1

@@ -1304,7 +1304,7 @@ Light:
   m_Intensity: 5
   m_Range: 20
   m_SpotAngle: 45
-  m_InnerSpotAngle: 1
+  m_InnerSpotAngle: 45
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
@@ -2079,7 +2079,7 @@ Light:
   m_Intensity: 5
   m_Range: 20
   m_SpotAngle: 45
-  m_InnerSpotAngle: 1
+  m_InnerSpotAngle: 45
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
@@ -2649,7 +2649,7 @@ Light:
   m_Intensity: 5
   m_Range: 20
   m_SpotAngle: 45
-  m_InnerSpotAngle: 1
+  m_InnerSpotAngle: 45
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
@@ -3962,7 +3962,7 @@ Light:
   m_Intensity: 5
   m_Range: 20
   m_SpotAngle: 45
-  m_InnerSpotAngle: 1
+  m_InnerSpotAngle: 45
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
