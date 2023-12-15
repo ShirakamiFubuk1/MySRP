@@ -37,6 +37,7 @@ public class Shadows
         public int visibleLightIndex;
         public float slopeScaleBias;
         public float normalBias;
+        public bool isPoint;
     }
 
     private ShadowedOtherLight[] shadowedOtherLights =
@@ -479,7 +480,9 @@ public void Setup(ScriptableRenderContext context,
             maskChannel = lightBaking.occlusionMaskChannel;
         }
         // }
-        if (shadowedOtherLightCount >= maxShadowedOtherLightCount ||
+        bool isPoint = light.type == LightType.Point;
+        int newLightCount = shadowedOtherLightCount + (isPoint ? 6 : 1);
+        if (newLightCount > maxShadowedOtherLightCount ||
             !cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
         {
             return new Vector4(-light.shadowStrength, 0f, 0f, maskChannel);
@@ -489,11 +492,14 @@ public void Setup(ScriptableRenderContext context,
         {
             visibleLightIndex = visibleLightIndex,
             slopeScaleBias = light.shadowBias,
-            normalBias = light.shadowNormalBias
+            normalBias = light.shadowNormalBias,
+            isPoint = isPoint
         };
-        
-        return new Vector4(light.shadowStrength, shadowedOtherLightCount++, 0f, 
-            maskChannel);
+
+        Vector4 data = new Vector4(light.shadowStrength, shadowedOtherLightCount,
+            isPoint ? 1f : 0f, maskChannel);
+        shadowedOtherLightCount = newLightCount;
+        return data;
         // return new Vector4(0f, 0f, 0f, -1f);
     }
 
