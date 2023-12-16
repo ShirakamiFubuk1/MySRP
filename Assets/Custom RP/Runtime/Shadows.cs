@@ -546,10 +546,11 @@ public void Setup(ScriptableRenderContext context,
         float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
         float bias = light.normalBias * filterSize * 1.4142136f;
         float tileScale = 1f / split;
+        float fovBias = Mathf.Atan(1f + bias + filterSize) * Mathf.Rad2Deg * 2f - 90f;
         for (int i = 0; i < 6; i++)
         {
             cullingResults.ComputePointShadowMatricesAndCullingPrimitives(
-              light.visibleLightIndex,(CubemapFace)i,0f,
+              light.visibleLightIndex,(CubemapFace)i,fovBias,
               out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
               out ShadowSplitData splitData
             );
