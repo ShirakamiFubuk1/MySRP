@@ -274,7 +274,7 @@ public void Setup(ScriptableRenderContext context,
         ExecuteBuffer();
     }
     
-        void RenderOtherShadows()
+    void RenderOtherShadows()
     {
         int atlasSize = (int)shadowSettings.other.atlasSize;
         atlasSizes.z = atlasSize;
@@ -297,10 +297,19 @@ public void Setup(ScriptableRenderContext context,
         int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
 
-        for (int i = 0; i < shadowedOtherLightCount; i++)
+        for (int i = 0; i < shadowedOtherLightCount;)
         {
-            // RenderDirectionalShadows(i,split,tileSize);
-            RenderSpotShadows(i,split,tileSize);
+            if (shadowedOtherLights[i].isPoint)
+            {
+                RenderPointShadows(i, split, tileSize);
+                i += 6;
+            }
+            else
+            {
+                // RenderDirectionalShadows(i,split,tileSize);
+                RenderSpotShadows(i,split,tileSize);
+                i += 1;
+            }
         }
         
         // //渲染级联后，将级联计数和对应的球体发送给GPU
@@ -528,6 +537,40 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalDepthBias(0f,0f);
     }
 
+    void RenderPointShadows(int index, int split, int tileSize)
+    {
+        ShadowedOtherLight light = shadowedOtherLights[index];
+        var shadowDrawingSettings = new ShadowDrawingSettings(
+            cullingResults,light.visibleLightIndex);
+        float texelSize = 2f / tileSize;
+        float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
+        float bias = light.normalBias * filterSize * 1.4142136f;
+        float tileScale = 1f / split;
+        for (int i = 0; i < 6; i++)
+        {
+            cullingResults.ComputePointShadowMatricesAndCullingPrimitives(
+              light.visibleLightIndex,(CubemapFace)i,0f,
+              out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
+              out ShadowSplitData splitData
+            );
+            shadowDrawingSettings.splitData = splitData;
+            int tileIndex = index + i;
+            // float texelSize = 2f / (tileSize * projectionMatrix.m00);
+            // float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
+            // float bias = light.normalBias * filterSize * 1.4142136f;
+            Vector2 offset = SetTileViewport(tileIndex, split, tileSize);
+            // float tileScale = 1f / split;
+            SetOtherTileData(tileIndex,offset,tileScale,bias);
+            otherShadowMatrices[tileIndex] = ConvertToAtlasMatrix(
+              projectionMatrix * viewMatrix,offset,tileScale);
+            buffer.SetViewProjectionMatrices(viewMatrix,projectionMatrix);
+            buffer.SetGlobalDepthBias(0f,light.slopeScaleBias);
+            ExecuteBuffer();
+            context.DrawShadows(ref shadowDrawingSettings);
+            buffer.SetGlobalDepthBias(0f,0f);  
+        }
+    }
+    
     void SetOtherTileData(int index,Vector2 offset,float scale,float bias)
     {
         float border = atlasSizes.w * 0.5f;
