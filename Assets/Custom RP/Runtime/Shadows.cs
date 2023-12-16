@@ -553,6 +553,9 @@ public void Setup(ScriptableRenderContext context,
               out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
               out ShadowSplitData splitData
             );
+            viewMatrix.m11 = -viewMatrix.m11;
+            viewMatrix.m12 = -viewMatrix.m12;
+            viewMatrix.m13 = -viewMatrix.m13;
             shadowDrawingSettings.splitData = splitData;
             int tileIndex = index + i;
             // float texelSize = 2f / (tileSize * projectionMatrix.m00);
