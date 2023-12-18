@@ -108,6 +108,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 #if defined(_NORMAL_MAP)
     surface.normal =
         NormalTangentToWorld(GetNormalTS(config),input.normalWS,input.tangentWS);
+    // 当使用法线贴图时通过切线空间获得法线数据时,使用此项来给阴影的bias使用
     surface.interpolatedNormal = input.normalWS;
 #else
     surface.normal = normalize(input.normalWS);

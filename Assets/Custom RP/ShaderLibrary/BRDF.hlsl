@@ -70,7 +70,8 @@ float3 IndirectBRDF(Surface surface,BRDF brdf,float3 diffuse,float3 specular)
     // 因为roughness也会对反射产生影响,用反射值除以roughness的平方加一
     // 这样可以让roughness数值较低的适合不怎么影响反射,当数值较高的时候反射值就只有一半
     reflection /= brdf.roughness * brdf.roughness + 1.0;
-    
+
+    // 应用遮挡数据
     return (diffuse * brdf.diffuse + reflection) * surface.occlusion;
 }
 
