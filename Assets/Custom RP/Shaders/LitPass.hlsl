@@ -78,9 +78,13 @@ Varyings LitPassVertex(Attributes input)
 float4 LitPassFragment(Varyings input):SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
+// //Unity的unity_LODFade的x变量包含淡入淡出的因子,y变量也是相同因子但是变为十六步
 // #if defined(LOD_FADE_CROSSFADE)
+// //fadeOut值从1减到0,所以超过所有LOD等级的物品会变黑,故取反来让超过0的不变黑
+// //请注意有两个LOD级别的对象不会与自己发生CrossFade
 //     return -unity_LODFade.x;
 // #endif
+    // 调用函数而不是直接返回unity_LODFade.x
     ClipLOD(input.positionCS.xy,unity_LODFade.x);
 
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);

@@ -33,8 +33,12 @@ float DistanceSquared(float3 pA,float3 pB)
 
 void ClipLOD(float2 positionCS,float fade)
 {
+// 如果CrossFade处于活动状态,则根据淡入淡出因子减去抖动图案
 #if defined(LOD_FADE_CROSSFADE)
+    // 使用程序生成的Dither来替代
     float dither = InterleavedGradientNoise(positionCS.xy,0);
+    // float dither = (positionCS.y % 32) / 32;
+    // 因为存在负的fadeFactor,所以需要取反来获得正确效果
     clip(fade + (fade<0.0?dither:-dither));
 #endif
 }

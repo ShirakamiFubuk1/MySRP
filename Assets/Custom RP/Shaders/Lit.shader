@@ -71,6 +71,7 @@
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             #pragma multi_compile _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7
             //添加一个多编译开关
+            //添加一个变体给LOD混合的
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
             //启用shader关键字，将相应的多编译指令添加到着色器的传递中

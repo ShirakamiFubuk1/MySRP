@@ -39,6 +39,7 @@ Varyings ShadowCasterPassVertex (Attributes input) {
 
 void ShadowCasterPassFragment (Varyings input) {
 	UNITY_SETUP_INSTANCE_ID(input);
+	// 在ShadowCaster里面也调用ClipLOD
 	ClipLOD(input.positionCS.xy, unity_LODFade.x);
 	InputConfig config = GetInputConfig(input.baseUV);
 	
