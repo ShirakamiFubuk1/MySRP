@@ -191,6 +191,7 @@ public class Lighting
         position.w = 
             1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         otherLightPositions[index] = position;
+        // 为了点光源不受角度衰减计算的影响,需要将其值设为0和1
         otherLightSpotAngles[index] = new Vector4(0f, 1f);
         Light light = visibleLight.light;
         otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
@@ -205,11 +206,18 @@ public class Lighting
         position.w = 
             1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         otherLightPositions[index] = position;
+        // localToWorldMatrix.GetColumn(2)代表z方向
+        // 在Unity中从本地到世界的三维旋转顺序是z→x→y,故在Matrix中中123列分别是y,x,z轴旋转
+        // 因为获得z轴坐标是需要计算矩阵MA,其中A为[0,0,1,0]^-1,得到的数据即为z轴,和GetColumn(2)的数据一样
+        // 此处取反表示反射光线
         otherLightDirections[index] = 
             -visibleLight.localToWorldMatrix.GetColumn(2);
 
         Light light = visibleLight.light;
+        // 然而inner angle需要通过light.innerSpotAngle来获得
+        // 因为可配置内角是Unity新版的功能,VisibleLight中没有他,因为他会更改该字段的长度并需要重构Unity内部代码
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
+        // outer angle可以从visibleLight.spotAngle中获得
         float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
         otherLightSpotAngles[index] = 

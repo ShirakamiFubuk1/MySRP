@@ -106,6 +106,7 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData)
         Square(saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w)));
     float4 spotAngles = _OtherLightSpotAngles[index];
     float3 spotDirection = _OtherLightDirections[index].xyz;
+    // 应用聚光灯衰减
     float spotAttenuation = Square(
         saturate(dot(spotDirection,light.direction)
         * spotAngles.x + spotAngles.y));
