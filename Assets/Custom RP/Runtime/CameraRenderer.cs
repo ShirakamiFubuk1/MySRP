@@ -110,6 +110,7 @@ public partial class CameraRenderer
             //通过PerObjectData.LightProbeProxyVolume启用LPPV
             //使用PerObjectData.ShadowMask启用将相关数据发送到GPU中
             //设置OcclusionProbe关键字来启用该功能的数据传输
+            //设置ReflectionProbes来启用反射探针
             perObjectData = 
                 PerObjectData.ReflectionProbes |
                 PerObjectData.Lightmaps | PerObjectData.ShadowMask | 

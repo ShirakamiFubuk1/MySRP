@@ -38,6 +38,7 @@ SAMPLER(samplerunity_SpecCube0);
 struct GI
 {
     float3 diffuse;
+    // 给GI添加一个高光色,用于存储采样过的环境
     float3 specular;
     ShadowMask shadowMask;
 };
@@ -131,11 +132,16 @@ float4 SampleBakedShadows(float2 lightMapUV,Surface surfaceWS)
 
 float3 SampleEnvironment(Surface surfaceWS,BRDF brdf)
 {
+    // 采样方形贴图需要一个方向,这里使用视角反方向和法线方向的反射
     float3 uvw = reflect(-surfaceWS.viewDirection,surfaceWS.normal);
+    // 通过该API来获得对应的MIP等级,传入perceptualRoughness
     float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
+    // 使用SAMPLE_TEXTURECUBE_LOD采集环境贴图
+    // 1.贴图 2.采样器 3.UVW坐标 4.Mipmap等级
     float4 environment = SAMPLE_TEXTURECUBE_LOD(
         unity_SpecCube0,samplerunity_SpecCube0,uvw,mip
         );
+    // 通过使用原始环境数据和设置作为参数来获得正确的颜色
     return DecodeHDREnvironment(environment,unity_SpecCube0_HDR);
 }
 
