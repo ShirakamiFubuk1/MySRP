@@ -99,7 +99,9 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData)
     float3 position = _OtherLightPositions[index].xyz;
     float3 ray = position - surfaceWS.position;
     light.direction = normalize(ray);
+    // 计算衰减
     float distanceSqr = max(dot(ray,ray),0.00001);
+    // 将灯光范围包含在衰减中
     float rangeAttenuation =
         Square(saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w)));
     float4 spotAngles = _OtherLightSpotAngles[index];

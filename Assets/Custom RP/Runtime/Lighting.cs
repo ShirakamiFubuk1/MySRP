@@ -40,6 +40,11 @@ public class Lighting
 
     private CullingResults cullingResults;
 
+    // 其他光源与平行光一样,只能支持有限数量.场景通常可以包含许多其他光源,因他们的有效范围有限.
+    // 通常对于给定帧,只有所有可见光的一部分子集可见.我们可以支持的最大数量是用于单帧,而不是整个场景.
+    // 如果我们最终得到的可见光超过最大值,一些光将被省略.Unity可以根据重要性对可见光进行排序
+    // 因此只要可见光不变,省略的光源都是一致的.但是如果他们确实发生了变化,无论是相机移动还是什么
+    // 这可能会倒是明显的曝光.因此我们不想使用太低的最大值.
     private const int 
         maxDirLightCount = 4,
         maxOtherLightCount = 64;
@@ -181,6 +186,7 @@ public class Lighting
     void SetupPointLight(int index,int visibleIndex, ref VisibleLight visibleLight)
     {
         otherLightColors[index] = visibleLight.finalColor;
+        // 转换矩阵的第四行代表位置
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
         position.w = 
             1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
@@ -194,6 +200,8 @@ public class Lighting
     {
         otherLightColors[index] = visibleLight.finalColor;
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
+        // 可以将光的范围存储在位置的第四分量中.
+        // 此处存储1/r^2 以优化,同时避免除以零
         position.w = 
             1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         otherLightPositions[index] = position;
