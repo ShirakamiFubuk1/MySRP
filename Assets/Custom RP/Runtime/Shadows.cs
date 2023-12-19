@@ -243,8 +243,8 @@ public void Setup(ScriptableRenderContext context,
             RenderDirectionalShadows(i,split,tileSize);
         }
         
-        //渲染级联后，将级联计数和对应的球体发送给GPU
-        buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
+        // //渲染级联后，将级联计数和对应的球体发送给GPU
+        // buffer.SetGlobalInt(cascadeCountId,shadowSettings.directional.cascadeCount);
         buffer.SetGlobalVectorArray(cascadeCullingSpheresId,cascadeCullingSpheres);
         //由于阴影粉刺(shadow-acne)的大小取决于世界空间纹素(texel)的大小,
         //因此需要添加一个cascadeData来存储纹素大小等信息并发给GPU以提高通讯效率
@@ -252,12 +252,12 @@ public void Setup(ScriptableRenderContext context,
         buffer.SetGlobalMatrixArray(dirShadowMatricesId,dirShadowMatrices);
         //buffer.SetGlobalFloat(shadowDistanceId,shadowSettings.maxDistance);
 
-        //使级联圆边缘平滑
-        float f = 1f - shadowSettings.directional.cascadeFade;
-        //将maxDistance和distanceFade的倒数发给GPU,避免在着色器中使用除法
-        buffer.SetGlobalVector(shadowDistanceFadeId,
-            new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
-            );
+        // //使级联圆边缘平滑
+        // float f = 1f - shadowSettings.directional.cascadeFade;
+        // //将maxDistance和distanceFade的倒数发给GPU,避免在着色器中使用除法
+        // buffer.SetGlobalVector(shadowDistanceFadeId,
+        //     new Vector4(1f/shadowSettings.maxDistance,1f/shadowSettings.distanceFade,1f/(1f - f*f))
+        //     );
         //设置关键字调用不同的滤波器种类
         SetKeywords(
             directionalFilterKeywords,(int)shadowSettings.directional.filter - 1
