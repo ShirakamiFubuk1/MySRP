@@ -471,6 +471,10 @@ public void Setup(ScriptableRenderContext context,
         }
     }
 
+    // 点光源和聚光灯都可以被烘焙进shadowMask中,只需要把模式设置为Mixed.
+    // 每个光照都会获得其中的一个通道和直接光一样,但是因为他们的范围有限有可能多个光共用一个通道
+    // 因此ShadowMask可以支持很多个光照,但每个纹素最多只有四个
+    // 当阴影超过这个数量,会按照不重要程度吧多余的光照强制转换为Baked直到没有冲突
     public Vector4 ReserveOtherShadows(Light light, int visibleLightIndex)
     {
         if (light.shadows == LightShadows.None || light.shadowStrength <= 0f)

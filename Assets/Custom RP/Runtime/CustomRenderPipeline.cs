@@ -33,6 +33,7 @@ public partial class CustomRenderPipeline : RenderPipeline
         //设置全局使用线性颜色
         GraphicsSettings.lightsUseLinearIntensity = true;
 
+        // 给Editor模式下添加我们的自定义设置,如光照代理
         InitializeForEditor();
     }
 }
