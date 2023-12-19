@@ -189,6 +189,7 @@ public void Setup(ScriptableRenderContext context,
                 FilterMode.Bilinear,RenderTextureFormat.Shadowmap);
         }
 
+        // 如果没有其他光阴影则像上面一样需要声明一个虚拟贴图,直接使用上面生成好的就行
         if (shadowedOtherLightCount > 0)
         {
             RenderOtherShadows();
@@ -204,6 +205,9 @@ public void Setup(ScriptableRenderContext context,
             //通过查询QualitySettings中的shadowMaskMode来决定应该启用哪个关键字
             QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 
             : -1);
+        // 将所有阴影的衰减放在此处统一处理,防止有些地方没有直接光阴影却有其他光阴影
+        // 为了防止因为在Cascade外但有其他光阴影的情况,应当把Cascade从globalStrength中拿出
+        // 不让他影响全局阴影强度,但我们仍需要shadowDistanceFade的值,所以挪到这里
         buffer.SetGlobalInt(cascadeCountId, shadowedDirectionalLightCount > 0 ? 
             shadowSettings.directional.cascadeCount : 0);
         float f = 1f - shadowSettings.directional.cascadeFade;
@@ -277,6 +281,7 @@ public void Setup(ScriptableRenderContext context,
     void RenderOtherShadows()
     {
         int atlasSize = (int)shadowSettings.other.atlasSize;
+        // zw存其他光源阴影的atlas
         atlasSizes.z = atlasSize;
         atlasSizes.w = 1f / atlasSize;
         //声明一个方形RT,1属性id，2宽，3高，4缓存深度，越高越高，5过滤模式，6RT类型
@@ -481,7 +486,8 @@ public void Setup(ScriptableRenderContext context,
         {
             return new Vector4(0f, 0f, 0f, -1f);
         }
-
+        
+        // 控制使用的Mask通道,默认为-1
         float maskChannel = -1f;
         // if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
         // {
@@ -495,6 +501,8 @@ public void Setup(ScriptableRenderContext context,
         // }
         bool isPoint = light.type == LightType.Point;
         int newLightCount = shadowedOtherLightCount + (isPoint ? 6 : 1);
+        // 检查其他灯光数量是否达到上限以及此处是否能渲染到该光的阴影
+        // 如果是则将该灯光的阴影强度返回值改为负值,这样合适的时候烘焙阴影将被应用
         if (newLightCount > maxShadowedOtherLightCount ||
             !cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
         {

@@ -145,6 +145,7 @@ ShadowData GetShadowData(Surface surfaceWS)
         }
     }
     //不在阴影范围内
+    // 需要确定全局阴影强度在Cascade循环之后是正确的
     if(i == _CascadeCount && _CascadeCount > 0)
     {
         data.strength=0;
