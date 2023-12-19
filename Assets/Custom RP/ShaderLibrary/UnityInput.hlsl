@@ -7,7 +7,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     real4 unity_WorldTransformParams;
 
+    // Y里面包含了光照数量
     real4 unity_LightData;
+    // 是一个两格长的数组包含两个vector4,所以每个物体最多支持八个逐物体光照
     real4 unity_LightIndices[2];
 
     //由于动态对象没有阴影蒙版数据.他们使用光照探针而不是使用光照贴图.

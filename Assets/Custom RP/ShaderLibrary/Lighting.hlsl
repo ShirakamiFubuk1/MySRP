@@ -31,8 +31,8 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
         //叠加多个光照颜色
         color += GetLighting(surfaceWS,brdf,light);
     }
-    #if !defined(LIGHTS_PER_OBJECT)
     #if defined(LIGHTS_PER_OBJECT)
+        // 单个物体支持至多8个lightIndices,但提供的光照并不受这个限制,故要限制个数
         for(int j = 0;j < min(unity_LightData.y,8);j++)
         {
             int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];

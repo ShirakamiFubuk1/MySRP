@@ -89,8 +89,14 @@ public class Lighting
         dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,visibleIndex);
     }
 
+    // Unity只是简单的给每个物体创建了所有使用中的光照列表,并按照重要程度进行简单排序.
+    // 这个列表并不会管这个物体是否能被光照到而且也包含了直接光.我们需要整理他让他只包含可见的直接光
     void SetupLights(bool useLightsPerObject)
     {
+        // 在遍历可见光之前我们需要从cullingResults中取回lightIndexMap
+        // 这通过调用GetLightIndexMap(Allocator.temp)完成,返回一个临时的NativeArray<int>
+        // 其中包含了light indices用于匹配可见的light indices加上所有其他场景中在使用的光源
+        // 加入判断当不适用per-object数据的时候返回NativeArray<int>不会分配任何东西的默认值
         NativeArray<int> indexMap = useLightsPerObject ?
             cullingResults.GetLightIndexMap(Allocator.Temp) : default;
         //通过visible获得所有可见光，通过Unity.Collections.NativeArray和visibleLight泛型。
@@ -100,6 +106,8 @@ public class Lighting
         int i;
         for( i = 0;i < visibleLights.Length; i++)
         {
+            // 因为只需要其他光的light indices,其他的需要跳过
+            // 所以把顺序默认设定为-1,遇到满足条件的光源时改成其他数值
             int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
             // //检测是否是平行光
@@ -123,6 +131,7 @@ public class Lighting
                 case LightType.Point:
                     if (otherLightCount < maxOtherLightCount)
                     {
+                        // 将其他光的顺序设定为对应顺序
                         newIndex = otherLightCount;
                         SetupPointLight(otherLightCount++,i,ref visibleLight);
                     }
@@ -135,25 +144,30 @@ public class Lighting
                     }
                     break;
             }
-
+            
+            // 同时限制不可见光的indices            
             if (useLightsPerObject)
             {
                 indexMap[i] = newIndex;
             }
         }
-
+        
         if (useLightsPerObject)
         {
+            // 当调整完indexMap之后需要将其传回Unity中
             for (; i < indexMap.Length; i++)
             {
                 indexMap[i] = -1;
             }
             cullingResults.SetLightIndexMap(indexMap);
+            // 传回数据后不再需要indexMap,将其弃用
             indexMap.Dispose();
+            // 在GPU端启用对应的关键字
             Shader.EnableKeyword(lightsPerObjectKeyword);
         }
         else
         {
+            // 关闭对应的关键字
             Shader.DisableKeyword(lightsPerObjectKeyword);
         }
         

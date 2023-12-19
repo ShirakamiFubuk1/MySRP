@@ -90,8 +90,16 @@ public partial class CameraRenderer
     void DrawVisibleGeometry(
         bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject)
     {
-        PerObjectData lightsPerObjectFlags =
-            useLightsPerObject ? 
+        // 默认情况下所有可见光会逐片元计算光照.这对于平行光来说无所谓,但对于超过其他光源范围的片元来说是不必要的
+        // 大部分情况下点光源和聚光灯只能影响一小部分片元,导致大部分工作是无用的,却会占据大量的计算资源
+        // 为了提升在大量其他光源的情况下的性能,我们需要减少其他光源逐片元评估的次数
+        // 有很多方式可以达成这个效果,最简单的是用Unity自带的per-object light indices
+        // 实现思路是Unity决定哪个光源会影响每个对象,并将信息发送到GPU.
+        // 在渲染对象时值评估相关的灯光,而忽略其他的灯光.这样灯光就是逐对象确定的而不是逐片元决定.
+        // 这通常适用于小物体,对于大型物体来说效果不理想,因为光线可能只影响物体的一小部分,但将会被用于评估整个面
+        // 同时每个物体可以影响的灯光数量是有限制的,因此大型物体更容易缺失某些光照
+        // 由于Unity的per-object light并不理想,所以需要设置为可选
+        PerObjectData lightsPerObjectFlags = useLightsPerObject ? 
                 PerObjectData.LightData | PerObjectData.LightIndices : 
                 PerObjectData.None;
         //用于确定用正交还是透视
