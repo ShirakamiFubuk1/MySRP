@@ -534,11 +534,17 @@ public void Setup(ScriptableRenderContext context,
             out Matrix4x4 projectionMatrix,out ShadowSplitData splitData
             );
         shadowDrawingSettings.splitData = splitData;
+        // projectionMatrix.m00 = 1f / (Mathf.Tan(fov * 0.5)*aspect)
+        // projectionMatrix.m11 = 1f / Mathf.Tan(fov * 0.5)
         float texelSize = 2f / (tileSize * projectionMatrix.m00);
         float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
         float bias = light.normalBias * filterSize * 1.4142136f;
+        // 从SetTileViewpot获得Atlas对应的Tile的Offset
         Vector2 offset = SetTileViewport(index, split, tileSize);
+        // 优化项,因为ConverToAtlasMatrix也要用1f/split,故直接在此计算
+        // 因为将Clip的-1到1转换到贴图的NDC空间,故用边长1f/份数就是tile的大小
         float tileScale = 1f / split;
+        // 设置偏移数据
         SetOtherTileData(index,offset,tileScale,bias);
         otherShadowMatrices[index] = ConvertToAtlasMatrix(
             projectionMatrix * viewMatrix,offset,tileScale);
@@ -571,6 +577,8 @@ public void Setup(ScriptableRenderContext context,
             viewMatrix.m13 = -viewMatrix.m13;
             shadowDrawingSettings.splitData = splitData;
             int tileIndex = index + i;
+            // // projectionMatrix.m00 = 1f / (Mathf.Tan(fov * 0.5)*aspect)
+            // // projectionMatrix.m11 = 1f / Mathf.Tan(fov * 0.5)
             // float texelSize = 2f / (tileSize * projectionMatrix.m00);
             // float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
             // float bias = light.normalBias * filterSize * 1.4142136f;
@@ -591,6 +599,11 @@ public void Setup(ScriptableRenderContext context,
     {
         float border = atlasSizes.w * 0.5f;
         Vector4 data;
+        // 因为聚光灯的tile是紧密贴合视锥体的,所以normalBias和filterSize将会把
+        // 阴影采样器推出atlas对应的tile的边缘范围
+        // 解决这个问题的最简单的方法是手动把采样边缘保持在atlas对应贴图内
+        // 就好像每个atlas对应的贴图都是自己独立的纹理
+        // 这样虽然会拉伸边缘附近的阴影,但不会有无效的阴影
         data.x = offset.x * scale + border;
         data.y = offset.y * scale + border;
         data.z = scale - border - border;

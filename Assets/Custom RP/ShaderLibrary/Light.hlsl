@@ -111,6 +111,7 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData)
         saturate(dot(spotDirection,light.direction)
         * spotAngles.x + spotAngles.y));
     OtherShadowData otherShadowData = GetOtherShadowData(index);
+    // 由于这三个数据是从光源获得,需要在GetOtherLight中赋值
     otherShadowData.lightPositionWS = position;
     otherShadowData.lightDirectionWS = light.direction;
     otherShadowData.spotDirectionWS = spotDirection;

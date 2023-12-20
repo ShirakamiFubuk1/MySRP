@@ -208,6 +208,7 @@ float FilterOtherShadow(float3 positionSTS,float3 bounds)
     #if defined(OTHER_FILTER_SETUP)
     real weights[OTHER_FILTER_SAMPLES];
     real2 positions[OTHER_FILTER_SAMPLES];
+    // 使用Other Light对应的ShadowAtlas大小参数
     float4 size = _ShadowAtlasSize.wwzz;
     //1 xy表示texelsize zw表示整个贴图尺寸，2 原始采样位置，34 输出每个部分的权重和位置
     OTHER_FILTER_SETUP(size,positionSTS.xy,weights,positions);
@@ -336,13 +337,23 @@ float GetOtherShadow(OtherShadowData other,ShadowData global,Surface surfaceWS)
         tileIndex += faceOffset;
         lightPlane = pointShadowPlanes[faceOffset];
     }
+    // 获取光照数据
+    // data.x = offset.x * scale + border;
+    // data.y = offset.y * scale + border;
+    // data.z = scale - border - border;
+    // data.w = bias;
     float4 tileData = _OtherShadowTiles[tileIndex];
+    // 获取表面到光源的距离
     float3 surfaceToLight = other.lightPositionWS - surfaceWS.position;
+    // 获得视线和聚光灯中心方向的夹角
     float distanceToLightPlane = dot(surfaceToLight,lightPlane);
+    // 将夹角数据应用到偏移数据
     float3 normalBias = surfaceWS.interpolatedNormal * (distanceToLightPlane * tileData.w);
+    // _OtherShadowMatrices是反转后的转换矩阵,转换到Atlas空间
     float4 positionSTS = mul(
         _OtherShadowMatrices[tileIndex],
         float4(surfaceWS.position + normalBias,1.0));
+    // 因为是透视灯光,所以需要除以positionSTS.w
     return FilterOtherShadow(positionSTS.xyz / positionSTS.w,tileData.xyz);
 }
 

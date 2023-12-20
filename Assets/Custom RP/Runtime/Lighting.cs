@@ -197,6 +197,7 @@ public class Lighting
         shadows.Cleanup();
     }
 
+    // 因为默认的光照索引是给直接光用的,直接给所用光用会导致出现问题,所以需要专门的visibleIndex来重构
     void SetupPointLight(int index,int visibleIndex, ref VisibleLight visibleLight)
     {
         otherLightColors[index] = visibleLight.finalColor;
