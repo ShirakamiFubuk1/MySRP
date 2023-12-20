@@ -568,6 +568,11 @@ public void Setup(ScriptableRenderContext context,
         float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
         float bias = light.normalBias * filterSize * 1.4142136f;
         float tileScale = 1f / split;
+        // 立方体贴图的面之间是有一定不连贯的,因为纹理平面会突然旋转90度.
+        // 常规的立方体贴图采样可以一定程度上隐藏这点,因为它可以在不同面之间插值
+        // 但我们是从每部分的单个图块中采样,则需要通过稍微增加视野(FOV)来减少这些伪影
+        // 因为我们不会采样超过Atlas上的单个tile,这也是ComputePointShadowMatrix函数的作用
+        // 此处通过把tile的大小变得比2稍大一点(对于距离1来说),具体来说,我们为每个方向添加法线bias和filterSize
         float fovBias = Mathf.Atan(1f + bias + filterSize) * Mathf.Rad2Deg * 2f - 90f;
         // 因为PointLight是需要渲染六面的,所以要循环六次
         for (int i = 0; i < 6; i++)
@@ -584,6 +589,13 @@ public void Setup(ScriptableRenderContext context,
             // 我们虽然不能停止Unity的反转绘制,我们可以通过取反从上面获得的viewMatrix中的一行
             // 我们将反转第二行,这样就会把所有的东西变回正常值
             // 因为第二行第一个一般是0,我们只需要把剩下三个取反
+            // 避免Unity在渲染时将y轴颠倒
+            // Mview = Xaxisx           Yaxisx           Zaxisx           0 
+            //         Xaxisy           Yaxisy           Zaxisy           0
+            //         Xaxisz           Yaxisz           Zaxisz           0
+            //         -dot(Xaxis·eye)  -dot(Yaxis·eye)  -dot(Zaxis·eye)  1
+            // Yaxis = [1 0 1];Zaxis = [Lookx - eyex Looky-eyey Lookz-eyez]
+            // Xaxis = cross(Yaxis,Zaxis); Yaxis = cross(Xaxis,Zaxis);
             viewMatrix.m11 = -viewMatrix.m11;
             viewMatrix.m12 = -viewMatrix.m12;
             viewMatrix.m13 = -viewMatrix.m13;
