@@ -37,6 +37,7 @@ public class Shadows
         public int visibleLightIndex;
         public float slopeScaleBias;
         public float normalBias;
+        // 加一个布尔值用于判断是否是点光源
         public bool isPoint;
     }
 
@@ -304,11 +305,13 @@ public void Setup(ScriptableRenderContext context,
 
         for (int i = 0; i < shadowedOtherLightCount;)
         {
+            // 如果是点光源则循环计数加六
             if (shadowedOtherLights[i].isPoint)
             {
                 RenderPointShadows(i, split, tileSize);
                 i += 6;
             }
+            // 反之如果是聚光灯则计数加一
             else
             {
                 // RenderDirectionalShadows(i,split,tileSize);
@@ -500,6 +503,7 @@ public void Setup(ScriptableRenderContext context,
         }
         // }
         bool isPoint = light.type == LightType.Point;
+        // 当前的shadowOtherLightCount,如果是点光源则数量加6,如果是聚光灯则加一
         int newLightCount = shadowedOtherLightCount + (isPoint ? 6 : 1);
         // 检查其他灯光数量是否达到上限以及此处是否能渲染到该光的阴影
         // 如果是则将该灯光的阴影强度返回值改为负值,这样合适的时候烘焙阴影将被应用
@@ -565,13 +569,21 @@ public void Setup(ScriptableRenderContext context,
         float bias = light.normalBias * filterSize * 1.4142136f;
         float tileScale = 1f / split;
         float fovBias = Mathf.Atan(1f + bias + filterSize) * Mathf.Rad2Deg * 2f - 90f;
+        // 因为PointLight是需要渲染六面的,所以要循环六次
         for (int i = 0; i < 6; i++)
         {
+            // 跟聚光灯的区别是23需要CubemapFace的索引和fovBias
             cullingResults.ComputePointShadowMatricesAndCullingPrimitives(
               light.visibleLightIndex,(CubemapFace)i,fovBias,
               out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
               out ShadowSplitData splitData
             );
+            // 由于Unity渲染点光源阴影的方式是颠倒的,他反转了三角形的绘制顺序
+            // 正常情况下是从点光源开始的,但是Unity是先从远处开始
+            // 这虽然解决了阴影粉刺问题,但是会导致光线泄露
+            // 我们虽然不能停止Unity的反转绘制,我们可以通过取反从上面获得的viewMatrix中的一行
+            // 我们将反转第二行,这样就会把所有的东西变回正常值
+            // 因为第二行第一个一般是0,我们只需要把剩下三个取反
             viewMatrix.m11 = -viewMatrix.m11;
             viewMatrix.m12 = -viewMatrix.m12;
             viewMatrix.m13 = -viewMatrix.m13;

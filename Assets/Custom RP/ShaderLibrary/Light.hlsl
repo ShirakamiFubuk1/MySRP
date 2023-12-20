@@ -33,6 +33,7 @@ OtherShadowData GetOtherShadowData(int lightIndex)
     data.strength = _OtherLightShadowData[lightIndex].x;
     data.tileIndex = _OtherLightShadowData[lightIndex].y;
     data.shadowMaskChannel = _OtherLightShadowData[lightIndex].w;
+    // 如果_OtherLightShadowData.z的数值为1,则为点光源
     data.isPoint = _OtherLightShadowData[lightIndex].z == 1.0;
     data.lightPositionWS = 0.0;
     data.lightDirectionWS = 0.0;

@@ -333,8 +333,14 @@ float GetOtherShadow(OtherShadowData other,ShadowData global,Surface surfaceWS)
     float3 lightPlane = other.spotDirectionWS;
     if(other.isPoint)
     {
+        // 因为我们是将Cubemap分开存储在Atlas各个部分,所以不能直接按照Cubemap采样
+        // 对于一个点光源,需要找一个适当的轴对齐平面,可以使用该函数来查找面的偏移
+        // 方法是将光的负方向传递给该函数,这是一个内部函数,会返回一个float
+        // 返回的Cubemap面朝向顺序是+X,-X,+Y,-Y,+Z,-Z
         float faceOffset = CubeMapFaceID(-other.lightDirectionWS);
         tileIndex += faceOffset;
+        // 接下来需要使用与朝向匹配的光平面,为他们创建一个静态的常量数组,并通过面偏移量进行索引
+        // 平面法线必须指向与面相反的方向,就像光斑方向指向光线一样
         lightPlane = pointShadowPlanes[faceOffset];
     }
     // 获取光照数据
