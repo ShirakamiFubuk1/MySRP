@@ -25,7 +25,7 @@ public partial class CameraRenderer
     
     public void Render(ScriptableRenderContext context, Camera camera,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
-        ShadowSettings shadowSettings)
+        ShadowSettings shadowSettings,PostFXSettings postFXSettings)
     {
         this.context = context;
         this.camera = camera;

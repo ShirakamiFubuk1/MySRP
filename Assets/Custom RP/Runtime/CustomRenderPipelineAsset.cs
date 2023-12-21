@@ -9,11 +9,13 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset
         useGPUInstancing = true, 
         useSRPBatcher = true,
         useLightsPerObject = true;
+
+    [SerializeField] private PostFXSettings postFXSettings = default;
     
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(useDynamicBatching,
-            useGPUInstancing,useSRPBatcher,useLightsPerObject,shadows);
+        return new CustomRenderPipeline(useDynamicBatching, useGPUInstancing,
+            useSRPBatcher,useLightsPerObject,shadows,postFXSettings);
     }
 
     [SerializeField] private ShadowSettings shadows = default;

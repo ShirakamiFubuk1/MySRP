@@ -9,26 +9,29 @@ public partial class CustomRenderPipeline : RenderPipeline
 
     private ShadowSettings shadowSettings;
 
+    private PostFXSettings postFXSettings;
+
     protected override void Render(
         ScriptableRenderContext context, Camera[] cameras
     )
     {
         foreach (Camera camera in cameras)
         {
-            renderer.Render(context,camera,
-                useDynamicBatching,useGPUInstancing,useLightsPerObject,shadowSettings);
+            renderer.Render(context,camera, useDynamicBatching,useGPUInstancing,
+                useLightsPerObject,shadowSettings,postFXSettings);
         }
     }
 
     public CustomRenderPipeline(bool useDynamicBatching,
         bool useGPUInstancing,bool useSRPBatcher,bool useLightsPerObject,
-        ShadowSettings shadowSettings)
+        ShadowSettings shadowSettings,PostFXSettings postFXSettings)
     {
         //追踪阴影设置
         this.shadowSettings = shadowSettings;
         this.useDynamicBatching = useDynamicBatching;
         this.useGPUInstancing = useGPUInstancing;
         this.useLightsPerObject = useLightsPerObject;
+        this.postFXSettings = postFXSettings;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         //设置全局使用线性颜色
         GraphicsSettings.lightsUseLinearIntensity = true;
