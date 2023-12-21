@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Rendering/Custom Post FX Settings")]
@@ -6,6 +7,18 @@ public class PostFXSettings : ScriptableObject
     [SerializeField] private Shader shader = default;
 
     [System.NonSerialized] private Material material;
+
+    [System.Serializable]
+    public struct BloomSettings
+    {
+        [Range(0f, 16f)] public int maxIterations;
+
+        [Min(1f)] public int downscaleLimit;
+    }
+
+    [SerializeField] private BloomSettings bloom = default;
+
+    public BloomSettings Bloom => bloom;
     
     public Material Material
     {
