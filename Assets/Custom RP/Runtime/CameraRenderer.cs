@@ -22,6 +22,10 @@ public partial class CameraRenderer
         litShaderTagId = new ShaderTagId("CustomLit");
 
     private Lighting lighting = new Lighting();
+
+    private PostFXStack postFXStack = new PostFXStack();
+
+    private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     
     public void Render(ScriptableRenderContext context, Camera camera,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
@@ -43,13 +47,20 @@ public partial class CameraRenderer
         ExecuteBuffer();
         //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
+        postFXStack.Setup(context,camera,postFXSettings);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
         DrawUnsupportedShaders();
         DrawGizmos();
-        //清除ShadowAtlas申请的RT
-        lighting.Cleanup();
+        if (postFXStack.IsActive)
+        {
+            postFXStack.Render(frameBufferId);
+        }
+        // 同一清理所有申请的buffer
+        Clearup();
+        // //清除ShadowAtlas申请的RT
+        // lighting.Cleanup();
         Submit();
     }
 
@@ -59,6 +70,15 @@ public partial class CameraRenderer
         context.SetupCameraProperties(camera);
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
+
+        if (postFXStack.IsActive)
+        {
+            buffer.GetTemporaryRT(frameBufferId,camera.pixelWidth,camera.pixelHeight,32,
+                FilterMode.Bilinear,RenderTextureFormat.Default);
+            buffer.SetRenderTarget(frameBufferId,
+                RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
+        }
+        
         //清除图像缓存,前两个true控制是否应该清除深度和颜色数据，第三个是用于清楚的颜色。
         buffer.ClearRenderTarget
         (
@@ -162,4 +182,12 @@ public partial class CameraRenderer
         return false;
     }
 
+    void Clearup()
+    {
+        lighting.Cleanup();
+        if (postFXStack.IsActive)
+        {
+            buffer.ReleaseTemporaryRT(frameBufferId);
+        }
+    }
 }
