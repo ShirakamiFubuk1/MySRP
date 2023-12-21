@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class PostFXStack
+public partial class PostFXStack
 {
     private const string bufferName = "Post FX";
 
@@ -29,7 +29,8 @@ public class PostFXStack
     {
         this.context = context;
         this.camera = camera;
-        this.settings = settings;
+        this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
+        ApplySceneViewState();
     }
 
     public void Render(int sourceId)
