@@ -52,11 +52,12 @@ public partial class CameraRenderer
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
         DrawUnsupportedShaders();
-        DrawGizmos();
+        DrawGizmosBeforeFX();
         if (postFXStack.IsActive)
         {
             postFXStack.Render(frameBufferId);
         }
+        DrawGizmosAfterFX();
         // 同一清理所有申请的buffer
         Clearup();
         // //清除ShadowAtlas申请的RT
@@ -73,6 +74,10 @@ public partial class CameraRenderer
 
         if (postFXStack.IsActive)
         {
+            if (flags > CameraClearFlags.Color)
+            {
+                flags = CameraClearFlags.Color;
+            }
             buffer.GetTemporaryRT(frameBufferId,camera.pixelWidth,camera.pixelHeight,32,
                 FilterMode.Bilinear,RenderTextureFormat.Default);
             buffer.SetRenderTarget(frameBufferId,
