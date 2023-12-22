@@ -51,7 +51,7 @@ public partial class CameraRenderer
         ExecuteBuffer();
         //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
-        postFXStack.Setup(context,camera,postFXSettings);
+        postFXStack.Setup(context,camera,postFXSettings,useHDR);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
