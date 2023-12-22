@@ -14,6 +14,8 @@ public class PostFXSettings : ScriptableObject
         [Range(0f, 16f)] public int maxIterations;
 
         [Min(1f)] public int downscaleLimit;
+        
+        public bool bicubicUpsampling;       
     }
 
     [SerializeField] private BloomSettings bloom = default;
@@ -33,4 +35,5 @@ public class PostFXSettings : ScriptableObject
             return material;
         }
     }
+
 }

@@ -17,6 +17,7 @@ public partial class PostFXStack
     private PostFXSettings settings;
 
     private int 
+        bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
         fxSourceId = Shader.PropertyToID("_PostFXSource"),
         fxSource2Id = Shader.PropertyToID("_PostFXSource2");
 
@@ -105,7 +106,10 @@ public partial class PostFXStack
             width /= 2;
             height /= 2;
         }
-
+        
+        buffer.SetGlobalFloat(
+                bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
+            );
         if (i > 1)
         {
             //Draw(fromId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
