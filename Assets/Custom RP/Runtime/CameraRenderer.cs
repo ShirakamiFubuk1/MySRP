@@ -26,8 +26,10 @@ public partial class CameraRenderer
     private PostFXStack postFXStack = new PostFXStack();
 
     private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+
+    private bool useHDR;
     
-    public void Render(ScriptableRenderContext context, Camera camera,
+    public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
         ShadowSettings shadowSettings,PostFXSettings postFXSettings)
     {
@@ -41,6 +43,8 @@ public partial class CameraRenderer
         {
             return;
         }
+
+        useHDR = allowHDR && camera.allowHDR;
         
         //将Shadows渲染在对应相机样本内
         buffer.BeginSample(SampleName);

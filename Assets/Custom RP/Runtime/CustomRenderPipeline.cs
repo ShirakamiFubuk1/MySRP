@@ -5,7 +5,11 @@ public partial class CustomRenderPipeline : RenderPipeline
 {
     private CameraRenderer renderer = new CameraRenderer();
 
-    private bool useDynamicBatching, useGPUInstancing, useLightsPerObject;
+    private bool 
+        useDynamicBatching, 
+        useGPUInstancing, 
+        useLightsPerObject,
+        allowHDR;
 
     private ShadowSettings shadowSettings;
 
@@ -17,12 +21,13 @@ public partial class CustomRenderPipeline : RenderPipeline
     {
         foreach (Camera camera in cameras)
         {
-            renderer.Render(context,camera, useDynamicBatching,useGPUInstancing,
+            renderer.Render(context,camera,allowHDR, 
+                useDynamicBatching,useGPUInstancing,
                 useLightsPerObject,shadowSettings,postFXSettings);
         }
     }
 
-    public CustomRenderPipeline(bool useDynamicBatching,
+    public CustomRenderPipeline(bool allowHDR,bool useDynamicBatching,
         bool useGPUInstancing,bool useSRPBatcher,bool useLightsPerObject,
         ShadowSettings shadowSettings,PostFXSettings postFXSettings)
     {
@@ -32,6 +37,7 @@ public partial class CustomRenderPipeline : RenderPipeline
         this.useGPUInstancing = useGPUInstancing;
         this.useLightsPerObject = useLightsPerObject;
         this.postFXSettings = postFXSettings;
+        this.allowHDR = allowHDR;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         //设置全局使用线性颜色
         GraphicsSettings.lightsUseLinearIntensity = true;
