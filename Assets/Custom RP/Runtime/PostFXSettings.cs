@@ -22,6 +22,8 @@ public class PostFXSettings : ScriptableObject
         [Range(0f, 1f)] public float thresholdKnee;
 
         [Min(0f)] public float intensity;
+
+        public bool fadeFireflies;
     }
 
     [SerializeField] private BloomSettings bloom = default;

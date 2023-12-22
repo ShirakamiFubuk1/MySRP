@@ -36,7 +36,8 @@ public partial class PostFXStack
         BloomHorizontal,
         BloomVertical,
         BloomCombine,
-        BloomPrefilter
+        BloomPrefilter,
+        BloomPrefilterFireflies
     }
 
     private bool useHDR;
@@ -105,7 +106,8 @@ public partial class PostFXStack
         buffer.GetTemporaryRT(
                 bloomPrefilterId,width,height,0,FilterMode.Bilinear,format
             );
-        Draw(sourceId,bloomPrefilterId,Pass.BloomPrefilter);
+        Draw(sourceId,bloomPrefilterId,
+            bloom.fadeFireflies ? Pass.BloomPrefilterFireflies : Pass.BloomPrefilter);
         width /= 2;
         height /= 2;
         int fromId = bloomPrefilterId,
