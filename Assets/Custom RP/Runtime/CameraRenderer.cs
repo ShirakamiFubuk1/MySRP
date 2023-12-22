@@ -82,9 +82,11 @@ public partial class CameraRenderer
             {
                 flags = CameraClearFlags.Color;
             }
-            buffer.GetTemporaryRT(frameBufferId,camera.pixelWidth,camera.pixelHeight,32,
-                FilterMode.Bilinear,RenderTextureFormat.Default);
-            buffer.SetRenderTarget(frameBufferId,
+
+            buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, 
+                camera.pixelHeight, 32, FilterMode.Bilinear, useHDR ? 
+                RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+                buffer.SetRenderTarget(frameBufferId,
                 RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
         }
         
