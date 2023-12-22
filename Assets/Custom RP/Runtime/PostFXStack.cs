@@ -18,6 +18,7 @@ public partial class PostFXStack
 
     private int 
         bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
+        bloomPrefilterId = Shader.PropertyToID("_BloomPrefilter"),
         fxSourceId = Shader.PropertyToID("_PostFXSource"),
         fxSource2Id = Shader.PropertyToID("_PostFXSource2");
 
@@ -76,7 +77,7 @@ public partial class PostFXStack
         int width = camera.pixelWidth / 2,
             height = camera.pixelHeight / 2;
         if (bloom.maxIterations == 0 ||
-            height < bloom.downscaleLimit || width < bloom.downscaleLimit)
+            height < bloom.downscaleLimit * 2 || width < bloom.downscaleLimit * 2)
         {
             Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
             buffer.EndSample("Bloom");
@@ -85,7 +86,13 @@ public partial class PostFXStack
         }
         
         RenderTextureFormat format = RenderTextureFormat.Default;
-        int fromId = sourceId,
+        buffer.GetTemporaryRT(
+                bloomPrefilterId,width,height,0,FilterMode.Bilinear,format
+            );
+        Draw(sourceId,bloomPrefilterId,Pass.Copy);
+        width /= 2;
+        height /= 2;
+        int fromId = bloomPrefilterId,
             toId = bloomPyramidId + 1;
 
         int i;
@@ -107,6 +114,7 @@ public partial class PostFXStack
             height /= 2;
         }
         
+        buffer.ReleaseTemporaryRT(bloomPrefilterId);
         buffer.SetGlobalFloat(
                 bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
             );
