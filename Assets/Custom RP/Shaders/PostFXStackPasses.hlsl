@@ -2,7 +2,7 @@
 #define CUSTOM_POST_FX_PASSED_INCLUDED
 
 bool _BloomBicubicUpsampling;
-
+float _BloomIntensity;
 float4 _BloomThreshold;
 
 TEXTURE2D(_PostFXSource);
@@ -109,7 +109,7 @@ float4 BloomCombinePassFragment (Varyings input) : SV_TARGET
     }
     float3 highRes = GetSource2(input.screenUV).rgb;
 
-    return float4(lowRes + highRes , 1.0);
+    return float4(lowRes * _BloomIntensity + highRes , 1.0);
 }
 
 float4 CopyPassFragment(Varyings input):SV_TARGET

@@ -20,6 +20,7 @@ public partial class PostFXStack
         bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
         bloomPrefilterId = Shader.PropertyToID("_BloomPrefilter"),
         bloomThresholdId = Shader.PropertyToID("_BloomThreshold"),
+        bloomIntensityId = Shader.PropertyToID("_BloomIntensity"),
         fxSourceId = Shader.PropertyToID("_PostFXSource"),
         fxSource2Id = Shader.PropertyToID("_PostFXSource2");
 
@@ -78,7 +79,7 @@ public partial class PostFXStack
         PostFXSettings.BloomSettings bloom = settings.Bloom;
         int width = camera.pixelWidth / 2,
             height = camera.pixelHeight / 2;
-        if (bloom.maxIterations == 0 ||
+        if (bloom.maxIterations == 0 || bloom.intensity <= 0f ||
             height < bloom.downscaleLimit * 2 || width < bloom.downscaleLimit * 2)
         {
             Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
@@ -128,6 +129,7 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(
                 bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
             );
+        buffer.SetGlobalFloat(bloomIntensityId,1f);
         if (i > 1)
         {
             //Draw(fromId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
@@ -149,7 +151,7 @@ public partial class PostFXStack
             buffer.ReleaseTemporaryRT(bloomPyramidId);
         }
 
-        
+        buffer.SetGlobalFloat(bloomIntensityId,bloom.intensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         Draw(fromId,
             BuiltinRenderTextureType.CameraTarget,Pass.BloomCombine);
