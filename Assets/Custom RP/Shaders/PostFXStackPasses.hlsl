@@ -3,6 +3,8 @@
 
 bool _BloomBicubicUpsampling;
 
+float4 _BloomThreshold;
+
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
 SAMPLER(sampler_linear_clamp);
@@ -113,6 +115,25 @@ float4 BloomCombinePassFragment (Varyings input) : SV_TARGET
 float4 CopyPassFragment(Varyings input):SV_TARGET
 {
     return GetSource(input.screenUV);
+}
+
+float3 ApplyBloomThreshold(float3 color)
+{
+    float brightness = Max3(color.r,color.g,color.b);
+    float soft = brightness + _BloomThreshold.y;
+    soft = clamp(soft,0.0,_BloomThreshold.z);
+    soft = soft * soft * _BloomThreshold.w;
+    float contribution = max(soft,brightness - _BloomThreshold.x);
+    contribution /= max(brightness,0.00001);
+
+    return color * contribution;
+}
+
+float4 BloomPrefilterPassFragment(Varyings input) : SV_TARGET
+{
+    float3 color = ApplyBloomThreshold(GetSource(input.screenUV).rgb);
+
+    return float4(color,1.0);
 }
 
 #endif
