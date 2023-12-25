@@ -22,7 +22,7 @@ public partial class CameraRenderer
         litShaderTagId = new ShaderTagId("CustomLit");
 
     private Lighting lighting = new Lighting();
-
+    
     private PostFXStack postFXStack = new PostFXStack();
 
     private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
@@ -51,16 +51,19 @@ public partial class CameraRenderer
         ExecuteBuffer();
         //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
+        // 在CameraRender中调用FX实例堆栈
         postFXStack.Setup(context,camera,postFXSettings,useHDR);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
         DrawUnsupportedShaders();
         DrawGizmosBeforeFX();
+        // 如果处于活动状态,在提交之前调用FX堆栈
         if (postFXStack.IsActive)
         {
             postFXStack.Render(frameBufferId);
         }
+        // 由于后处理的存在,将Gizmos分为前后两部分分开渲染,省的给Gizmos也加个后处理效果
         DrawGizmosAfterFX();
         // 同一清理所有申请的buffer
         Clearup();
@@ -76,13 +79,20 @@ public partial class CameraRenderer
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
 
+        // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
+        // 我们无法直接控制这些内容, 只能覆盖这些设置
         if (postFXStack.IsActive)
         {
+            // 当渲染到中间帧缓冲区时,渲染为填充任意数据的纹理
+            // 为了防止出现随机结果,当堆栈处于活动状态时,始终清除深度和颜色
+            // 注意,如果不清除,在使用FX堆栈时就可能将一个相机渲染在另一个相机之上
+            // 有很多方法可以解决这个问题,此处略
             if (flags > CameraClearFlags.Color)
             {
                 flags = CameraClearFlags.Color;
             }
-
+            // 因此,为了给激活的堆栈提供纹理数据,必须使用渲染的图像作为相机的中间帧缓冲区.
+            // 获取并将其设置为渲染目标的工作方式与阴影贴图类似,我们只是用这个格式,在清除之前存储纹理
             buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, 
                 camera.pixelHeight, 32, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
@@ -193,6 +203,7 @@ public partial class CameraRenderer
         return false;
     }
 
+    // 给FX的堆栈添加一个释放纹理的方法,同时也可以把光照的Clear移动到这里
     void Clearup()
     {
         lighting.Cleanup();

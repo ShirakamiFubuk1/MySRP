@@ -1,9 +1,14 @@
 using System;
 using UnityEngine;
 
+// 大多数情况下,渲染的图像并不会直接显示.图像经过后处理之后将会获得各种效果(简称FX).常见的FX包括Bloom,
+// Color Gradient, DepthOfField, MotionBlur, ToneMapping等.这些FX以堆栈的形式调用,一个叠在一个上面
+
+// 一个项目可能需要多个Post-FX堆栈配置,因此需要创建一个资产类型来存储堆栈的设置
 [CreateAssetMenu(menuName = "Rendering/Custom Post FX Settings")]
 public class PostFXSettings : ScriptableObject
 {
+    // 通过此设置链接PostFXshader
     [SerializeField] private Shader shader = default;
 
     [System.NonSerialized] private Material material;
@@ -39,6 +44,7 @@ public class PostFXSettings : ScriptableObject
 
     public BloomSettings Bloom => bloom;
     
+    // 因为我们需要一个Material所以在此创建,并设置隐藏且不保存,因为不需要
     public Material Material
     {
         get

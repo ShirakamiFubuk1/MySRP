@@ -10,6 +10,7 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset
         useSRPBatcher = true,
         useLightsPerObject = true;
 
+    // 在这里使用单个堆栈,通过为其添加配置项,将其传递给RP的构造函数,从而提供给RP
     [SerializeField] private PostFXSettings postFXSettings = default;
 
     [SerializeField] private bool allowHDR = true;

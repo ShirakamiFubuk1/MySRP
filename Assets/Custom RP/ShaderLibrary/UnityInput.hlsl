@@ -56,6 +56,9 @@ float4x4 glstate_matrix_projection;
 
 float3 _WorldSpaceCameraPos;
 
+// 因为API的V轴方向不一样,导致有时候屏幕会上下颠倒
+// 大部分情况下Unity会解决这个问题,但在使用RenderTexture时会失效
+// Unity决定是否手动翻转需要通过_ProjectionParams.x来决定,将其放入UnityInput
 float4 _ProjectionParams;
 
 #endif

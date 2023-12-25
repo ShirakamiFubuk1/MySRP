@@ -13,6 +13,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 
     private ShadowSettings shadowSettings;
 
+    // 在Custom RenderPipeline中追踪FX设置,并在渲染时将他们与其他设置一起传递给相机渲染器
     private PostFXSettings postFXSettings;
 
     protected override void Render(

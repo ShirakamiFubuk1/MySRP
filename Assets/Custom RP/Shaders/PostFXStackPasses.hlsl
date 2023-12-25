@@ -25,18 +25,30 @@ struct Varyings
     float2 screenUV : VAR_SCREEN_UV;
 };
 
+// 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
+// 但我们只用一个三角形就能获得同样的结果,同时可以作为优化项
+// 甚至不需要发送给GPU一个三角形,直接程序化生成一个即可
+// 虽然从两个三角形变成一个三角形只是从六个顶点减少为三个
+// 当时默认两个三角形的情况在屏幕对角线上,由于接触到三角形的边界会出现锯齿
+// 因此接近对角线的地方会渲染两次,效率低下且对画面显示会造成一定的影响
+// 创建一个vertexPass,只有一个vertexId作为输入参数,使用uint类型和SV_VertexID识别符
 Varyings DefaultPassVertex(uint vertexID : SV_VertexID)
 {
     Varyings output;
+    // 需要注意这个三角形就三个顶点
+    // 顶点ID小于等于1可以把2号顶点放在x=3.0,ID等于1可以把1放在y=3.0,ID为零的在原点
+    // 覆盖x:-1到1,y:-1到1
     output.positionCS = float4(
         vertexID <= 1 ? -1.0 : 3.0,
         vertexID == 1 ? 3.0 : -1.0,
         0.0 , 1.0
     );
+    // U使用0,0,2,V使用0,2,0,覆盖U:0-1,V:0-1
     output.screenUV = float2(
         vertexID <= 1 ? 0.0 : 2.0,
         vertexID == 1 ? 2.0 : 0.0
     );
+    // 如果该值小于零说明V轴向下,需要反转
     if(_ProjectionParams.x < 0.0)
     {
         output.screenUV.y = 1.0 - output.screenUV.y;
@@ -44,8 +56,10 @@ Varyings DefaultPassVertex(uint vertexID : SV_VertexID)
     return output;
 }
 
+// 创建一个GetSource函数来复制采样回来的颜色,使用线性钳制采样器来采样
 float4 GetSource(float2 screenUV)
 {
+    // 由于我们的buffer用不到Mip,所以使用带Mip的采样器并将Mip设定为0
     return SAMPLE_TEXTURE2D_LOD(_PostFXSource,sampler_linear_clamp,screenUV,0);
 }
 
