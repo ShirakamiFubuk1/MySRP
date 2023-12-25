@@ -40,7 +40,8 @@ public partial class PostFXStack
         BloomScatter,
         BloomScatterFinal,
         BloomPrefilter,
-        BloomPrefilterFireflies
+        BloomPrefilterFireflies,
+        ToneMappingReinhard
     }
 
     private bool useHDR;
@@ -200,6 +201,8 @@ public partial class PostFXStack
 
     void DoToneMapping(int sourceId)
     {
-        Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
+        PostFXSettings.ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+        Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingReinhard;
+        Draw(sourceId,BuiltinRenderTextureType.CameraTarget,pass);
     }
 }
