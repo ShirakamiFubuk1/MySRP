@@ -139,15 +139,18 @@ public partial class PostFXStack
             );
 
         Pass combinePass;
+        float finalIntensity;
         if (bloom.mode == PostFXSettings.BloomSettings.Mode.Additive)
         {
             combinePass = Pass.BloomAdd;
             buffer.SetGlobalFloat(bloomIntensityId,1f);
+            finalIntensity = bloom.intensity;
         }
         else
         {
             combinePass = Pass.BloomScatter;
             buffer.SetGlobalFloat(bloomIntensityId,bloom.scatter);
+            finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
         }
         
         if (i > 1)
@@ -171,7 +174,7 @@ public partial class PostFXStack
             buffer.ReleaseTemporaryRT(bloomPyramidId);
         }
 
-        buffer.SetGlobalFloat(bloomIntensityId,bloom.intensity);
+        buffer.SetGlobalFloat(bloomIntensityId,finalIntensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         Draw(fromId,
             BuiltinRenderTextureType.CameraTarget,combinePass);
