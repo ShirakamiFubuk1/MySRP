@@ -35,7 +35,8 @@ public partial class PostFXStack
         Copy,
         BloomHorizontal,
         BloomVertical,
-        BloomCombine,
+        BloomAdd,
+        BloomScatter,
         BloomPrefilter,
         BloomPrefilterFireflies
     }
@@ -136,7 +137,19 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(
                 bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
             );
-        buffer.SetGlobalFloat(bloomIntensityId,1f);
+
+        Pass combinePass;
+        if (bloom.mode == PostFXSettings.BloomSettings.Mode.Additive)
+        {
+            combinePass = Pass.BloomAdd;
+            buffer.SetGlobalFloat(bloomIntensityId,1f);
+        }
+        else
+        {
+            combinePass = Pass.BloomScatter;
+            buffer.SetGlobalFloat(bloomIntensityId,bloom.scatter);
+        }
+        
         if (i > 1)
         {
             //Draw(fromId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
@@ -146,7 +159,7 @@ public partial class PostFXStack
             for (i -= 1; i > 0; i--)
             {
                 buffer.SetGlobalTexture(fxSource2Id, toId + 1);
-                Draw(fromId,toId,Pass.BloomCombine);
+                Draw(fromId,toId,combinePass);
                 buffer.ReleaseTemporaryRT(fromId);
                 buffer.ReleaseTemporaryRT(toId + 1);
                 fromId = toId;
@@ -161,7 +174,7 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(bloomIntensityId,bloom.intensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         Draw(fromId,
-            BuiltinRenderTextureType.CameraTarget,Pass.BloomCombine);
+            BuiltinRenderTextureType.CameraTarget,combinePass);
         buffer.ReleaseTemporaryRT(fromId);
         buffer.EndSample("Bloom");
     }
