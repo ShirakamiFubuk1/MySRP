@@ -24,4 +24,4 @@ MonoBehaviour:
     mode: 1
     scatter: 0.5
   toneMapping:
-    mode: 0
+    mode: 1

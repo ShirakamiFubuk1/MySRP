@@ -59,6 +59,7 @@ public class PostFXSettings : ScriptableObject
         public enum Mode
         {
             None = -1,
+            Neutral,
             Reinhard
         }
 
