@@ -53,6 +53,12 @@ float3 ColorGradingHueShift(float3 color)
     return HsvToRgb(color);
 }
 
+float3 ColorGradingSaturation(float3 color)
+{
+    float luminance = Luminance(color);
+    return (color - luminance) * _ColorAdjustments.w + luminance;
+}
+
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
 // 但我们只用一个三角形就能获得同样的结果,同时可以作为优化项
 // 甚至不需要发送给GPU一个三角形,直接程序化生成一个即可
@@ -271,7 +277,8 @@ float3 ColorGrade (float3 color)
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
     color = ColorGradingHueShift(color);
-    return color;
+    color = ColorGradingSaturation(color);
+    return max(color,0.0);
 }
 
 float4 ToneMappingNonePassFragment(Varyings input) : SV_TARGET
