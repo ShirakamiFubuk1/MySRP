@@ -34,6 +34,9 @@ public class PostFXSettings : ScriptableObject
 
         public Mode mode;
 
+        // 由于0和1的散射值会消除除了pyramid0之外的所有采样,因此是没有意义的
+        // 所以我们需要把滑块范围限制到0.05 - 0.95
+        // 这样会使默认值0无效,所以需要在下面显式初始化, 默认使用0.7,与URP和HDRP一样
         [Range(0.05f, 0.95f)] public float scatter;
     }
 

@@ -203,6 +203,8 @@ public partial class PostFXStack
                 bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
             );
 
+        // 我们将同时支持传统的叠加Bloom和开销更少的散射Bloom
+        // 在散射的情况下,我们将使用散射量而不是1来表示强度
         Pass combinePass,finalPass;
         float finalIntensity;
         if (bloom.mode == PostFXSettings.BloomSettings.Mode.Additive)
@@ -214,8 +216,13 @@ public partial class PostFXStack
         else
         {
             combinePass = Pass.BloomScatter;
+            // 和叠加Bloom不同,散射Bloom在低强度的时候也会有效,而真实情况是只有在强度较高时才会有效果
+            // 虽然不太现实,但仍可以应用阈值来消除较暗的散射.
+            // 这可以在使用更强的光晕是保持图像清晰,也会消除光线使图像变暗
             finalPass = Pass.BloomScatterFinal;
             buffer.SetGlobalFloat(bloomIntensityId,bloom.scatter);
+            // 因为大于一的强度不适合散射Bloom,这会增加光
+            // 所以需要将散射的强度最大之限制为0.95.否则原图将对结果没有贡献
             finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
         }
         
