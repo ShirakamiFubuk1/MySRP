@@ -31,7 +31,7 @@ public partial class PostFXStack
         fxSourceId = Shader.PropertyToID("_PostFXSource"),
         fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
         colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
-        colorFilterId = Shader.PropertyToID("_WhiteBalance");
+        colorFilterId = Shader.PropertyToID("_ColorFilter");
 
     private int bloomPyramidId;
 
