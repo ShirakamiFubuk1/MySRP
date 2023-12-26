@@ -70,18 +70,25 @@ float4 GetSource2(float2 screenUV)
 
 float4 GetSourceBicubic(float2 screenUV)
 {
+    // 使用Core RP中的SampleTexture2DBicubic来构建该函数,后两个参数一般用1.0,0.0
     return SampleTexture2DBicubic(
         TEXTURE2D_ARGS(_PostFXSource,sampler_linear_clamp),screenUV,
         _PostFXSource_TexelSize.zwxy,1.0,0.0
     );
 }
 
+// 因为两次滤波可以拆开,所以只用9*2次滤波即可
+// 此处时Horizontal模糊
 float4 BloomHorizontalPassFragment(Varyings input):SV_TARGET
 {
     float3 color = 0.0;
     float offsets[] = {
         -4.0 , -3.0 , -2.0 , -1.0 , 0.0 , 1.0 , 2.0 , 3.0 , 4.0
     };
+    // 权重源自帕斯卡三角形.
+    // 对于适当的9x9高斯滤波器,我们会选择三角形的第九行,即 1 8 28 56 70 56 28 8 1.
+    // 但这个采样会使样本边缘的贡献太弱从而看不出来.因此我们向下移动到13行并切断其边缘.
+    // 得到66 220 495 792 495 220 66.这些数字的总和是4070,因此将每个出自除以它得到权重
     float weights[] = {
         0.01621622, 0.05405405, 0.12162162, 0.19459459, 0.22702703,
         0.19459459, 0.12162162, 0.05405405, 0.01621622
@@ -94,8 +101,13 @@ float4 BloomHorizontalPassFragment(Varyings input):SV_TARGET
     return float4(color,1.0);
 }
 
+// 纵向采样,从垂直采样中获得材质
 float4 BloomVerticalPassFragment(Varyings input):SV_TARGET
 {
+    // 由于横向和纵向都用高斯采样的开销较大
+    // 第二步的纵向采样可以用双线性滤波采样之前高斯采样的样本点并使用合适的偏移值来替代
+    // 这样采样次数就从9次变为5次,总次数变为14次
+    // 在第一步横向采样中无法使用的原因是我们获得给高斯采样的pyramid就是用双线性滤波获得的2x2格子,无法重复操作
     float3 color = 0.0;
     float offsets[] = {
         -3.23076923, -1.38461538, 0.0, 1.38461538, 3.23076923
@@ -105,6 +117,7 @@ float4 BloomVerticalPassFragment(Varyings input):SV_TARGET
     };
     for(int i = 0; i < 5; i++)
     {
+        // 使用y方向的texel大小
         float offset = offsets[i] * GetSourceTexelSize().y;
         color += GetSource(input.screenUV + float2(0.0,offset)).rgb * weights[i];
     }
@@ -128,6 +141,8 @@ float4 BloomAddPassFragment (Varyings input) : SV_TARGET
     float3 lowRes;
     if(_BloomBicubicUpsampling)
     {
+        // 如果使用了Bicubic采样则lowRes走这条路
+        // 虽然Bicubic表现更好,但是一次需要采样四个加上权重的样本或单个样本
         lowRes = GetSourceBicubic(input.screenUV).rgb;
     }
     else

@@ -20,6 +20,7 @@ public partial class PostFXStack
 
     private int 
         bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
+        // 提前为半分辨率的图像声明一个纹理,将其作为新的起点.
         bloomPrefilterId = Shader.PropertyToID("_BloomPrefilter"),
         bloomResultId = Shader.PropertyToID("BloomResult"),
         bloomThresholdId = Shader.PropertyToID("_BloomThreshold"),
@@ -29,6 +30,7 @@ public partial class PostFXStack
 
     private int bloomPyramidId;
 
+    // 至多使用65536 * 65536 大小的Texture降低至1像素,所以最大Levels使用16
     private const int maxBloomPyramidLevels = 16;
 
     // 添加一个公共属性用来指示堆栈是否属于活动状态,仅当堆栈设置存在时才会显示活动
@@ -101,20 +103,34 @@ public partial class PostFXStack
 
     public PostFXStack()
     {
+        // 使用_BloomPyramidX来作为材质的标识符
         bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
+        // 需要在每一步之间增加一个纵向模糊,需要把步进数乘二
         for (int i = 1; i < maxBloomPyramidLevels * 2; i++)
         {
+            // 使用循环生成各级标志,而不是单独去声明他们
             Shader.PropertyToID("_BloomPyramid" + i);
         }
     }
 
+    // Bloom效果一般用于把物体变亮,代表颜色的散射.这可以通过模糊图像来实现
+    // 亮度高的像素将会流进相对较暗的像素里,这样表现就是发光效果
+    // 最快且最简单的方法来模糊一个材质时通过复制他到另外一个只有它一半长和高的材质
+    // 任意一个像素通过邻近的四个像素升采样到一个像素,同时用双线性滤波平均2x2的像素
+    // 每循环一次都只有一点点效果,因此多循环几次,直到降采样到一个需要的等级
+    // 创建DoBloom方法,通过给定一个sourceId来实现Bloom效果
     bool DoBloom(int sourceId)
     {
+        // 初始化
         //buffer.BeginSample("Bloom");
+        // 使用BloomSettings中的配置文件
         PostFXSettings.BloomSettings bloom = settings.Bloom;
+        // 生成第一级金字塔的参数
         int width = camera.pixelWidth / 2,
             height = camera.pixelHeight / 2;
+        // 如果迭代数小于0,或强度小于等于0,或默认的宽高小于限制数的二倍,则直接跳过Bloom
         if (bloom.maxIterations == 0 || bloom.intensity <= 0f ||
+            // 因为直接使用半分辨率跳过了第一次迭代,所以本应该用在第一次迭代的像素限制应该乘二来适配一半分辨率
             height < bloom.downscaleLimit * 2 || width < bloom.downscaleLimit * 2)
         {
             // Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
@@ -125,7 +141,9 @@ public partial class PostFXStack
         
         buffer.BeginSample("Bloom");
 
+        // 通过引入阈值来限制部分区域过亮
         Vector4 threshold;
+        // 我们的输入值时Gamma的,因为这更符合直觉
         threshold.x = Mathf.GammaToLinearSpace(bloom.threshold);
         threshold.y = threshold.x * bloom.thresholdKnee;
         threshold.z = 2f * threshold.y;
@@ -135,6 +153,7 @@ public partial class PostFXStack
         
         RenderTextureFormat format = useHDR ? 
             RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        // 获取半分辨率的预处理结果,并把它当作Pyramid0,同时再将高度减半
         buffer.GetTemporaryRT(
                 bloomPrefilterId,width,height,0,FilterMode.Bilinear,format
             );
@@ -143,27 +162,37 @@ public partial class PostFXStack
         width /= 2;
         height /= 2;
         int fromId = bloomPrefilterId,
+            // 用于从末端清理多余的pyramid以及记录Dst
             toId = bloomPyramidId + 1;
 
         int i;
+        // Downsample阶段
         for (i = 0; i < bloom.maxIterations; i++)
         {
+            // 每一次迭代之前先判断宽高是否小于限制
             if (height < bloom.downscaleLimit || width < bloom.downscaleLimit)
             {
                 break;
             }
 
+            // mid初始化为dst的上一个
             int midId = toId - 1;
+            // 获得to和mid的对应Texture
             buffer.GetTemporaryRT(midId,width,height,0,FilterMode.Bilinear,format);
             buffer.GetTemporaryRT(toId,width,height,0,FilterMode.Bilinear,format);
+            // 把他们作为图像源输入Draw中根据选定pass绘制
             Draw(fromId,midId,Pass.BloomHorizontal);
             Draw(midId,toId,Pass.BloomVertical);
+            // id重新排序
             fromId = toId;
+            // 因为一次执行两个操作,所以现在循环步进数为2
             toId += 2;
             width /= 2;
             height /= 2;
         }
         
+        //中间阶段
+        // 进入pyramid之后就不需要半分辨率图了,把他释放掉
         buffer.ReleaseTemporaryRT(bloomPrefilterId);
         buffer.SetGlobalFloat(
                 bloomBicubicUpsamplingId,bloom.bicubicUpsampling ? 1f : 0f
@@ -185,27 +214,39 @@ public partial class PostFXStack
             finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
         }
         
+        // Upsamping阶段
+        
+        // 这种实现方式只有在迭代数至少有两个时才会生效.
         if (i > 1)
         {
             //Draw(fromId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
+            // 释放上一张横向采样的缓存,即释放2号缓存
             buffer.ReleaseTemporaryRT(fromId - 1);
+            // 将Dst设置为更上一个用于水平采样的id,以此来反转队列
             toId -= 5;
             
             for (i -= 1; i > 0; i--)
             {
+                // 把源图画给dst+1,最后一级的水平,我们需要在第一步之前停止,故i-=1
                 buffer.SetGlobalTexture(fxSource2Id, toId + 1);
+                // 将上一级垂直结果和这一级垂直结果混合,每次混合都包含之前的数据
                 Draw(fromId,toId,finalPass);
+                // 释放上一级水平和垂直的缓存
                 buffer.ReleaseTemporaryRT(fromId);
                 buffer.ReleaseTemporaryRT(toId + 1);
+                // fromId = 0,toId = 
+                // 索引值向前跳
                 fromId = toId;
                 toId -= 2;
             }            
         }
         else
         {
+            // 当迭代数仅仅为1时无法完成升采样,需要把申请的RT删除并从别处混合
             buffer.ReleaseTemporaryRT(bloomPyramidId);
         }
-
+        
+        // 最后一部分混合处理过的图像和第一级的垂直结果,同时包括只迭代一次的结果
         buffer.SetGlobalFloat(bloomIntensityId,finalIntensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         buffer.GetTemporaryRT(bloomResultId,camera.pixelWidth,camera.pixelHeight,0,
