@@ -234,6 +234,21 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
     return float4(color, 1.0);
 }
 
+// 因为颜色分级发生在色调映射之前,所以新建一个函数只将颜色分量限制为60
+float3 ColorGrade (float3 color)
+{
+    color = min(color,60);
+    return color;
+}
+
+float4 ToneMappingNonePassFragment(Varyings input) : SV_TARGET
+{
+    float4 color = GetSource(input.screenUV);
+    color.rgb = ColorGrade(color.rgb);
+
+    return color;
+}
+
 float4 ToneMappingReinhardPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
@@ -241,7 +256,7 @@ float4 ToneMappingReinhardPassFragment(Varyings input) : SV_TARGET
     // 非常大的值最终出现在1处的时间比无穷大早得多
     // 因此需要在执行色调映射之前收紧颜色范围
     // 限制为60可以避免我们支持的所有模式出现任何潜在问题
-    color.rgb = min(color.rgb,60);
+    color.rgb = ColorGrade(color.rgb);
     color.rgb /= color.rgb + 1.0;
 
     return color;
@@ -250,7 +265,7 @@ float4 ToneMappingReinhardPassFragment(Varyings input) : SV_TARGET
 float4 ToneMappingNeutralPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
-    color.rgb = min(color.rgb,60);
+    color.rgb = ColorGrade(color.rgb);
     color.rgb = NeutralTonemap(color.rgb);
 
     return color;
@@ -259,7 +274,7 @@ float4 ToneMappingNeutralPassFragment(Varyings input) : SV_TARGET
 float4 ToneMappingACESPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
-    color.rgb = min(color.rgb,60);
+    color.rgb = ColorGrade(color.rgb);
     color.rgb =AcesTonemap(unity_to_ACES(color.rgb));
 
     return color;
