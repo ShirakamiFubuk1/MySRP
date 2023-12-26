@@ -13,6 +13,8 @@ SAMPLER(sampler_linear_clamp);
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 float4 _PostFXSource_TexelSize;
+float4 _ColorAdjustments;
+float4 _ColorFilter;
 
 float4 GetSourceTexelSize()
 {
@@ -24,6 +26,11 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 screenUV : VAR_SCREEN_UV;
 };
+
+float3 ColorGradePostExposure(float3 color)
+{
+    return color * _ColorAdjustments.x;
+}
 
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
 // 但我们只用一个三角形就能获得同样的结果,同时可以作为优化项
@@ -238,6 +245,7 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
 float3 ColorGrade (float3 color)
 {
     color = min(color,60);
+    color = ColorGradePostExposure(color);
     return color;
 }
 
