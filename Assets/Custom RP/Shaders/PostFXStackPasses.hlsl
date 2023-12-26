@@ -16,6 +16,8 @@ float4 _PostFXSource_TexelSize;
 float4 _ColorAdjustments;
 float4 _ColorFilter;
 float4 _WhiteBalance;
+float4 _SplitToningShadows;
+float4 _SplitToningHighlights;
 
 float4 GetSourceTexelSize()
 {
@@ -65,6 +67,17 @@ float3 ColorGradeWhiteBalance(float3 color)
     color = LinearToLMS(color);
     color *= _WhiteBalance.rgb;
     return LMSToLinear(color);
+}
+
+float3 ColorGradeSplitToning(float3 color)
+{
+    color = PositivePow(color,1.0 / 2.2);
+    float t = saturate(Luminance(saturate(color)) + _SplitToningShadows.w);
+    float3 shadows = lerp(0.5, _SplitToningShadows.rgb, 1.0 - t);
+    float3 highlights = lerp(0.5, _SplitToningHighlights.rgb, t);
+    color = SoftLight(color,shadows);
+    color = SoftLight(color,highlights);
+    return PositivePow(color,2.2);
 }
 
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
@@ -285,6 +298,7 @@ float3 ColorGrade (float3 color)
     color = ColorGradingContrast(color);
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
+    color = ColorGradeSplitToning(color);
     color = ColorGradingHueShift(color);
     color = ColorGradingSaturation(color);
     return max(color,0.0);

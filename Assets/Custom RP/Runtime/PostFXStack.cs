@@ -32,7 +32,9 @@ public partial class PostFXStack
         fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
         colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
         colorFilterId = Shader.PropertyToID("_ColorFilter"),
-        whiteBalanceId = Shader.PropertyToID("_WhiteBalance");
+        whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
+        splitToningShadowId = Shader.PropertyToID("_SplitToningShadows"),
+        splitToningHighlightId = Shader.PropertyToID("_SplitToningHighlights");
 
     private int bloomPyramidId;
 
@@ -301,6 +303,15 @@ public partial class PostFXStack
             ));
     }
 
+    void ConfigureSplitToning()
+    {
+        SplitToningSettings splitToning = settings.SplitToning;
+        Color splitColor = splitToning.shadows;
+        splitColor.a = splitToning.balance * 0.01f;
+        buffer.SetGlobalColor(splitToningShadowId,splitColor);
+        buffer.SetGlobalColor(splitToningHighlightId,splitToning.hightlights);
+    }
+
     // 虽然我们可以在HDR中渲染,但对于普通设备来说最终的帧缓冲区始终是LDR的.
     // 因此颜色通道在1处被截断.实际上最终的白点位置位于1.
     // 那些及其鲜艳的颜色最终看起来和完全饱和的颜色没有什么不同.
@@ -315,6 +326,7 @@ public partial class PostFXStack
     {
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
+        ConfigureSplitToning();
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = Pass.ToneMappingNone + (int)mode;

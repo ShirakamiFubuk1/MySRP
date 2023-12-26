@@ -108,4 +108,19 @@ public class PostFXSettings : ScriptableObject
     [SerializeField] private WhiteBalanceSettings whiteBalance = default;
     
     public WhiteBalanceSettings WhiteBalance => whiteBalance;
+    
+    [Serializable] public struct SplitToningSettings
+    {
+        [ColorUsage(false)] public Color shadows, hightlights;
+
+        [Range(-100f, 100f)] public float balance;
+    }
+
+    [SerializeField] private SplitToningSettings splitToning = new SplitToningSettings
+    {
+        shadows = Color.gray,
+        hightlights = Color.gray
+    };
+
+    public SplitToningSettings SplitToning => splitToning;
 }
