@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using static PostFXSettings;
 
 // 像Lighting和Shadows一样,创建一个PostFXStack的类,用于跟踪缓冲区,上下文,相机和FX的设置
 
@@ -28,7 +29,9 @@ public partial class PostFXStack
         bloomThresholdId = Shader.PropertyToID("_BloomThreshold"),
         bloomIntensityId = Shader.PropertyToID("_BloomIntensity"),
         fxSourceId = Shader.PropertyToID("_PostFXSource"),
-        fxSource2Id = Shader.PropertyToID("_PostFXSource2");
+        fxSource2Id = Shader.PropertyToID("_PostFXSource2"),
+        colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
+        colorFilterId = Shader.PropertyToID("_WhiteBalance");
 
     private int bloomPyramidId;
 
@@ -82,12 +85,12 @@ public partial class PostFXStack
         // 否则直接映射原图
         if (DoBloom(sourceId))
         {
-            DoToneMapping(bloomResultId);
+            DoColorGradingAndToneMapping(bloomResultId);
             buffer.ReleaseTemporaryRT(bloomResultId);
         }
         else
         {
-            DoToneMapping(sourceId);
+            DoColorGradingAndToneMapping(sourceId);
         }
         context.ExecuteCommandBuffer(buffer);
         // 在这种情况下,我们不需要手动开始和结束缓冲区样本,因为我们不需要调用ClearRenderTarget
@@ -277,6 +280,18 @@ public partial class PostFXStack
         return true;
     }
 
+    void ConfigureColorAdjustments()
+    {
+        ColorAdjustmentsSettings colorAdjustments = settings.ColorAdjustments;
+        buffer.SetGlobalVector(colorAdjustmentsId,new Vector4(
+                Mathf.Pow(2f,colorAdjustments.postExposure),
+                colorAdjustments.contrast * 0.01f + 1f,
+                colorAdjustments.hueShift * (1f / 360f),
+                colorAdjustments.saturation * 0.01f + 1f 
+            ));
+        buffer.SetGlobalColor(colorFilterId,colorAdjustments.colorFilter.linear);
+    }
+
     // 虽然我们可以在HDR中渲染,但对于普通设备来说最终的帧缓冲区始终是LDR的.
     // 因此颜色通道在1处被截断.实际上最终的白点位置位于1.
     // 那些及其鲜艳的颜色最终看起来和完全饱和的颜色没有什么不同.
@@ -287,9 +302,10 @@ public partial class PostFXStack
     // 因此我们需要一个不均匀的颜色调整.这种颜色调整并不代表光本身的物理变化,而是我们如何观测他.
     // 例如我们眼睛对较深的色调比对较浅的色调更敏感
     // 从HDR到LDR称为色调映射,没有单一正确的方法来执行色调映射,可以使用不同的方法得到不同的结果.
-    void DoToneMapping(int sourceId)
+    void DoColorGradingAndToneMapping(int sourceId)
     {
-        PostFXSettings.ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+        ConfigureColorAdjustments();
+        ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = Pass.ToneMappingNone + (int)mode;
         Draw(sourceId,BuiltinRenderTextureType.CameraTarget,pass);
