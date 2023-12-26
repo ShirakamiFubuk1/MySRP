@@ -31,3 +31,6 @@ MonoBehaviour:
     saturation: 0
   toneMapping:
     mode: 0
+  whiteBalance:
+    temperature: 0
+    tint: 0
