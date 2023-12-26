@@ -44,6 +44,15 @@ float3 ColorGradeColorFilter(float3 color)
     return color * _ColorFilter.rgb;
 }
 
+float3 ColorGradingHueShift(float3 color)
+{
+    color = RgbToHsv(color);
+    float hue = color.x + _ColorAdjustments.z;
+    color.x = RotateHue(hue,0.0,1.0);
+
+    return HsvToRgb(color);
+}
+
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
 // 但我们只用一个三角形就能获得同样的结果,同时可以作为优化项
 // 甚至不需要发送给GPU一个三角形,直接程序化生成一个即可
@@ -261,6 +270,7 @@ float3 ColorGrade (float3 color)
     color = ColorGradingContrast(color);
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
+    color = ColorGradingHueShift(color);
     return color;
 }
 
