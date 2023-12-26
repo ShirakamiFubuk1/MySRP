@@ -81,7 +81,7 @@ public class PostFXSettings : ScriptableObject
     };
 
     public ColorAdjustmentsSettings ColorAdjustments => colorAdjustments;
-    
+   
     [System.Serializable]
     public struct ToneMappingSettings
     {
@@ -98,5 +98,14 @@ public class PostFXSettings : ScriptableObject
 
     [SerializeField] private ToneMappingSettings toneMapping = default;
 
-    public ToneMappingSettings ToneMapping => toneMapping;
+    public ToneMappingSettings ToneMapping => toneMapping; 
+    
+    [Serializable] public struct WhiteBalanceSettings
+    {
+        [Range(-100f, 100f)] public float temperature, tint;
+    }
+    
+    [SerializeField] private WhiteBalanceSettings whiteBalance = default;
+    
+    public WhiteBalanceSettings WhiteBalance => whiteBalance;
 }

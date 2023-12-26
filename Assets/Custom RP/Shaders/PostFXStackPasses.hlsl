@@ -15,6 +15,7 @@ SAMPLER(sampler_linear_clamp);
 float4 _PostFXSource_TexelSize;
 float4 _ColorAdjustments;
 float4 _ColorFilter;
+float4 _WhiteBalance;
 
 float4 GetSourceTexelSize()
 {
@@ -57,6 +58,13 @@ float3 ColorGradingSaturation(float3 color)
 {
     float luminance = Luminance(color);
     return (color - luminance) * _ColorAdjustments.w + luminance;
+}
+
+float3 ColorGradeWhiteBalance(float3 color)
+{
+    color = LinearToLMS(color);
+    color *= _WhiteBalance.rgb;
+    return LMSToLinear(color);
 }
 
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
@@ -273,6 +281,7 @@ float3 ColorGrade (float3 color)
 {
     color = min(color,60);
     color = ColorGradePostExposure(color);
+    color = ColorGradeWhiteBalance(color);
     color = ColorGradingContrast(color);
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
