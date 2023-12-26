@@ -22,6 +22,8 @@ public partial class PostFXStack
         bloomBicubicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
         // 提前为半分辨率的图像声明一个纹理,将其作为新的起点.
         bloomPrefilterId = Shader.PropertyToID("_BloomPrefilter"),
+        // 我们需要调整Bloom的效果,因此获取一个新的全分辨率临时纹理,并将其作为DoBloom的渲染目标
+        // 除此之外让该纹理返回是否绘制的内容,而不是在跳过Bloom时直接绘制相机目标
         bloomResultId = Shader.PropertyToID("BloomResult"),
         bloomThresholdId = Shader.PropertyToID("_BloomThreshold"),
         bloomIntensityId = Shader.PropertyToID("_BloomIntensity"),
@@ -75,6 +77,8 @@ public partial class PostFXStack
         // 这些标识符用多种格式提供,我们将使用整数作为源,为其添加参数目标,最后清除缓冲区
         //buffer.Blit(sourceId,BuiltinRenderTextureType.CameraTarget);
         //Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
+        // 调整DoBloom,当Bloom使用时对结果进行色调映射,然后释放缓存
+        // 否则直接映射原图
         if (DoBloom(sourceId))
         {
             DoToneMapping(bloomResultId);
@@ -136,6 +140,7 @@ public partial class PostFXStack
             // Draw(sourceId,BuiltinRenderTextureType.CameraTarget,Pass.Copy);
             // buffer.EndSample("Bloom");
             
+            // 返回Bloom是否执行而不是直接结束绘制
             return false;
         }
         
@@ -261,6 +266,7 @@ public partial class PostFXStack
         // 最后一部分混合处理过的图像和第一级的垂直结果,同时包括只迭代一次的结果
         buffer.SetGlobalFloat(bloomIntensityId,finalIntensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
+        // 直接将全分辨率的截图带到最后阶段
         buffer.GetTemporaryRT(bloomResultId,camera.pixelWidth,camera.pixelHeight,0,
             FilterMode.Bilinear,format);
         Draw(fromId,
@@ -270,9 +276,20 @@ public partial class PostFXStack
         return true;
     }
 
+    // 虽然我们可以在HDR中渲染,但对于普通设备来说最终的帧缓冲区始终是LDR的.
+    // 因此颜色通道在1处被截断.实际上最终的白点位置位于1.
+    // 那些及其鲜艳的颜色最终看起来和完全饱和的颜色没有什么不同.
+    // 如果不使用任何后期特效就无法分辨出那些物体和灯光是非常明亮的.
+    // 为此,我们需要调整图像的亮度,增加白点,以便最亮的颜色不在超过1
+    // 我们可以通过均匀地变暗整个图像来做到这点,但这会使大部分图像变得很黑,以至于无法正常观测.
+    // 理想情况下我们应该大量调整非常明亮的颜色,而只调整一点深色.
+    // 因此我们需要一个不均匀的颜色调整.这种颜色调整并不代表光本身的物理变化,而是我们如何观测他.
+    // 例如我们眼睛对较深的色调比对较浅的色调更敏感
+    // 从HDR到LDR称为色调映射,没有单一正确的方法来执行色调映射,可以使用不同的方法得到不同的结果.
     void DoToneMapping(int sourceId)
     {
         PostFXSettings.ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
+        // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
         Draw(sourceId,BuiltinRenderTextureType.CameraTarget,pass);
     }

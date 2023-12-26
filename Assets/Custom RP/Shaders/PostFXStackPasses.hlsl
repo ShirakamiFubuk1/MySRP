@@ -237,6 +237,10 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
 float4 ToneMappingReinhardPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
+    // 由于精度限制,对于非常大的值可能出现错误.出于同样的原因,
+    // 非常大的值最终出现在1处的时间比无穷大早得多
+    // 因此需要在执行色调映射之前收紧颜色范围
+    // 限制为60可以避免我们支持的所有模式出现任何潜在问题
     color.rgb = min(color.rgb,60);
     color.rgb /= color.rgb + 1.0;
 
