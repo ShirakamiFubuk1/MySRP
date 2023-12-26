@@ -157,6 +157,11 @@ public partial class PostFXStack
         buffer.GetTemporaryRT(
                 bloomPrefilterId,width,height,0,FilterMode.Bilinear,format
             );
+        // HDR的一个缺点是它可以产生比周围环境亮的多的小区域.
+        // 当这些区域的大小为像素或者更小时,他们会急剧改变相对大小,并在移动过程中突然出现和消失,从而导致闪烁
+        // 这些区域成为萤火虫.当对他们施加Bloom时,会变得闪来闪去
+        // 完全消除这个问题需要接近无限的分辨率,这明显不可能.
+        // 可以通过在预处理过程中模糊图像来淡化fireflies的影响
         Draw(sourceId,bloomPrefilterId,
             bloom.fadeFireflies ? Pass.BloomPrefilterFireflies : Pass.BloomPrefilter);
         width /= 2;

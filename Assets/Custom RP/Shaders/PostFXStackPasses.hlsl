@@ -200,10 +200,13 @@ float4 BloomPrefilterPassFragment(Varyings input) : SV_TARGET
     return float4(color,1.0);
 }
 
+// 淡化fireflies最直接的方法时将预处理通道的2x2采样器增加到一个6x6的大型滤波器(3x3个2x2滤波器)
+// 我们可以用九个样本来做到这点,再取平均值之前将Bloom阈值分别应用于每个样本
 float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
 {
     float3 color = 0.0;
     float weightSum = 0.0;
+    // 因为我们在预处理的半分辨率之后会执行高斯模糊,所以我们可以跳过和中心相连的四个样本,从九个减少到五个
     float2 offsets[] = {
         float2(0.0, 0.0),
         float2(-1.0, -1.0), float2(-1.0, 1.0), float2(1.0, -1.0), float2(1.0, 1.0)
@@ -213,10 +216,15 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
         float3 c =
             GetSource(input.screenUV + offsets[i] * GetSourceTexelSize().xy * 2.0).rgb;
         c = ApplyBloomThreshold(c);
+        // 这还不足以解决问题,因为非常明亮的像素只是散布在更大的区域上.
+        // 为了淡化fireflies,我们将根据颜色的亮度使用加权平均值.
+        // 颜色的luminance是他能感知到的亮度,使用Color.hlsl中的Luminance函数来实现
         float w = 1.0 / (Luminance(c) + 1.0);
         color += c * w;
         weightSum += w;
     }
+    // 最后我们将样本综合除以这些权重的综合.这可以让fireflies的高光有效分散到其他样本中.
+    // 如果其他样本颜色较深,萤火虫就会褪色
     color /= weightSum;
     return float4(color, 1.0);
 }

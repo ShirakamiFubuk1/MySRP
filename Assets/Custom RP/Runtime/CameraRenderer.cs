@@ -43,7 +43,8 @@ public partial class CameraRenderer
         {
             return;
         }
-
+        
+        // 当管线和摄像机都启用hdr时才会计算hdr
         useHDR = allowHDR && camera.allowHDR;
         
         //将Shadows渲染在对应相机样本内
@@ -93,6 +94,10 @@ public partial class CameraRenderer
             }
             // 因此,为了给激活的堆栈提供纹理数据,必须使用渲染的图像作为相机的中间帧缓冲区.
             // 获取并将其设置为渲染目标的工作方式与阴影贴图类似,我们只是用这个格式,在清除之前存储纹理
+            // HDR渲染只有与后期处理相结合时才有意义,因为没法直接更改最终的帧缓冲区格式
+            // 因此我们创建自己的中间缓冲区时,在适当的时候使用默认HDR格式,而不是用默认的LDR格式
+            // 如果目标平台支持的话也可以用其他HDR格式,但是为了普适性这里用默认的HDR格式
+            // 在HDR模式下单步调试会发现画面很暗,因为线性颜色数据按原样显示了,因此被错误的当成sRGB
             buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, 
                 camera.pixelHeight, 32, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
