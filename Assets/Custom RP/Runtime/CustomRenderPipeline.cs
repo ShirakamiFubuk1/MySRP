@@ -9,7 +9,8 @@ public partial class CustomRenderPipeline : RenderPipeline
         useDynamicBatching, 
         useGPUInstancing, 
         useLightsPerObject,
-        allowHDR;
+        allowHDR,
+        colorLUTPointSampler;
 
     private ShadowSettings shadowSettings;
 
@@ -25,16 +26,20 @@ public partial class CustomRenderPipeline : RenderPipeline
         foreach (Camera camera in cameras)
         {
             renderer.Render(
-                context,camera,allowHDR, useDynamicBatching,useGPUInstancing,
-                useLightsPerObject,shadowSettings, postFXSettings, colorLUTResolution);
+                context,camera,allowHDR, colorLUTPointSampler, useDynamicBatching,useGPUInstancing,
+                useLightsPerObject,shadowSettings, postFXSettings, 
+                colorLUTResolution);
         }
     }
 
-    public CustomRenderPipeline(bool allowHDR,bool useDynamicBatching,
-        bool useGPUInstancing,bool useSRPBatcher,bool useLightsPerObject,
-        ShadowSettings shadowSettings,PostFXSettings postFXSettings,int colorLUTResolution)
+    public CustomRenderPipeline(bool allowHDR, bool colorLUTPointSampler, bool useDynamicBatching,
+        bool useGPUInstancing, bool useSRPBatcher, bool useLightsPerObject,
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings,
+        int colorLUTResolution)
+
     {
         //追踪阴影设置
+        this.colorLUTPointSampler = colorLUTPointSampler;
         this.colorLUTResolution = colorLUTResolution;
         this.shadowSettings = shadowSettings;
         this.useDynamicBatching = useDynamicBatching;

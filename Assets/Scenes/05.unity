@@ -1613,10 +1613,10 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
+  m_InnerSpotAngle: 15
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
@@ -1670,7 +1670,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 658940218}
   m_LocalRotation: {x: 0.7427067, y: -0, z: -0, w: 0.6696169}
-  m_LocalPosition: {x: -1.89, y: 4.24, z: 1.03}
+  m_LocalPosition: {x: -1.937, y: 4.24, z: -1.376}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1724,7 +1724,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 0.8962264, g: 0.5157529, b: 0.5157529, a: 1}
   cutOff: 0
-  metallic: 0
+  metallic: 1
   smoothness: 0.5
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!135 &662019820
@@ -2400,8 +2400,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 955510108}
-  m_LocalRotation: {x: 0.004506789, y: -0.8059224, z: 0.591965, w: 0.006803225}
-  m_LocalPosition: {x: -0.27760005, y: 8.244044, z: 3.5821564}
+  m_LocalRotation: {x: -0.0005956962, y: 0.868694, z: -0.49534202, w: -0.00259004}
+  m_LocalPosition: {x: -0.13003254, y: 6.369436, z: 5.27036}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -3091,7 +3091,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &1157628628
 Light:
   m_ObjectHideFlags: 0
@@ -4000,7 +4000,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 2.2e-44, y: 4.959117e-39, z: 4.0999703e-19, w: 2.75529e-40}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -5631,7 +5631,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &2033848107
 Light:
   m_ObjectHideFlags: 0

@@ -27,10 +27,12 @@ public partial class CameraRenderer
 
     private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
 
-    private bool useHDR;
+    private bool 
+        useHDR,
+        colorLUTPointSampler;
     
-    public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR,
-        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
+    public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR, 
+        bool colorLUTPointSampler, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
         ShadowSettings shadowSettings,PostFXSettings postFXSettings, int colorLUTResolution)
     {
         this.context = context;
@@ -46,6 +48,7 @@ public partial class CameraRenderer
         
         // 当管线和摄像机都启用hdr时才会计算hdr
         useHDR = allowHDR && camera.allowHDR;
+        this.colorLUTPointSampler = colorLUTPointSampler;
         
         //将Shadows渲染在对应相机样本内
         buffer.BeginSample(SampleName);
@@ -53,7 +56,8 @@ public partial class CameraRenderer
         //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
         // 在CameraRender中调用FX实例堆栈
-        postFXStack.Setup(context,camera,postFXSettings,useHDR,colorLUTResolution);
+        postFXStack.Setup(context,camera,postFXSettings,useHDR,
+            colorLUTResolution,colorLUTPointSampler);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);

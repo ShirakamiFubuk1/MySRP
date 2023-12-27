@@ -9,6 +9,7 @@ TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
 TEXTURE2D(_ColorGradingLUT);
 SAMPLER(sampler_linear_clamp);
+SAMPLER(sampler_point_clamp);
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -29,6 +30,7 @@ float4 _SMHRange;
 float4 _ColorGradingLUTParameters;
 
 bool _ColorGradingLUTInLogC;
+bool _UsePointSampler;
 
 float4 GetSourceTexelSize()
 {
@@ -390,11 +392,22 @@ float4 ColorGradingACESPassFragment(Varyings input) : SV_TARGET
 
 float3 ApplyColorGradingLUT(float3 color)
 {
-    return ApplyLut2D(
+    if(_UsePointSampler)
+    {
+        return ApplyLut2D(
+            TEXTURE2D_ARGS(_ColorGradingLUT, sampler_point_clamp),
+            saturate(_ColorGradingLUTInLogC ? LinearToLogC(color) : color),
+            _ColorGradingLUTParameters.xyz
+        );        
+    }
+    else
+    {
+        return ApplyLut2D(
         TEXTURE2D_ARGS(_ColorGradingLUT, sampler_linear_clamp),
         saturate(_ColorGradingLUTInLogC ? LinearToLogC(color) : color),
         _ColorGradingLUTParameters.xyz
-    );
+        );     
+    }
 }
 
 float4 FinalPassFragment(Varyings input) : SV_TARGET

@@ -44,7 +44,8 @@ public partial class PostFXStack
         channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue"),
         colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
         colorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters"),
-        colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
+        colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC"),
+        usePointSamplerId = Shader.PropertyToID("_UsePointSampler");
 
     private int 
         bloomPyramidId,
@@ -75,10 +76,14 @@ public partial class PostFXStack
     }
 
     private bool useHDR;
+
+    private bool colorLUTPointSampler;
     
     public void Setup(ScriptableRenderContext context, Camera camera, 
-        PostFXSettings settings ,bool useHDR, int colorLUTResolution)
+        PostFXSettings settings ,bool useHDR, int colorLUTResolution , 
+        bool colorLUTPointSampler)
     {
+        this.colorLUTPointSampler = colorLUTPointSampler;
         this.colorLUTResolution = colorLUTResolution;
         this.useHDR = useHDR;
         this.context = context;
@@ -378,6 +383,9 @@ public partial class PostFXStack
         Pass pass = Pass.ColorGradingNone + (int)mode;
         buffer.SetGlobalFloat(
                 colorGradingLUTInLogId, useHDR && pass != Pass.ColorGradingNone ? 1f : 0f
+            );
+        buffer.SetGlobalFloat(
+                usePointSamplerId, colorLUTPointSampler ? 1f : 0f
             );
         Draw(sourceId,colorGradingLUTId,pass);
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(

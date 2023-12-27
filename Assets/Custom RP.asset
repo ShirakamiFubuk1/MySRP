@@ -18,6 +18,7 @@ MonoBehaviour:
   useLightsPerObject: 0
   postFXSettings: {fileID: 11400000, guid: 58e4a44c07e5683489a2d072e4a4d6ee, type: 2}
   allowHDR: 1
+  colorLUTPointSampler: 1
   colorLUTResolution: 32
   shadows:
     maxDistance: 20
