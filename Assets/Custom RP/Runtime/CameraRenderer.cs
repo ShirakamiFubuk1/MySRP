@@ -31,7 +31,7 @@ public partial class CameraRenderer
     
     public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
-        ShadowSettings shadowSettings,PostFXSettings postFXSettings)
+        ShadowSettings shadowSettings,PostFXSettings postFXSettings, int colorLUTResolution)
     {
         this.context = context;
         this.camera = camera;
@@ -53,7 +53,7 @@ public partial class CameraRenderer
         //使阴影信息在几何前绘制
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
         // 在CameraRender中调用FX实例堆栈
-        postFXStack.Setup(context,camera,postFXSettings,useHDR);
+        postFXStack.Setup(context,camera,postFXSettings,useHDR,colorLUTResolution);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);

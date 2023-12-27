@@ -43,7 +43,9 @@ public partial class PostFXStack
         channelMixerGreenId = Shader.PropertyToID("_ChannelMixerGreen"),
         channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue");
 
-    private int bloomPyramidId;
+    private int 
+        bloomPyramidId,
+        colorLUTResolution;
 
     // 至多使用65536 * 65536 大小的Texture降低至1像素,所以最大Levels使用16
     private const int maxBloomPyramidLevels = 16;
@@ -71,8 +73,9 @@ public partial class PostFXStack
     private bool useHDR;
     
     public void Setup(ScriptableRenderContext context, Camera camera, 
-        PostFXSettings settings ,bool useHDR)
+        PostFXSettings settings ,bool useHDR, int colorLUTResolution)
     {
+        this.colorLUTResolution = colorLUTResolution;
         this.useHDR = useHDR;
         this.context = context;
         this.camera = camera;
