@@ -78,6 +78,8 @@ public partial class PostFXStack
     private bool useHDR;
 
     private bool colorLUTPointSampler;
+
+    private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
     
     public void Setup(ScriptableRenderContext context, Camera camera, 
         PostFXSettings settings ,bool useHDR, int colorLUTResolution , 
@@ -128,6 +130,20 @@ public partial class PostFXStack
         buffer.SetRenderTarget(to,RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
         // 然后绘制三角形,我们通过调用Matrix4x4.identity,程序化创建的材质,使用的Pass序号,和绘制的图形与顶点数来调用
         buffer.DrawProcedural(Matrix4x4.identity, settings.Material,(int)pass,
+            MeshTopology.Triangles,3);
+    }
+    
+    void DrawFinal(RenderTargetIdentifier from)
+    {
+        // 通过该命令使Source使from可用,使用to作为渲染目标
+        buffer.SetGlobalTexture(fxSourceId,from);
+        buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+            camera.rect == fullViewRect ? 
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+            RenderBufferStoreAction.Store);
+        buffer.SetViewport(camera.pixelRect);
+        // 然后绘制三角形,我们通过调用Matrix4x4.identity,程序化创建的材质,使用的Pass序号,和绘制的图形与顶点数来调用
+        buffer.DrawProcedural(Matrix4x4.identity, settings.Material,(int)Pass.Final,
             MeshTopology.Triangles,3);
     }
 
@@ -391,7 +407,7 @@ public partial class PostFXStack
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                 1f / lutWidth, 1f / lutHeight, lutHeight - 1f
             ));
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Final);
+        DrawFinal(sourceId);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 }
