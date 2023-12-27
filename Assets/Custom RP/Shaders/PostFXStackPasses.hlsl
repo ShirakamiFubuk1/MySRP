@@ -27,6 +27,8 @@ float4 _SMHHighlights;
 float4 _SMHRange;
 float4 _ColorGradingLUTParameters;
 
+bool _ColorGradingLUTInLogC;
+
 float4 GetSourceTexelSize()
 {
     return _PostFXSource_TexelSize;
@@ -325,7 +327,7 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
 // 因为颜色分级发生在色调映射之前,所以新建一个函数只将颜色分量限制为60
 float3 ColorGrade (float3 color, bool useACES = false)
 {
-    color = min(color,60);
+    // color = min(color,60);
     color = ColorGradePostExposure(color);
     color = ColorGradeWhiteBalance(color);
     color = ColorGradingContrast(color, useACES);
@@ -343,7 +345,7 @@ float3 ColorGrade (float3 color, bool useACES = false)
 float3 GetColorGradedLUT(float2 uv, bool useACES = false)
 {
     float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
-    return ColorGrade(color, useACES);
+    return ColorGrade(_ColorGradingLUTInLogC ? LogCToLinear(color) : color, useACES);
 }
 
 float4 ColorGradingNonePassFragment(Varyings input) : SV_TARGET

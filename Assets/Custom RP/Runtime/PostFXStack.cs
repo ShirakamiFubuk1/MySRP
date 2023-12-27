@@ -375,6 +375,9 @@ public partial class PostFXStack
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = Pass.ColorGradingNone + (int)mode;
+        buffer.SetGlobalFloat(
+                colorGradingLUTInLogId, useHDR && pass != Pass.ColorGradingNone ? 1f : 0f
+            );
         Draw(sourceId,colorGradingLUTId,pass);
         Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
