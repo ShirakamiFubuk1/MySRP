@@ -41,7 +41,10 @@ public partial class PostFXStack
         smhRangeId = Shader.PropertyToID("_SMHRange"),
         channelMixerRedId = Shader.PropertyToID("_ChannelMixerRed"),
         channelMixerGreenId = Shader.PropertyToID("_ChannelMixerGreen"),
-        channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue");
+        channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue"),
+        colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
+        colorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters"),
+        colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
 
     private int 
         bloomPyramidId,
@@ -64,10 +67,10 @@ public partial class PostFXStack
         BloomScatterFinal,
         BloomPrefilter,
         BloomPrefilterFireflies,
-        ToneMappingNone,
-        ToneMappingACES,
-        ToneMappingNeutral,
-        ToneMappingReinhard
+        ColorGradingNone,
+        ColorGradingACES,
+        ColorGradingNeutral,
+        ColorGradingReinhard
     }
 
     private bool useHDR;
@@ -358,9 +361,18 @@ public partial class PostFXStack
         ConfigureSplitToning();
         ConfigureChannelMixer();
         ConfigureShadowsMidtonesHighlights();
+
+        int lutHeight = colorLUTResolution;
+        int lutWidth = lutHeight * lutHeight;
+        buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0,
+                FilterMode.Bilinear, RenderTextureFormat.DefaultHDR
+            );
+        
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
-        Pass pass = Pass.ToneMappingNone + (int)mode;
-        Draw(sourceId,BuiltinRenderTextureType.CameraTarget,pass);
+        Pass pass = Pass.ColorGradingNone + (int)mode;
+        Draw(sourceId,colorGradingLUTId,pass);
+        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+        buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 }
