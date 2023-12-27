@@ -70,7 +70,8 @@ public partial class PostFXStack
         ColorGradingNone,
         ColorGradingACES,
         ColorGradingNeutral,
-        ColorGradingReinhard
+        ColorGradingReinhard,
+        Final
     }
 
     private bool useHDR;
@@ -379,7 +380,10 @@ public partial class PostFXStack
                 colorGradingLUTInLogId, useHDR && pass != Pass.ColorGradingNone ? 1f : 0f
             );
         Draw(sourceId,colorGradingLUTId,pass);
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
+        buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
+                1f / lutWidth, 1f / lutHeight, lutHeight - 1f
+            ));
+        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Final);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 }

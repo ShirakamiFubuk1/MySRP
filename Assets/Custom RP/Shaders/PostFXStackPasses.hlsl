@@ -7,6 +7,7 @@ float4 _BloomThreshold;
 
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
+TEXTURE2D(_ColorGradingLUT);
 SAMPLER(sampler_linear_clamp);
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -385,6 +386,23 @@ float4 ColorGradingACESPassFragment(Varyings input) : SV_TARGET
     color = AcesTonemap(color);
 
     return float4(color, 1.0);
+}
+
+float3 ApplyColorGradingLUT(float3 color)
+{
+    return ApplyLut2D(
+        TEXTURE2D_ARGS(_ColorGradingLUT, sampler_linear_clamp),
+        saturate(_ColorGradingLUTInLogC ? LinearToLogC(color) : color),
+        _ColorGradingLUTParameters.xyz
+    );
+}
+
+float4 FinalPassFragment(Varyings input) : SV_TARGET
+{
+    float4 color = GetSource(input.screenUV);
+    color.rgb = ApplyColorGradingLUT(color.rgb);
+
+    return color;
 }
 
 #endif
