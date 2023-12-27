@@ -242,9 +242,9 @@ float4 BloomAddPassFragment (Varyings input) : SV_TARGET
     {
         lowRes = GetSource(input.screenUV).rgb;
     }
-    float3 highRes = GetSource2(input.screenUV).rgb;
+    float4 highRes = GetSource2(input.screenUV);
 
-    return float4(lowRes * _BloomIntensity + highRes , 1.0);
+    return float4(lowRes * _BloomIntensity + highRes.rgb , highRes.a);
 }
 
 float4 BloomScatterPassFragment (Varyings input) : SV_TARGET
@@ -275,14 +275,14 @@ float4 BloomScatterFinalPassFragment (Varyings input) : SV_TARGET
     {
         lowRes = GetSource(input.screenUV).rgb;
     }
-    float3 highRes = GetSource2(input.screenUV).rgb;
+    float4 highRes = GetSource2(input.screenUV);
     // 这个函数使散射的一个副本,只有将缺失的光添加到低分辨率通道中不一样.
     // 方法是添加高分辨率的光,然后减去它应用了Bloom阈值的版本
     // 这并不是一个完美的解决方案——他不是一个加权平均值,忽略了fireflies褪色损失的光线——
     // 但是效果足够接近,且并未给原始图像增加光
-    lowRes += highRes - ApplyBloomThreshold(highRes);
+    lowRes += highRes.rgb - ApplyBloomThreshold(highRes.rgb);
     
-    return float4(lerp(highRes,lowRes,_BloomIntensity),1.0);
+    return float4(lerp(highRes.rgb,lowRes,_BloomIntensity),highRes.a);
 }
 
 float4 CopyPassFragment(Varyings input):SV_TARGET
