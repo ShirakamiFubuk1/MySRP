@@ -34,7 +34,11 @@ public partial class PostFXStack
         colorFilterId = Shader.PropertyToID("_ColorFilter"),
         whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
         splitToningShadowId = Shader.PropertyToID("_SplitToningShadows"),
-        splitToningHighlightId = Shader.PropertyToID("_SplitToningHighlights");
+        splitToningHighlightId = Shader.PropertyToID("_SplitToningHighlights"),
+        smhShadowsId = Shader.PropertyToID("_SMHShadows"),
+        smhMidtonesId = Shader.PropertyToID("_SMHMidtones"),
+        smhHighlightsId = Shader.PropertyToID("_SMHHighlights"),
+        smhRangeId = Shader.PropertyToID("_SMHRange");
 
     private int bloomPyramidId;
 
@@ -312,6 +316,17 @@ public partial class PostFXStack
         buffer.SetGlobalColor(splitToningHighlightId,splitToning.hightlights);
     }
 
+    void ConfigureShadowsMidtonesHighlights()
+    {
+        ShaodwsMidtonesHighlightsSettings smh = settings.ShaodwsMidtonesHighlights;
+        buffer.SetGlobalColor(smhShadowsId, smh.shadows.linear);
+        buffer.SetGlobalColor(smhMidtonesId, smh.midtones.linear);
+        buffer.SetGlobalColor(smhHighlightsId, smh.highlights.linear);
+        buffer.SetGlobalVector(smhRangeId, new Vector4(
+                smh.shadowStart,smh.shadowEnd,smh.highlightsStart,smh.highLightsEnd
+            ));
+    }
+
     // 虽然我们可以在HDR中渲染,但对于普通设备来说最终的帧缓冲区始终是LDR的.
     // 因此颜色通道在1处被截断.实际上最终的白点位置位于1.
     // 那些及其鲜艳的颜色最终看起来和完全饱和的颜色没有什么不同.
@@ -327,6 +342,7 @@ public partial class PostFXStack
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
         ConfigureSplitToning();
+        ConfigureShadowsMidtonesHighlights();
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = Pass.ToneMappingNone + (int)mode;

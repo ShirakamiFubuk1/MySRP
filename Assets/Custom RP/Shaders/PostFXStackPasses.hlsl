@@ -18,6 +18,10 @@ float4 _ColorFilter;
 float4 _WhiteBalance;
 float4 _SplitToningShadows;
 float4 _SplitToningHighlights;
+float4 _SMHShadows;
+float4 _SMHMidtones;
+float4 _SMHHighlights;
+float4 _SMHRange;
 
 float4 GetSourceTexelSize()
 {
@@ -78,6 +82,18 @@ float3 ColorGradeSplitToning(float3 color)
     color = SoftLight(color,shadows);
     color = SoftLight(color,highlights);
     return PositivePow(color,2.2);
+}
+
+float3 ColorGradingShadowsMidtonesHighlights (float3 color)
+{
+    float luminance = Luminance(color);
+    float shadowsWeight = 1.0 - smoothstep(_SMHRange.x, _SMHRange.y, luminance);
+    float highlightsWeight = smoothstep(_SMHRange.z, _SMHRange.w, luminance);
+    float midtonesWeight = 1.0 - shadowsWeight - highlightsWeight;
+    return
+        color * _SMHShadows.rgb * shadowsWeight +
+        color * _SMHMidtones.rgb * midtonesWeight +
+        color * _SMHHighlights.rgb * highlightsWeight;
 }
 
 // 默认情况下Blit命令会绘制一个由两个三角形组成的quad平面,覆盖整个屏幕空间
@@ -299,6 +315,7 @@ float3 ColorGrade (float3 color)
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
     color = ColorGradeSplitToning(color);
+    color = ColorGradingShadowsMidtonesHighlights(color);
     color = ColorGradingHueShift(color);
     color = ColorGradingSaturation(color);
     return max(color,0.0);

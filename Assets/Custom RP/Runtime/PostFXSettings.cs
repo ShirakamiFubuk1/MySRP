@@ -123,4 +123,25 @@ public class PostFXSettings : ScriptableObject
     };
 
     public SplitToningSettings SplitToning => splitToning;
+    
+    [Serializable] public struct ShaodwsMidtonesHighlightsSettings
+    {
+        [ColorUsage(false, true)] public Color shadows, midtones, highlights;
+
+        [Range(0f, 2f)] public float shadowStart, shadowEnd, highlightsStart, highLightsEnd;
+    }
+
+    [SerializeField] private ShaodwsMidtonesHighlightsSettings
+        shadowsMidtonesHighlights = new ShaodwsMidtonesHighlightsSettings
+        {
+            shadows = Color.white,
+            midtones = Color.white,
+            highlights = Color.white,
+            shadowEnd = 0.3f,
+            highlightsStart = 0.55f,
+            highLightsEnd = 1f
+        };
+
+    public ShaodwsMidtonesHighlightsSettings 
+        ShaodwsMidtonesHighlights => shadowsMidtonesHighlights;
 }
