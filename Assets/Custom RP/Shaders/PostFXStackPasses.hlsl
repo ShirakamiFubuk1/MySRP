@@ -25,6 +25,7 @@ float4 _SMHShadows;
 float4 _SMHMidtones;
 float4 _SMHHighlights;
 float4 _SMHRange;
+float4 _ColorGradingLUTParameters;
 
 float4 GetSourceTexelSize()
 {
@@ -339,43 +340,49 @@ float3 ColorGrade (float3 color, bool useACES = false)
     return max(useACES ? ACEScg_to_ACES(color) : color, 0.0);
 }
 
-float4 ToneMappingNonePassFragment(Varyings input) : SV_TARGET
+float3 GetColorGradedLUT(float2 uv, bool useACES = false)
 {
-    float4 color = GetSource(input.screenUV);
-    color.rgb = ColorGrade(color.rgb);
-
-    return color;
+    float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
+    return ColorGrade(color, useACES);
 }
 
-float4 ToneMappingReinhardPassFragment(Varyings input) : SV_TARGET
+float4 ColorGradingNonePassFragment(Varyings input) : SV_TARGET
 {
-    float4 color = GetSource(input.screenUV);
-    // 由于精度限制,对于非常大的值可能出现错误.出于同样的原因,
-    // 非常大的值最终出现在1处的时间比无穷大早得多
-    // 因此需要在执行色调映射之前收紧颜色范围
-    // 限制为60可以避免我们支持的所有模式出现任何潜在问题
-    color.rgb = ColorGrade(color.rgb);
-    color.rgb /= color.rgb + 1.0;
+    float3 color = GetColorGradedLUT(input.screenUV);
+    // color.rgb = ColorGrade(color.rgb);
 
-    return color;
+    return float4(color, 1.0);
 }
 
-float4 ToneMappingNeutralPassFragment(Varyings input) : SV_TARGET
+float4 ColorGradingReinhardPassFragment(Varyings input) : SV_TARGET
 {
-    float4 color = GetSource(input.screenUV);
-    color.rgb = ColorGrade(color.rgb);
-    color.rgb = NeutralTonemap(color.rgb);
+    float3 color = GetColorGradedLUT(input.screenUV);
+    // // 由于精度限制,对于非常大的值可能出现错误.出于同样的原因,
+    // // 非常大的值最终出现在1处的时间比无穷大早得多
+    // // 因此需要在执行色调映射之前收紧颜色范围
+    // // 限制为60可以避免我们支持的所有模式出现任何潜在问题
+    // color.rgb = ColorGrade(color.rgb);
+    color /= color + 1.0;
 
-    return color;
+    return float4(color, 1.0);
 }
 
-float4 ToneMappingACESPassFragment(Varyings input) : SV_TARGET
+float4 ColorGradingNeutralPassFragment(Varyings input) : SV_TARGET
 {
-    float4 color = GetSource(input.screenUV);
-    color.rgb = ColorGrade(color.rgb, true);
-    color.rgb =AcesTonemap(color.rgb);
+    float3 color = GetColorGradedLUT(input.screenUV);
+    // color.rgb = ColorGrade(color.rgb);
+    color = NeutralTonemap(color);
 
-    return color;
+    return float4(color, 1.0);
+}
+
+float4 ColorGradingACESPassFragment(Varyings input) : SV_TARGET
+{
+    float3 color = GetColorGradedLUT(input.screenUV, true);
+    // color.rgb = ColorGrade(color.rgb, true);
+    color = AcesTonemap(color);
+
+    return float4(color, 1.0);
 }
 
 #endif

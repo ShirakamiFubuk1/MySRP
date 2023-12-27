@@ -364,9 +364,13 @@ public partial class PostFXStack
 
         int lutHeight = colorLUTResolution;
         int lutWidth = lutHeight * lutHeight;
-        buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0,
+        buffer.GetTemporaryRT(
+                colorGradingLUTId, lutWidth, lutHeight, 0,
                 FilterMode.Bilinear, RenderTextureFormat.DefaultHDR
             );
+        buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
+                lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)
+            ));
         
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
