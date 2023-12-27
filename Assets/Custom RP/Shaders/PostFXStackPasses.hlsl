@@ -18,6 +18,9 @@ float4 _ColorFilter;
 float4 _WhiteBalance;
 float4 _SplitToningShadows;
 float4 _SplitToningHighlights;
+float4 _ChannelMixerRed;
+float4 _ChannelMixerGreen;
+float4 _ChannelMixerBlue;
 float4 _SMHShadows;
 float4 _SMHMidtones;
 float4 _SMHHighlights;
@@ -82,6 +85,14 @@ float3 ColorGradeSplitToning(float3 color)
     color = SoftLight(color,shadows);
     color = SoftLight(color,highlights);
     return PositivePow(color,2.2);
+}
+
+float3 ColorGradingChannelMixer(float3 color)
+{
+    return mul(
+        float3x3(_ChannelMixerRed.rgb, _ChannelMixerGreen.rgb, _ChannelMixerBlue.rgb),
+        color
+    );
 }
 
 float3 ColorGradingShadowsMidtonesHighlights (float3 color)
@@ -315,6 +326,8 @@ float3 ColorGrade (float3 color)
     color = ColorGradeColorFilter(color);
     color = max(color,0.0);
     color = ColorGradeSplitToning(color);
+    color = ColorGradingChannelMixer(color);
+    color = max(color,0.0);
     color = ColorGradingShadowsMidtonesHighlights(color);
     color = ColorGradingHueShift(color);
     color = ColorGradingSaturation(color);

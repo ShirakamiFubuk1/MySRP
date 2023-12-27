@@ -38,7 +38,10 @@ public partial class PostFXStack
         smhShadowsId = Shader.PropertyToID("_SMHShadows"),
         smhMidtonesId = Shader.PropertyToID("_SMHMidtones"),
         smhHighlightsId = Shader.PropertyToID("_SMHHighlights"),
-        smhRangeId = Shader.PropertyToID("_SMHRange");
+        smhRangeId = Shader.PropertyToID("_SMHRange"),
+        channelMixerRedId = Shader.PropertyToID("_ChannelMixerRed"),
+        channelMixerGreenId = Shader.PropertyToID("_ChannelMixerGreen"),
+        channelMixerBlueId = Shader.PropertyToID("_ChannelMixerBlue");
 
     private int bloomPyramidId;
 
@@ -316,6 +319,14 @@ public partial class PostFXStack
         buffer.SetGlobalColor(splitToningHighlightId,splitToning.hightlights);
     }
 
+    void ConfigureChannelMixer()
+    {
+        ChannelMixerSettings channelMixer = settings.ChannelMixer;
+        buffer.SetGlobalVector(channelMixerRedId,channelMixer.red);
+        buffer.SetGlobalVector(channelMixerGreenId,channelMixer.green);
+        buffer.SetGlobalVector(channelMixerBlueId,channelMixer.blue);
+    }
+
     void ConfigureShadowsMidtonesHighlights()
     {
         ShaodwsMidtonesHighlightsSettings smh = settings.ShaodwsMidtonesHighlights;
@@ -342,6 +353,7 @@ public partial class PostFXStack
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
         ConfigureSplitToning();
+        ConfigureChannelMixer();
         ConfigureShadowsMidtonesHighlights();
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
