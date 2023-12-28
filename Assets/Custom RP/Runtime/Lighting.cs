@@ -18,12 +18,12 @@ public class Lighting
         // dirLightDirectionalId = Shader.PropertyToID("_DirectionalLightDirection");
         dirLightCountId = Shader.PropertyToID("_DirectionalLightCount"),
         dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors"),
-        dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections"),
+        dirLightDirectionsAndMasksId = Shader.PropertyToID("_DirectionalLightDirectionsAndMasks"),
         dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData"),
         otherLightCountId = Shader.PropertyToID("_OtherLightCount"),
         otherLightColorsId = Shader.PropertyToID("_OtherLightColors"),
         otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions"),
-        otherLightDirectionsId = Shader.PropertyToID("_OtherLightDirections"),
+        otherLightDirectionsAndMasksId = Shader.PropertyToID("_OtherLightDirectionsAndMasks"),
         otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"),
         otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
 
@@ -183,7 +183,7 @@ public class Lighting
             //使用索引ID和对应的数组设置Buffer
             buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
             //使用索引获取对应光照的方向
-            buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirectionsAndMasks);
+            buffer.SetGlobalVectorArray(dirLightDirectionsAndMasksId,dirLightDirectionsAndMasks);
             //使用索引逐光照存储阴影信息
             buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
         }
@@ -192,7 +192,7 @@ public class Lighting
         {
             buffer.SetGlobalVectorArray(otherLightColorsId,otherLightColors);
             buffer.SetGlobalVectorArray(otherLightPositionsId,otherLightPositions);
-            buffer.SetGlobalVectorArray(otherLightDirectionsId,otherLightDirectionsAndMasks);
+            buffer.SetGlobalVectorArray(otherLightDirectionsAndMasksId,otherLightDirectionsAndMasks);
             buffer.SetGlobalVectorArray(otherLightSpotAnglesId,otherLightSpotAngles);
             buffer.SetGlobalVectorArray(otherLightShadowDataId,otherLightShadowData);
         }
