@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Rendering;
 
 [CanEditMultipleObjects]
 [CustomEditorForRenderPipeline(typeof(Light), typeof(CustomRenderPipelineAsset))]
@@ -14,15 +16,18 @@ public class CustomLightEditor : LightEditor
     {
         // 为了提高效率需要重写默认的Inspector
         base.OnInspectorGUI();
+        DrawRenderingLayerMask();
         // 检查是否选择了聚光灯以及是否有多个不同数值
         if (!settings.lightType.hasMultipleDifferentValues &&
             (LightType)settings.lightType.enumValueIndex == LightType.Spot)
         {
             // 添加控制内外角的滑块.
             settings.DrawInnerAndOuterSpotAngle();
-            // 应用更改的属性.
-            settings.ApplyModifiedProperties();
+            // // 应用更改的属性.
+            // settings.ApplyModifiedProperties();
         }
+        
+        settings.ApplyModifiedProperties();
 
         var light = target as Light;
         if (light.cullingMask != -1)
@@ -34,5 +39,31 @@ public class CustomLightEditor : LightEditor
                     MessageType.Warning
                 );
         }
+    }
+
+    private static GUIContent renderingLayerMaskLabel = 
+        new GUIContent("Rendering Layer Mask", 
+            "Functional version of above property");
+
+    void DrawRenderingLayerMask()
+    {
+        SerializedProperty property = settings.renderingLayerMask;
+        EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+        EditorGUI.BeginChangeCheck();
+        int mask = property.intValue;
+        if (mask == int.MaxValue)
+        {
+            mask = -1;
+        }
+        mask = EditorGUILayout.MaskField(
+                renderingLayerMaskLabel, mask,
+                GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames
+            );
+        if (EditorGUI.EndChangeCheck())
+        {
+            property.intValue = mask == -1 ? Int32.MaxValue : mask;
+        }
+
+        EditorGUI.showMixedValue = false;
     }
 }

@@ -563,7 +563,10 @@ public void Setup(ScriptableRenderContext context,
     {
         ShadowedOtherLight light = shadowedOtherLights[index];
         var shadowDrawingSettings = new ShadowDrawingSettings(
-            cullingResults,light.visibleLightIndex);
+            cullingResults,light.visibleLightIndex)
+        {
+            useRenderingLayerMaskTest = true
+        };
         float texelSize = 2f / tileSize;
         float filterSize = texelSize * ((float)shadowSettings.other.filter + 1f);
         float bias = light.normalBias * filterSize * 1.4142136f;
