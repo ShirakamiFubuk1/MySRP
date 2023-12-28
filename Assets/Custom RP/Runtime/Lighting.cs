@@ -54,14 +54,14 @@ public class Lighting
     private static string lightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
 
     public void Setup(ScriptableRenderContext context,CullingResults cullingResults,
-        ShadowSettings shadowSettings,bool useLightsPerObject)
+        ShadowSettings shadowSettings,bool useLightsPerObject, int renderingLayerMask)
     {
         this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);
         shadows.Setup(context,cullingResults,shadowSettings);
         //支持多光源
         //SetupDirectionalLight();
-        SetupLights(useLightsPerObject);
+        SetupLights(useLightsPerObject, renderingLayerMask);
         //渲染阴影
         shadows.Render();
         buffer.EndSample(bufferName);
@@ -96,7 +96,7 @@ public class Lighting
 
     // Unity只是简单的给每个物体创建了所有使用中的光照列表,并按照重要程度进行简单排序.
     // 这个列表并不会管这个物体是否能被光照到而且也包含了直接光.我们需要整理他让他只包含可见的直接光
-    void SetupLights(bool useLightsPerObject)
+    void SetupLights(bool useLightsPerObject, int renderingLayerMask)
     {
         // 在遍历可见光之前我们需要从cullingResults中取回lightIndexMap
         // 这通过调用GetLightIndexMap(Allocator.temp)完成,返回一个临时的NativeArray<int>
@@ -126,29 +126,32 @@ public class Lighting
             //     }                
             // }
             Light light = visibleLight.light;
-            switch (visibleLight.lightType)
+            if ((light.renderingLayerMask & renderingLayerMask) != 0)
             {
-                case LightType.Directional:
-                    if (dirLightCount < maxDirLightCount)
-                    {
-                        SetupDirectionalLight(dirLightCount++,i,ref visibleLight,light);
-                    }
-                    break;
-                case LightType.Point:
-                    if (otherLightCount < maxOtherLightCount)
-                    {
-                        // 将其他光的顺序设定为对应顺序
-                        newIndex = otherLightCount;
-                        SetupPointLight(otherLightCount++,i,ref visibleLight, light);
-                    }
-                    break;
-                case LightType.Spot:
-                    if (otherLightCount < maxOtherLightCount)
-                    {
-                        newIndex = otherLightCount;
-                        SetupSpotLight(otherLightCount++,i,ref visibleLight, light);
-                    }
-                    break;
+                switch (visibleLight.lightType)
+                {
+                    case LightType.Directional:
+                        if (dirLightCount < maxDirLightCount)
+                        {
+                            SetupDirectionalLight(dirLightCount++,i,ref visibleLight,light);
+                        }
+                        break;
+                    case LightType.Point:
+                        if (otherLightCount < maxOtherLightCount)
+                        {
+                            // 将其他光的顺序设定为对应顺序
+                            newIndex = otherLightCount;
+                            SetupPointLight(otherLightCount++,i,ref visibleLight, light);
+                        }
+                        break;
+                    case LightType.Spot:
+                        if (otherLightCount < maxOtherLightCount)
+                        {
+                            newIndex = otherLightCount;
+                            SetupSpotLight(otherLightCount++,i,ref visibleLight, light);
+                        }
+                        break;
+                }                
             }
             
             // 同时限制不可见光的indices            
