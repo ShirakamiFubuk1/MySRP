@@ -30,11 +30,11 @@ public class Lighting
     private static Vector4[]
         //由于着色器对struct支持不好，所以尽量少用struct
         dirLightColors = new Vector4[maxDirLightCount],
-        dirLightDirections = new Vector4[maxDirLightCount],
+        dirLightDirectionsAndMasks = new Vector4[maxDirLightCount],
         dirLightShadowData = new Vector4[maxDirLightCount],
         otherLightColors = new Vector4[maxOtherLightCount],
         otherLightPositions = new Vector4[maxOtherLightCount],
-        otherLightDirections = new Vector4[maxOtherLightCount],
+        otherLightDirectionsAndMasks = new Vector4[maxOtherLightCount],
         otherLightSpotAngles = new Vector4[maxOtherLightCount],
         otherLightShadowData = new Vector4[maxOtherLightCount];
 
@@ -80,13 +80,18 @@ public class Lighting
     //     buffer.SetGlobalVector(dirLightDirectionalId, -light.transform.forward);
     // }
     
-    void SetupDirectionalLight(int index,int visibleIndex,ref VisibleLight visibleLight)
+    void SetupDirectionalLight(
+        int index,int visibleIndex,ref VisibleLight visibleLight, Light light)
     {
         dirLightColors[index] = visibleLight.finalColor;
-        //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
-        dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        // //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
+        // dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
+        dirAndMask.w = light.renderingLayerMask;
+        dirLightDirectionsAndMasks[index] = dirAndMask;
         //初始化可接受阴影的光
-        dirLightShadowData[index] = shadows.ReserveDirectionalShadows(visibleLight.light,visibleIndex);
+        dirLightShadowData[index] = 
+            shadows.ReserveDirectionalShadows(light,visibleIndex);
     }
 
     // Unity只是简单的给每个物体创建了所有使用中的光照列表,并按照重要程度进行简单排序.
@@ -120,12 +125,13 @@ public class Lighting
             //         break;
             //     }                
             // }
+            Light light = visibleLight.light;
             switch (visibleLight.lightType)
             {
                 case LightType.Directional:
                     if (dirLightCount < maxDirLightCount)
                     {
-                        SetupDirectionalLight(dirLightCount++,i,ref visibleLight);
+                        SetupDirectionalLight(dirLightCount++,i,ref visibleLight,light);
                     }
                     break;
                 case LightType.Point:
@@ -133,14 +139,14 @@ public class Lighting
                     {
                         // 将其他光的顺序设定为对应顺序
                         newIndex = otherLightCount;
-                        SetupPointLight(otherLightCount++,i,ref visibleLight);
+                        SetupPointLight(otherLightCount++,i,ref visibleLight, light);
                     }
                     break;
                 case LightType.Spot:
                     if (otherLightCount < maxOtherLightCount)
                     {
                         newIndex = otherLightCount;
-                        SetupSpotLight(otherLightCount++,i,ref visibleLight);
+                        SetupSpotLight(otherLightCount++,i,ref visibleLight, light);
                     }
                     break;
             }
@@ -177,7 +183,7 @@ public class Lighting
             //使用索引ID和对应的数组设置Buffer
             buffer.SetGlobalVectorArray(dirLightColorsId,dirLightColors);
             //使用索引获取对应光照的方向
-            buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirections);
+            buffer.SetGlobalVectorArray(dirLightDirectionsId,dirLightDirectionsAndMasks);
             //使用索引逐光照存储阴影信息
             buffer.SetGlobalVectorArray(dirLightShadowDataId,dirLightShadowData);
         }
@@ -186,7 +192,7 @@ public class Lighting
         {
             buffer.SetGlobalVectorArray(otherLightColorsId,otherLightColors);
             buffer.SetGlobalVectorArray(otherLightPositionsId,otherLightPositions);
-            buffer.SetGlobalVectorArray(otherLightDirectionsId,otherLightDirections);
+            buffer.SetGlobalVectorArray(otherLightDirectionsId,otherLightDirectionsAndMasks);
             buffer.SetGlobalVectorArray(otherLightSpotAnglesId,otherLightSpotAngles);
             buffer.SetGlobalVectorArray(otherLightShadowDataId,otherLightShadowData);
         }
@@ -198,7 +204,8 @@ public class Lighting
     }
 
     // 因为默认的光照索引是给直接光用的,直接给所用光用会导致出现问题,所以需要专门的visibleIndex来重构
-    void SetupPointLight(int index,int visibleIndex, ref VisibleLight visibleLight)
+    void SetupPointLight(
+        int index,int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         otherLightColors[index] = visibleLight.finalColor;
         // 转换矩阵的第四行代表位置
@@ -208,11 +215,15 @@ public class Lighting
         otherLightPositions[index] = position;
         // 为了点光源不受角度衰减计算的影响,需要将其值设为0和1
         otherLightSpotAngles[index] = new Vector4(0f, 1f);
-        Light light = visibleLight.light;
+        Vector4 dirAndMask = Vector4.zero;
+        dirAndMask.w = light.renderingLayerMask;
+        otherLightDirectionsAndMasks[index] = dirAndMask;
+        //Light light = visibleLight.light;
         otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
     }
     
-    void SetupSpotLight(int index,int visibleIndex, ref VisibleLight visibleLight)
+    void SetupSpotLight(
+        int index,int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         otherLightColors[index] = visibleLight.finalColor;
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
@@ -225,10 +236,11 @@ public class Lighting
         // 在Unity中从本地到世界的三维旋转顺序是z→x→y,故在Matrix中中123列分别是y,x,z轴旋转
         // 因为获得z轴坐标是需要计算矩阵MA,其中A为[0,0,1,0]^-1,得到的数据即为z轴,和GetColumn(2)的数据一样
         // 此处取反表示反射光线
-        otherLightDirections[index] = 
-            -visibleLight.localToWorldMatrix.GetColumn(2);
+        Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
+        dirAndMask.w = light.renderingLayerMask;
+        otherLightDirectionsAndMasks[index] = dirAndMask;
 
-        Light light = visibleLight.light;
+        //Light light = visibleLight.light;
         // 然而inner angle需要通过light.innerSpotAngle来获得
         // 因为可配置内角是Unity新版的功能,VisibleLight中没有他,因为他会更改该字段的长度并需要重构Unity内部代码
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);

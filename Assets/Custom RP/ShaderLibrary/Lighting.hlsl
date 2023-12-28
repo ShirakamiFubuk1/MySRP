@@ -28,8 +28,11 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
     {
         //将surface信息传递给GetDirectionalLight
         Light light = GetDirectionalLight(i,surfaceWS,shadowData);
-        //叠加多个光照颜色
-        color += GetLighting(surfaceWS,brdf,light);
+        if(RenderingLayersOverlap(surfaceWS, light))
+        {
+            //叠加多个光照颜色
+            color += GetLighting(surfaceWS,brdf,light);            
+        }
     }
     #if defined(LIGHTS_PER_OBJECT)
         // 单个物体支持至多8个lightIndices,但提供的光照并不受这个限制,故要限制个数
@@ -37,13 +40,19 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
         {
             int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
             Light light = GetOtherLight(lightIndex,surfaceWS,shadowData);
-            color += GetLighting(surfaceWS,brdf,light);
+            if(RenderingLayersOverlap(surfaceWS, light))
+            {
+                color += GetLighting(surfaceWS,brdf,light);                
+            }
         }
     #else
         for(int j = 0;j<GetOtherLightCount();j++)
         {
             Light light = GetOtherLight(j,surfaceWS,shadowData);
-            color += GetLighting(surfaceWS,brdf,light);
+            if(RenderingLayersOverlap(surfaceWS, light))
+            {
+                color += GetLighting(surfaceWS,brdf,light);                
+            }
         }
     #endif
 

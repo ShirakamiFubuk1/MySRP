@@ -15,6 +15,7 @@ struct Surface
     float3 color;
     float3 viewDirection;
     float3 position;
+    uint renderingLayerMask;
 };
 
 #endif
