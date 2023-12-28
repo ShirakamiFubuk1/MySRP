@@ -45,7 +45,9 @@ public partial class PostFXStack
         colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
         colorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters"),
         colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC"),
-        usePointSamplerId = Shader.PropertyToID("_UsePointSampler");
+        usePointSamplerId = Shader.PropertyToID("_UsePointSampler"),
+        finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
+        finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
     private int 
         bloomPyramidId,
@@ -53,6 +55,8 @@ public partial class PostFXStack
 
     // 至多使用65536 * 65536 大小的Texture降低至1像素,所以最大Levels使用16
     private const int maxBloomPyramidLevels = 16;
+
+    private CameraSettings.FinalBlendMode finalBlendMode;
 
     // 添加一个公共属性用来指示堆栈是否属于活动状态,仅当堆栈设置存在时才会显示活动
     // 如果未提供任何设置,则应跳过后处理
@@ -83,8 +87,9 @@ public partial class PostFXStack
     
     public void Setup(ScriptableRenderContext context, Camera camera, 
         PostFXSettings settings ,bool useHDR, int colorLUTResolution , 
-        bool colorLUTPointSampler)
+        bool colorLUTPointSampler, CameraSettings.FinalBlendMode finalBlendMode)
     {
+        this.finalBlendMode = finalBlendMode;
         this.colorLUTPointSampler = colorLUTPointSampler;
         this.colorLUTResolution = colorLUTResolution;
         this.useHDR = useHDR;
@@ -135,10 +140,12 @@ public partial class PostFXStack
     
     void DrawFinal(RenderTargetIdentifier from)
     {
+        buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
+        buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
         // 通过该命令使Source使from可用,使用to作为渲染目标
         buffer.SetGlobalTexture(fxSourceId,from);
         buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
-            camera.rect == fullViewRect ? 
+            finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ? 
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
             RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);

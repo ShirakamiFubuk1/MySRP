@@ -171,7 +171,7 @@ Shader "Hidden/Custom RP/Post FX Stack"
         {
             Name "Final"
             
-            Blend One OneMinusSrcAlpha
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
             
             HLSLPROGRAM
 

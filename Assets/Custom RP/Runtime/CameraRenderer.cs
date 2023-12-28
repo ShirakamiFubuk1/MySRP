@@ -30,6 +30,8 @@ public partial class CameraRenderer
     private bool 
         useHDR,
         colorLUTPointSampler;
+
+    private static CameraSettings defaultCameraSettings = new CameraSettings();
     
     public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR, 
         bool colorLUTPointSampler, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
@@ -37,6 +39,10 @@ public partial class CameraRenderer
     {
         this.context = context;
         this.camera = camera;
+
+        var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
+        CameraSettings cameraSettings = 
+            crpCamera ? crpCamera.Settings : defaultCameraSettings;
 
         PrepareBuffer();
         PrepareForSceneWindow();
@@ -57,7 +63,7 @@ public partial class CameraRenderer
         lighting.Setup(context,cullingResults,shadowSettings,useLightsPerObject);
         // 在CameraRender中调用FX实例堆栈
         postFXStack.Setup(context,camera,postFXSettings,useHDR,
-            colorLUTResolution,colorLUTPointSampler);
+            colorLUTResolution,colorLUTPointSampler, cameraSettings.finalBlendMode);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
