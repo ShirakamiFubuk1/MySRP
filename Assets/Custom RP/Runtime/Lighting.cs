@@ -87,7 +87,7 @@ public class Lighting
         // //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
         // dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
         Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
-        dirAndMask.w = light.renderingLayerMask;
+        dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
         dirLightDirectionsAndMasks[index] = dirAndMask;
         //初始化可接受阴影的光
         dirLightShadowData[index] = 
@@ -216,7 +216,7 @@ public class Lighting
         // 为了点光源不受角度衰减计算的影响,需要将其值设为0和1
         otherLightSpotAngles[index] = new Vector4(0f, 1f);
         Vector4 dirAndMask = Vector4.zero;
-        dirAndMask.w = light.renderingLayerMask;
+        dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
         otherLightDirectionsAndMasks[index] = dirAndMask;
         //Light light = visibleLight.light;
         otherLightShadowData[index] = shadows.ReserveOtherShadows(light, visibleIndex);
@@ -237,7 +237,7 @@ public class Lighting
         // 因为获得z轴坐标是需要计算矩阵MA,其中A为[0,0,1,0]^-1,得到的数据即为z轴,和GetColumn(2)的数据一样
         // 此处取反表示反射光线
         Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
-        dirAndMask.w = light.renderingLayerMask;
+        dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
         otherLightDirectionsAndMasks[index] = dirAndMask;
 
         //Light light = visibleLight.light;
