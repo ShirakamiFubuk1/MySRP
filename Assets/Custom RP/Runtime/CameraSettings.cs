@@ -15,4 +15,8 @@ public class CameraSettings
         source = BlendMode.One,
         destination = BlendMode.Zero
     };
+
+    public bool overridePostFX = false;
+
+    public PostFXSettings postFXSettings = default;
 }

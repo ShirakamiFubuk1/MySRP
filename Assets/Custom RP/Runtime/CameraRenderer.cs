@@ -44,6 +44,11 @@ public partial class CameraRenderer
         CameraSettings cameraSettings = 
             crpCamera ? crpCamera.Settings : defaultCameraSettings;
 
+        if (cameraSettings.overridePostFX)
+        {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
+
         PrepareBuffer();
         PrepareForSceneWindow();
         //调用Setup之前调用Cull,如果失败则终止

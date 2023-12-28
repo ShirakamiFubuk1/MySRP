@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1143,6 +1143,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    overridePostFX: 1
+    postFXSettings: {fileID: 11400000, guid: e22ed5af384d86c45b63d73b840dc24f, type: 2}
 --- !u!81 &433388183
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2892,6 +2894,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 10
+    overridePostFX: 1
+    postFXSettings: {fileID: 0}
 --- !u!1 &972277392
 GameObject:
   m_ObjectHideFlags: 0
@@ -4576,7 +4580,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &1595187849
 Light:
   m_ObjectHideFlags: 0
@@ -4634,7 +4638,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 2.2e-44, y: 4.959117e-39, z: 4.0999703e-19, w: 2.75529e-40}
+  m_BoundingSphereOverride: {x: 1.9283795e+31, y: 1.8058746e+28, z: 1.44e-43, w: 51.02707}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
