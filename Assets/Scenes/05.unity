@@ -1145,6 +1145,7 @@ MonoBehaviour:
       destination: 0
     overridePostFX: 1
     postFXSettings: {fileID: 11400000, guid: e22ed5af384d86c45b63d73b840dc24f, type: 2}
+    renderingLayerMask: -1
 --- !u!81 &433388183
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2896,6 +2897,7 @@ MonoBehaviour:
       destination: 10
     overridePostFX: 1
     postFXSettings: {fileID: 0}
+    renderingLayerMask: -1
 --- !u!1 &972277392
 GameObject:
   m_ObjectHideFlags: 0

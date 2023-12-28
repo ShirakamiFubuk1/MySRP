@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Assets\Custom RP\Editor\CustomLightEditor.cs" />
     <Compile Include="Assets\Custom RP\Editor\CustomShaderGUI.cs" />
+    <Compile Include="Assets\Custom RP\Editor\RenderingLayerMaskDrawer.cs" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2019.4.40f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

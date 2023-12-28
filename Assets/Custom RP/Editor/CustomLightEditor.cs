@@ -16,7 +16,7 @@ public class CustomLightEditor : LightEditor
     {
         // 为了提高效率需要重写默认的Inspector
         base.OnInspectorGUI();
-        DrawRenderingLayerMask();
+        // DrawRenderingLayerMask();
         // 检查是否选择了聚光灯以及是否有多个不同数值
         if (!settings.lightType.hasMultipleDifferentValues &&
             (LightType)settings.lightType.enumValueIndex == LightType.Spot)
@@ -45,25 +45,25 @@ public class CustomLightEditor : LightEditor
         new GUIContent("Rendering Layer Mask", 
             "Functional version of above property");
 
-    void DrawRenderingLayerMask()
-    {
-        SerializedProperty property = settings.renderingLayerMask;
-        EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
-        EditorGUI.BeginChangeCheck();
-        int mask = property.intValue;
-        if (mask == int.MaxValue)
-        {
-            mask = -1;
-        }
-        mask = EditorGUILayout.MaskField(
-                renderingLayerMaskLabel, mask,
-                GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames
-            );
-        if (EditorGUI.EndChangeCheck())
-        {
-            property.intValue = mask == -1 ? Int32.MaxValue : mask;
-        }
-
-        EditorGUI.showMixedValue = false;
-    }
+    // void DrawRenderingLayerMask()
+    // {
+    //     SerializedProperty property = settings.renderingLayerMask;
+    //     EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+    //     EditorGUI.BeginChangeCheck();
+    //     int mask = property.intValue;
+    //     if (mask == int.MaxValue)
+    //     {
+    //         mask = -1;
+    //     }
+    //     mask = EditorGUILayout.MaskField(
+    //             renderingLayerMaskLabel, mask,
+    //             GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames
+    //         );
+    //     if (EditorGUI.EndChangeCheck())
+    //     {
+    //         property.intValue = mask == -1 ? Int32.MaxValue : mask;
+    //     }
+    //
+    //     EditorGUI.showMixedValue = false;
+    // }
 }

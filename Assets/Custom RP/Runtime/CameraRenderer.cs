@@ -71,7 +71,9 @@ public partial class CameraRenderer
             colorLUTResolution,colorLUTPointSampler, cameraSettings.finalBlendMode);
         buffer.EndSample(SampleName);
         Setup();
-        DrawVisibleGeometry(useDynamicBatching,useGPUInstancing,useLightsPerObject);
+        DrawVisibleGeometry(
+            useDynamicBatching,useGPUInstancing,useLightsPerObject,
+            cameraSettings.renderingLayerMask);
         DrawUnsupportedShaders();
         DrawGizmosBeforeFX();
         // 如果处于活动状态,在提交之前调用FX堆栈
@@ -149,7 +151,9 @@ public partial class CameraRenderer
     }
     
     void DrawVisibleGeometry(
-        bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject)
+        bool useDynamicBatching,bool useGPUInstancing,bool useLightsPerObject, 
+        int renderingLayerMask
+        )
     {
         // 默认情况下所有可见光会逐片元计算光照.这对于平行光来说无所谓,但对于超过其他光源范围的片元来说是不必要的
         // 大部分情况下点光源和聚光灯只能影响一小部分片元,导致大部分工作是无用的,却会占据大量的计算资源
@@ -190,7 +194,8 @@ public partial class CameraRenderer
         };
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        var filteringSettings = new FilteringSettings(
+            RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask);
         
         context.DrawRenderers(
                 //告诉Render哪些东西是可以看到的，此外还要提供绘制设置和筛选设置
