@@ -41,6 +41,8 @@ public partial class CameraRenderer
     private static CameraSettings defaultCameraSettings = new CameraSettings();
 
     private Material material;
+
+    private Texture2D missingTexture;
     
     public void Render(ScriptableRenderContext context, Camera camera, 
         CameraBufferSettings bufferSettings, bool colorLUTPointSampler, 
@@ -169,7 +171,8 @@ public partial class CameraRenderer
             flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear
             );
         //使用命令缓冲区诸如给Profiler
-        buffer.BeginSample(SampleName);        
+        buffer.BeginSample(SampleName);    
+        buffer.SetGlobalTexture(depthTextureId, missingTexture);
         ExecuteBuffer();
     }
 
@@ -300,11 +303,19 @@ public partial class CameraRenderer
     public CameraRenderer(Shader shader)
     {
         material = CoreUtils.CreateEngineMaterial(shader);
+        missingTexture = new Texture2D(1, 1)
+        {
+            hideFlags = HideFlags.HideAndDontSave,
+            name = "Missing"
+        };
+        missingTexture.SetPixel(0, 0, Color.white * 0.5f);
+        missingTexture.Apply(true, true);
     }
 
     public void Dispose()
     {
         CoreUtils.Destroy(material);
+        CoreUtils.Destroy(missingTexture);
     }
 
     void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to)
