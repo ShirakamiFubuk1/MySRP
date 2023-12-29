@@ -20,6 +20,8 @@ struct InputConfig
 {
 	float2 baseUV;
 	float4 color;
+	float3 flipbookUVB;
+	bool flipbookBlending;
 };
 
 InputConfig GetInputConfig(float2 baseUV,float2 detailUV = 0.0)
@@ -27,6 +29,8 @@ InputConfig GetInputConfig(float2 baseUV,float2 detailUV = 0.0)
 	InputConfig c;
 	c.baseUV = baseUV;
 	c.color = 1.0;
+	c.flipbookUVB = false;
+	c.flipbookBlending = false;
 
 	return c;
 }
@@ -38,6 +42,13 @@ float2 TransformBaseUV (float2 baseUV) {
 
 float4 GetBase (InputConfig c) {
 	float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
+	if(c.flipbookBlending)
+	{
+		map = lerp(
+			map, SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.flipbookUVB.xy),
+			c.flipbookUVB.z
+		);
+	}
 	float4 color = INPUT_PROP(_BaseColor);
 	return map * color * c.color;
 }

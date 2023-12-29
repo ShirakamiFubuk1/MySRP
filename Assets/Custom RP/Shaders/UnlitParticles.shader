@@ -5,6 +5,7 @@
         _BaseMap("Texture",2D) = "white"{}
         [HDR] _BaseColor("Color",Color) = (1.0,1.0,1.0,1.0)
         [Toggle(_VERTEX_COLORS)] _VertexColors ("Vertex Colors",Float) = 0
+        [Toggle(_VERTEX_BLENDING)] _FlipbookBlending ("Flipbook Blending", Float) = 0
         _CutOff("Alpha Cut Off",Range(0.0,1.0)) = 0.5
         [Toggle(_CLIPPING)] _Clipping("Alpha Clipping",Float) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Src Blend",Float) = 1
@@ -30,6 +31,7 @@
 
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _VERTEX_COLORS
+            #pragma shader_feature _FLIPBOOK_BLENDING
             //使用这条语句会产生两个变体,一个有instacing一个没有
             #pragma multi_compile_instancing
             #pragma vertex UnlitPassVertex
