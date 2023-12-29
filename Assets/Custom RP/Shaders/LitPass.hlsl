@@ -90,7 +90,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
     InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV, input.detailUV);
-    return float4(config.fragment.depth.xxx / 20.0, 1.0);
+    // return float4(config.fragment.depth.xxx / 20.0, 1.0);
     
     ClipLOD(config.fragment, unity_LODFade.x);
 #if defined(_MASK_MAP)
