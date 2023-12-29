@@ -44,7 +44,7 @@ struct Varyings
     float4 tangentWS : VAR_TANGENT;
 #endif
     float3 positionWS : VAR_POSITION;
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION;
     //GI在VARYINGS中对应的宏
     GI_VARYINGS_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -61,7 +61,7 @@ Varyings LitPassVertex(Attributes input)
     TRANSFER_GI_DATA(input,output);
     output.positionWS = TransformObjectToWorld(input.positionOS);
     //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);    
-    output.positionCS = TransformWorldToHClip(output.positionWS);
+    output.positionCS_SS = TransformWorldToHClip(output.positionWS);
     output.baseUV = TransformBaseUV(input.baseUV);
 #if defined(_DETAIL_MAP)
     output.detailUV = TransformDetailUV(input.baseUV);
@@ -84,12 +84,13 @@ float4 LitPassFragment(Varyings input):SV_TARGET
 // //请注意有两个LOD级别的对象不会与自己发生CrossFade
 //     return -unity_LODFade.x;
 // #endif
-    // 调用函数而不是直接返回unity_LODFade.x
-    ClipLOD(input.positionCS.xy,unity_LODFade.x);
+    // // 调用函数而不是直接返回unity_LODFade.x
+    // ClipLOD(input.positionCS.xy,unity_LODFade.x);
 
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
-    InputConfig config = GetInputConfig(input.baseUV,input.detailUV);
+    InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV, input.detailUV);
+    ClipLOD(config.fragment, unity_LODFade.x);
 #if defined(_MASK_MAP)
     config.useMask = true;
 #endif
@@ -124,7 +125,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     //视图空间和世界空间深度值是相同的，因为只进行了旋转和平移
     surface.depth = -TransformWorldToView(input.positionWS).z;
     //通过该函数使用给定的屏幕空间XY的位置，生成旋转的平铺抖动图案
-    surface.dither = InterleavedGradientNoise(input.positionCS.xy,0);
+    surface.dither = InterleavedGradientNoise(input.positionCS_SS.xy,0);
     surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
 #if defined(_PREMULTIPLY_ALPHA)

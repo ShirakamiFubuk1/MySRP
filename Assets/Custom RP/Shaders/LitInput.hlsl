@@ -32,6 +32,7 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct InputConfig
 {
+	Fragment fragment;
 	float2 baseUV;
 	float2 detailUV;
 	bool useMask;
@@ -39,9 +40,10 @@ struct InputConfig
 };
 
 // 内联定义一个detailUV,以防没有定义该函数导致无法使用
-InputConfig GetInputConfig(float2 baseUV,float2 detailUV = 0.0)
+InputConfig GetInputConfig(float4 positionSS, float2 baseUV,float2 detailUV = 0.0)
 {
 	InputConfig c;
+	c.fragment = GetFragment(positionSS);
 	c.baseUV = baseUV;
 	c.detailUV = detailUV;
 	c.useMask = false;

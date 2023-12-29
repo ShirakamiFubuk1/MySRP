@@ -8,8 +8,8 @@ float4 _BloomThreshold;
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
 TEXTURE2D(_ColorGradingLUT);
-SAMPLER(sampler_linear_clamp);
-SAMPLER(sampler_point_clamp);
+// SAMPLER(sampler_linear_clamp);
+// SAMPLER(sampler_point_clamp);
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"

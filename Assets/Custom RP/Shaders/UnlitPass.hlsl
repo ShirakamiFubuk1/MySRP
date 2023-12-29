@@ -32,7 +32,7 @@ struct Attributes
 struct Varyings
 {
     float2 baseUV : VAR_BASE_UV;
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION;
 #if defined(_VERTEX_COLORS)
     float4 color : VAR_COLOR;
 #endif
@@ -50,7 +50,7 @@ Varyings UnlitPassVertex(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input,output);
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS_SS = TransformWorldToHClip(positionWS);
     //float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseMap_ST);
 #if defined(_VERTEX_COLORS)
     output.color = input.color;
@@ -69,7 +69,7 @@ float4 UnlitPassFragment(Varyings input):SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
-    InputConfig config = GetInputConfig(input.baseUV);
+    InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
 #if defined(_VERTEX_COLORS)
     config.color = input.color;
 #endif
