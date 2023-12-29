@@ -25,7 +25,10 @@ public partial class CameraRenderer
     
     private PostFXStack postFXStack = new PostFXStack();
 
-    private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+    // private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+    static int
+        colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
+        depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
 
     private bool 
         useHDR,
@@ -81,7 +84,7 @@ public partial class CameraRenderer
         // 如果处于活动状态,在提交之前调用FX堆栈
         if (postFXStack.IsActive)
         {
-            postFXStack.Render(frameBufferId);
+            postFXStack.Render(colorAttachmentId);
         }
         // 由于后处理的存在,将Gizmos分为前后两部分分开渲染,省的给Gizmos也加个后处理效果
         DrawGizmosAfterFX();
@@ -117,11 +120,18 @@ public partial class CameraRenderer
             // 因此我们创建自己的中间缓冲区时,在适当的时候使用默认HDR格式,而不是用默认的LDR格式
             // 如果目标平台支持的话也可以用其他HDR格式,但是为了普适性这里用默认的HDR格式
             // 在HDR模式下单步调试会发现画面很暗,因为线性颜色数据按原样显示了,因此被错误的当成sRGB
-            buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, 
+            buffer.GetTemporaryRT(colorAttachmentId, camera.pixelWidth, 
                 camera.pixelHeight, 32, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-                buffer.SetRenderTarget(frameBufferId,
-                RenderBufferLoadAction.DontCare,RenderBufferStoreAction.Store);
+            buffer.GetTemporaryRT(
+                    depthAttachmentId, camera.pixelWidth, camera.pixelHeight, 32,
+                    FilterMode.Point, RenderTextureFormat.Depth
+                );
+            buffer.SetRenderTarget(
+                colorAttachmentId,
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, 
+                depthAttachmentId, 
+                RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         }
         
         //清除图像缓存,前两个true控制是否应该清除深度和颜色数据，第三个是用于清楚的颜色。
@@ -236,7 +246,8 @@ public partial class CameraRenderer
         lighting.Cleanup();
         if (postFXStack.IsActive)
         {
-            buffer.ReleaseTemporaryRT(frameBufferId);
+            buffer.ReleaseTemporaryRT(colorAttachmentId);
+            buffer.ReleaseTemporaryRT(depthAttachmentId);
         }
     }
 }
