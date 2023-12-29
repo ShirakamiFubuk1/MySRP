@@ -63,5 +63,7 @@ float4 unity_OrthoParams;
 // 大部分情况下Unity会解决这个问题,但在使用RenderTexture时会失效
 // Unity决定是否手动翻转需要通过_ProjectionParams.x来决定,将其放入UnityInput
 float4 _ProjectionParams;
+float4 _ScreenParams;
+float4 _ZBufferParams;
 
 #endif
