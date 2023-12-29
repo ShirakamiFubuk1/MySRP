@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47c5b4dd4c6e7494aac39a5216758cff, type: 3}
   m_Name: Custom RP
   m_EditorClassIdentifier: 
+  cameraRendererShader: {fileID: 4800000, guid: b868957f14f84c4da9195a4ebcfe86f2,
+    type: 3}
   useDynamicBatching: 0
   useGPUInstancing: 1
   useSRPBatcher: 0

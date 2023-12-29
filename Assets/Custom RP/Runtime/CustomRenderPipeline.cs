@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 public partial class CustomRenderPipeline : RenderPipeline
 {
-    private CameraRenderer renderer = new CameraRenderer();
+    private CameraRenderer renderer;// = new CameraRenderer();
 
     private bool 
         useDynamicBatching, 
@@ -35,7 +35,7 @@ public partial class CustomRenderPipeline : RenderPipeline
     public CustomRenderPipeline(bool allowHDR, bool colorLUTPointSampler, bool useDynamicBatching,
         bool useGPUInstancing, bool useSRPBatcher, bool useLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings,
-        int colorLUTResolution)
+        int colorLUTResolution, Shader cameraRendererShader)
 
     {
         //追踪阴影设置
@@ -53,5 +53,7 @@ public partial class CustomRenderPipeline : RenderPipeline
 
         // 给Editor模式下添加我们的自定义设置,如光照代理
         InitializeForEditor();
+
+        renderer = new CameraRenderer(cameraRendererShader);
     }
 }

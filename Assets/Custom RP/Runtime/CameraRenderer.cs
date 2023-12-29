@@ -29,14 +29,18 @@ public partial class CameraRenderer
     static int
         colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
         depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
-        depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
+        depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
+        sourceTextureId = Shader.PropertyToID("_SourceTexture");
 
     private bool 
         useHDR,
         colorLUTPointSampler,
-        useDepthTexture;
+        useDepthTexture,
+        useIntermediateBuffer;
 
     private static CameraSettings defaultCameraSettings = new CameraSettings();
+
+    private Material material;
     
     public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR, 
         bool colorLUTPointSampler, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
@@ -90,6 +94,12 @@ public partial class CameraRenderer
         {
             postFXStack.Render(colorAttachmentId);
         }
+        else if(useIntermediateBuffer)
+        {
+            Draw(colorAttachmentId, 
+                BuiltinRenderTextureType.CameraTarget);
+            ExecuteBuffer();
+        }
         // 由于后处理的存在,将Gizmos分为前后两部分分开渲染,省的给Gizmos也加个后处理效果
         DrawGizmosAfterFX();
         // 同一清理所有申请的buffer
@@ -106,9 +116,10 @@ public partial class CameraRenderer
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
 
+        useIntermediateBuffer = useDepthTexture || postFXStack.IsActive;
         // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
         // 我们无法直接控制这些内容, 只能覆盖这些设置
-        if (postFXStack.IsActive)
+        if (useIntermediateBuffer)
         {
             // 当渲染到中间帧缓冲区时,渲染为填充任意数据的纹理
             // 为了防止出现随机结果,当堆栈处于活动状态时,始终清除深度和颜色
@@ -249,15 +260,15 @@ public partial class CameraRenderer
     void Clearup()
     {
         lighting.Cleanup();
-        if (postFXStack.IsActive)
+        if (useIntermediateBuffer)
         {
             buffer.ReleaseTemporaryRT(colorAttachmentId);
             buffer.ReleaseTemporaryRT(depthAttachmentId);
-        }
-
-        if (useDepthTexture)
-        {
-            buffer.ReleaseTemporaryRT(depthTextureId);
+            
+            if (useDepthTexture)
+            {
+                buffer.ReleaseTemporaryRT(depthTextureId);
+            }            
         }
     }
 
@@ -273,5 +284,26 @@ public partial class CameraRenderer
                 depthAttachmentId, depthTextureId);
             ExecuteBuffer();
         }
+    }
+
+    public CameraRenderer(Shader shader)
+    {
+        material = CoreUtils.CreateEngineMaterial(shader);
+    }
+
+    public void Dispose()
+    {
+        CoreUtils.Destroy(material);
+    }
+
+    void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to)
+    {
+        buffer.SetGlobalTexture(sourceTextureId, from);
+        buffer.SetRenderTarget(
+                to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+            );
+        buffer.DrawProcedural(
+                Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3
+            );
     }
 }

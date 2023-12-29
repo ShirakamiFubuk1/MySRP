@@ -11,6 +11,15 @@ public partial class CustomRenderPipeline
 {
     
     partial void InitializeForEditor();
+
+    partial void DisposeForEditor();
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        DisposeForEditor();
+        renderer.Dispose();
+    }
     
 #if UNITY_EDITOR
 
@@ -21,9 +30,10 @@ public partial class CustomRenderPipeline
     }
 
     // 当我们的管线被处理过之后需要清除并重置代理数据
-    protected override void Dispose(bool disposing)
+    // protected override void Dispose(bool disposing)
+    partial void DisposeForEditor()
     {
-        base.Dispose(disposing);
+        // base.Dispose(disposing);
         Lightmapping.ResetDelegate();
     }
 
