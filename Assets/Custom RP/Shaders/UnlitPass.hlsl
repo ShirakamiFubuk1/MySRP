@@ -78,6 +78,9 @@ float4 UnlitPassFragment(Varyings input):SV_TARGET
     config.flipbookUVB = input.flipbookUVB;
     config.flipbookBlending = true;
 #endif
+#if defined(_NEAR_FADE)
+    config.nearFade = true;
+#endif
     float4 base = GetBase(config);
     
 #if defined(_CLIPPING)
