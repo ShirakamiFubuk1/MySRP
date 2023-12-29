@@ -266,9 +266,10 @@ public partial class CameraRenderer
         if (useDepthTexture)
         {
             buffer.GetTemporaryRT(
-                    depthTextureId, camera.pixelWidth, camera.pixelHeight, 32
+                    depthTextureId, camera.pixelWidth, camera.pixelHeight, 32, 
+                    FilterMode.Point, RenderTextureFormat.Depth
                 );
-            buffer.ConvertTexture(
+            buffer.CopyTexture(
                 depthAttachmentId, depthTextureId);
             ExecuteBuffer();
         }
