@@ -28,11 +28,13 @@ public partial class CameraRenderer
     // private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     static int
         colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
-        depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
+        depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
+        depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
 
     private bool 
         useHDR,
-        colorLUTPointSampler;
+        colorLUTPointSampler,
+        useDepthTexture;
 
     private static CameraSettings defaultCameraSettings = new CameraSettings();
     
@@ -46,6 +48,8 @@ public partial class CameraRenderer
         var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
         CameraSettings cameraSettings = 
             crpCamera ? crpCamera.Settings : defaultCameraSettings;
+
+        useDepthTexture = true;
 
         if (cameraSettings.overridePostFX)
         {
@@ -215,6 +219,7 @@ public partial class CameraRenderer
             );
         
         context.DrawSkybox(camera);
+        CopyAttachments();
 
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
         drawingSettings.sortingSettings = sortingSettings;
@@ -248,6 +253,24 @@ public partial class CameraRenderer
         {
             buffer.ReleaseTemporaryRT(colorAttachmentId);
             buffer.ReleaseTemporaryRT(depthAttachmentId);
+        }
+
+        if (useDepthTexture)
+        {
+            buffer.ReleaseTemporaryRT(depthTextureId);
+        }
+    }
+
+    void CopyAttachments()
+    {
+        if (useDepthTexture)
+        {
+            buffer.GetTemporaryRT(
+                    depthTextureId, camera.pixelWidth, camera.pixelHeight, 32
+                );
+            buffer.ConvertTexture(
+                depthAttachmentId, depthTextureId);
+            ExecuteBuffer();
         }
     }
 }
