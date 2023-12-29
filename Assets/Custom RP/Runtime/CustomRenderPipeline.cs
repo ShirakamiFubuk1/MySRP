@@ -9,8 +9,10 @@ public partial class CustomRenderPipeline : RenderPipeline
         useDynamicBatching, 
         useGPUInstancing, 
         useLightsPerObject,
-        allowHDR,
+        // allowHDR,
         colorLUTPointSampler;
+
+    private CameraBufferSettings cameraBufferSettings;
 
     private ShadowSettings shadowSettings;
 
@@ -26,13 +28,14 @@ public partial class CustomRenderPipeline : RenderPipeline
         foreach (Camera camera in cameras)
         {
             renderer.Render(
-                context,camera,allowHDR, colorLUTPointSampler, useDynamicBatching,useGPUInstancing,
-                useLightsPerObject,shadowSettings, postFXSettings, 
-                colorLUTResolution);
+                context, camera, cameraBufferSettings, colorLUTPointSampler, 
+                useDynamicBatching,useGPUInstancing, useLightsPerObject,shadowSettings, 
+                postFXSettings, colorLUTResolution);
         }
     }
 
-    public CustomRenderPipeline(bool allowHDR, bool colorLUTPointSampler, bool useDynamicBatching,
+    public CustomRenderPipeline(CameraBufferSettings cameraBufferSettings, 
+        bool colorLUTPointSampler, bool useDynamicBatching,
         bool useGPUInstancing, bool useSRPBatcher, bool useLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings,
         int colorLUTResolution, Shader cameraRendererShader)
@@ -46,7 +49,8 @@ public partial class CustomRenderPipeline : RenderPipeline
         this.useGPUInstancing = useGPUInstancing;
         this.useLightsPerObject = useLightsPerObject;
         this.postFXSettings = postFXSettings;
-        this.allowHDR = allowHDR;
+        // this.allowHDR = allowHDR;
+        this.cameraBufferSettings = cameraBufferSettings;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         //设置全局使用线性颜色
         GraphicsSettings.lightsUseLinearIntensity = true;

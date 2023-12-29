@@ -42,9 +42,11 @@ public partial class CameraRenderer
 
     private Material material;
     
-    public void Render(ScriptableRenderContext context, Camera camera, bool allowHDR, 
-        bool colorLUTPointSampler, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
-        ShadowSettings shadowSettings,PostFXSettings postFXSettings, int colorLUTResolution)
+    public void Render(ScriptableRenderContext context, Camera camera, 
+        CameraBufferSettings bufferSettings, bool colorLUTPointSampler, 
+        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
+        ShadowSettings shadowSettings,PostFXSettings postFXSettings,
+        int colorLUTResolution)
     {
         this.context = context;
         this.camera = camera;
@@ -53,8 +55,17 @@ public partial class CameraRenderer
         CameraSettings cameraSettings = 
             crpCamera ? crpCamera.Settings : defaultCameraSettings;
 
-        useDepthTexture = true;
+        // useDepthTexture = true;
 
+        if (this.camera.cameraType == CameraType.Reflection)
+        {
+            useDepthTexture = bufferSettings.copyDepthReflections;
+        }
+        else
+        {
+            useDepthTexture = bufferSettings.copyDepth && 
+                              cameraSettings.copyDepth;
+        }
         if (cameraSettings.overridePostFX)
         {
             postFXSettings = cameraSettings.postFXSettings;
@@ -69,7 +80,7 @@ public partial class CameraRenderer
         }
         
         // 当管线和摄像机都启用hdr时才会计算hdr
-        useHDR = allowHDR && camera.allowHDR;
+        useHDR = bufferSettings.allowHDR && camera.allowHDR;
         this.colorLUTPointSampler = colorLUTPointSampler;
         
         //将Shadows渲染在对应相机样本内

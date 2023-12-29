@@ -15,7 +15,12 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     // 在这里使用单个堆栈,通过为其添加配置项,将其传递给RP的构造函数,从而提供给RP
     [SerializeField] private PostFXSettings postFXSettings = default;
 
-    [SerializeField] private bool allowHDR = true;
+    // [SerializeField] private bool allowHDR = true;
+
+    [SerializeField] private CameraBufferSettings cameraBuffer = new CameraBufferSettings
+    {
+        allowHDR = true
+    };
 
     [SerializeField] private bool colorLUTPointSampler = true;
     
@@ -28,9 +33,9 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(allowHDR, colorLUTPointSampler,useDynamicBatching, 
-            useGPUInstancing, useSRPBatcher, useLightsPerObject, shadows, 
-            postFXSettings, (int)colorLUTResolution, cameraRendererShader);
+        return new CustomRenderPipeline(cameraBuffer, colorLUTPointSampler,
+            useDynamicBatching, useGPUInstancing, useSRPBatcher, useLightsPerObject, 
+            shadows, postFXSettings, (int)colorLUTResolution, cameraRendererShader);
     } 
 
     [SerializeField] private ShadowSettings shadows = default;
