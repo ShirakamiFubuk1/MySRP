@@ -19,7 +19,10 @@ MonoBehaviour:
   useSRPBatcher: 0
   useLightsPerObject: 0
   postFXSettings: {fileID: 11400000, guid: 58e4a44c07e5683489a2d072e4a4d6ee, type: 2}
-  allowHDR: 1
+  cameraBuffer:
+    allowHDR: 1
+    copyDepth: 1
+    copyDepthReflections: 1
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:

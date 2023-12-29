@@ -82,6 +82,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
     - _DstBlend: 10
+    - _FlipbookBlending: 0
     - _Fresnel: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -89,6 +90,9 @@ Material:
     - _MaskMapToggle: 0
     - _Metallic: 0
     - _Mode: 0
+    - _NearFade: 0
+    - _NearFadeDistance: 1
+    - _NearFadeRange: 1
     - _NormalMapToggle: 0
     - _NormalScale: 1
     - _Occlusion: 1
@@ -99,6 +103,9 @@ Material:
     - _Shadows: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
+    - _SoftParticles: 0
+    - _SoftParticlesDistance: 0
+    - _SoftParticlesRange: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 5
     - _UVSec: 0
