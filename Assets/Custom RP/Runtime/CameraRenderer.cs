@@ -29,12 +29,14 @@ public partial class CameraRenderer
     static int
         colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
         depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
+        colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
         depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
         sourceTextureId = Shader.PropertyToID("_SourceTexture");
 
     private bool 
         useHDR,
         colorLUTPointSampler,
+        useColorTexture,
         useDepthTexture,
         useIntermediateBuffer;
 
@@ -64,10 +66,13 @@ public partial class CameraRenderer
 
         if (this.camera.cameraType == CameraType.Reflection)
         {
-            useDepthTexture = bufferSettings.copyDepthReflections;
+            useColorTexture = bufferSettings.copyColorReflection;
+            useDepthTexture = bufferSettings.copyDepthReflection;
         }
         else
         {
+            useColorTexture = bufferSettings.copyColor &&
+                              cameraSettings.copyColor;
             useDepthTexture = bufferSettings.copyDepth && 
                               cameraSettings.copyDepth;
         }
@@ -132,7 +137,8 @@ public partial class CameraRenderer
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
 
-        useIntermediateBuffer = useDepthTexture || postFXStack.IsActive;
+        useIntermediateBuffer = 
+            useColorTexture || useDepthTexture || postFXStack.IsActive;
         // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
         // 我们无法直接控制这些内容, 只能覆盖这些设置
         if (useIntermediateBuffer)
@@ -174,7 +180,8 @@ public partial class CameraRenderer
             flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear
             );
         //使用命令缓冲区诸如给Profiler
-        buffer.BeginSample(SampleName);    
+        buffer.BeginSample(SampleName);
+        buffer.SetGlobalTexture(colorTextureId, missingTexture);
         buffer.SetGlobalTexture(depthTextureId, missingTexture);
         ExecuteBuffer();
     }
@@ -247,7 +254,10 @@ public partial class CameraRenderer
             );
         
         context.DrawSkybox(camera);
-        CopyAttachments();
+        if (useColorTexture || useDepthTexture)
+        {
+            CopyAttachments();            
+        }
 
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
         drawingSettings.sortingSettings = sortingSettings;
@@ -281,8 +291,11 @@ public partial class CameraRenderer
         {
             buffer.ReleaseTemporaryRT(colorAttachmentId);
             buffer.ReleaseTemporaryRT(depthAttachmentId);
-            
-            if (useDepthTexture)
+            if (useColorTexture)
+            {
+                buffer.ReleaseTemporaryRT(colorTextureId);
+            }
+            if(useDepthTexture)
             {
                 buffer.ReleaseTemporaryRT(depthTextureId);
             }            
@@ -291,6 +304,23 @@ public partial class CameraRenderer
 
     void CopyAttachments()
     {
+        if (useColorTexture)
+        {
+            buffer.GetTemporaryRT(
+                colorTextureId, camera.pixelWidth, camera.pixelWidth, 0,
+                FilterMode.Bilinear, useHDR ? 
+                    RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
+            );
+            if (copyTextureSupported)
+            {
+                buffer.CopyTexture(
+                    colorAttachmentId, colorTextureId);
+            }
+            else
+            {
+                Draw(colorAttachmentId, colorTextureId);
+            }
+        }
         if (useDepthTexture)
         {
             buffer.GetTemporaryRT(
@@ -305,16 +335,26 @@ public partial class CameraRenderer
             else
             {
                 Draw(depthAttachmentId, depthTextureId, true);
-                buffer.SetRenderTarget(
-                        colorAttachmentId, 
-                        RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
-                        depthAttachmentId, 
-                        RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
-                    );
+                // buffer.SetRenderTarget(
+                //         colorAttachmentId, 
+                //         RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+                //         depthAttachmentId, 
+                //         RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
+                //     );
             }
-            
-            ExecuteBuffer();
+            // ExecuteBuffer();
         }
+
+        if (!copyTextureSupported)
+        {
+            buffer.SetRenderTarget(
+                colorAttachmentId,
+                RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, 
+                depthAttachmentId, 
+                RenderBufferLoadAction.Load, RenderBufferStoreAction.Store 
+            );
+        }
+        ExecuteBuffer();
     }
 
     public CameraRenderer(Shader shader)
