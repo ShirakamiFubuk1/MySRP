@@ -20,6 +20,11 @@
         
         Pass
         {
+//            Tags
+//            {
+//                "RenderType" = "Transparent"
+//                "Queue" = "Transparent"
+//            }
             Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
             ZWrite [_ZWrite]
             

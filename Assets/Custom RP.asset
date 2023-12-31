@@ -21,8 +21,10 @@ MonoBehaviour:
   postFXSettings: {fileID: 11400000, guid: 58e4a44c07e5683489a2d072e4a4d6ee, type: 2}
   cameraBuffer:
     allowHDR: 1
+    copyColor: 1
+    copyColorReflection: 1
     copyDepth: 1
-    copyDepthReflections: 1
+    copyDepthReflection: 1
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:

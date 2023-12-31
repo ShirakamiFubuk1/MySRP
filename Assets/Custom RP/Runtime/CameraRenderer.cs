@@ -64,7 +64,7 @@ public partial class CameraRenderer
 
         // useDepthTexture = true;
 
-        if (this.camera.cameraType == CameraType.Reflection)
+        if (camera.cameraType == CameraType.Reflection)
         {
             useColorTexture = bufferSettings.copyColorReflection;
             useDepthTexture = bufferSettings.copyDepthReflection;
@@ -291,7 +291,7 @@ public partial class CameraRenderer
         {
             buffer.ReleaseTemporaryRT(colorAttachmentId);
             buffer.ReleaseTemporaryRT(depthAttachmentId);
-            if (useColorTexture)
+            if(useColorTexture)
             {
                 buffer.ReleaseTemporaryRT(colorTextureId);
             }
@@ -307,7 +307,7 @@ public partial class CameraRenderer
         if (useColorTexture)
         {
             buffer.GetTemporaryRT(
-                colorTextureId, camera.pixelWidth, camera.pixelWidth, 0,
+                colorTextureId, camera.pixelWidth, camera.pixelHeight, 0,
                 FilterMode.Bilinear, useHDR ? 
                     RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
             );
