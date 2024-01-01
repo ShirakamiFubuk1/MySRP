@@ -37,6 +37,7 @@ public partial class CameraRenderer
 
     private bool 
         useHDR,
+        useScaleRendering,
         colorLUTPointSampler,
         useColorTexture,
         useDepthTexture,
@@ -85,6 +86,8 @@ public partial class CameraRenderer
             postFXSettings = cameraSettings.postFXSettings;
         }
 
+        float renderScale = bufferSettings.renderScale;
+        useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         PrepareBuffer();
         PrepareForSceneWindow();
         //调用Setup之前调用Cull,如果失败则终止
@@ -140,7 +143,7 @@ public partial class CameraRenderer
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
 
-        useIntermediateBuffer = 
+        useIntermediateBuffer = useScaleRendering ||
             useColorTexture || useDepthTexture || postFXStack.IsActive;
         // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
         // 我们无法直接控制这些内容, 只能覆盖这些设置
