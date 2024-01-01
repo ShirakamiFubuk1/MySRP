@@ -53,6 +53,8 @@ public partial class CameraRenderer
         SystemInfo.copyTextureSupport > CopyTextureSupport.None;
 
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
+
+    private Vector2Int bufferSize;
     
     public void Render(ScriptableRenderContext context, Camera camera, 
         CameraBufferSettings bufferSettings, bool colorLUTPointSampler, 
@@ -98,6 +100,16 @@ public partial class CameraRenderer
         
         // 当管线和摄像机都启用hdr时才会计算hdr
         useHDR = bufferSettings.allowHDR && camera.allowHDR;
+        if (useScaleRendering)
+        {
+            bufferSize.x = (int)(camera.pixelWidth * renderScale);
+            bufferSize.y = (int)(camera.pixelHeight * renderScale);
+        }
+        else
+        {
+            bufferSize.x = camera.pixelWidth;
+            bufferSize.y = camera.pixelHeight;
+        }
         this.colorLUTPointSampler = colorLUTPointSampler;
         
         //将Shadows渲染在对应相机样本内
@@ -163,12 +175,13 @@ public partial class CameraRenderer
             // 因此我们创建自己的中间缓冲区时,在适当的时候使用默认HDR格式,而不是用默认的LDR格式
             // 如果目标平台支持的话也可以用其他HDR格式,但是为了普适性这里用默认的HDR格式
             // 在HDR模式下单步调试会发现画面很暗,因为线性颜色数据按原样显示了,因此被错误的当成sRGB
-            buffer.GetTemporaryRT(colorAttachmentId, camera.pixelWidth, 
-                camera.pixelHeight, 32, FilterMode.Bilinear, useHDR ? 
+            buffer.GetTemporaryRT(
+                colorAttachmentId, bufferSize.x, bufferSize.y, 
+                0, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
             buffer.GetTemporaryRT(
-                    depthAttachmentId, camera.pixelWidth, camera.pixelHeight, 32,
-                    FilterMode.Point, RenderTextureFormat.Depth
+                    depthAttachmentId, bufferSize.x, bufferSize.y, 
+                    32, FilterMode.Point, RenderTextureFormat.Depth
                 );
             buffer.SetRenderTarget(
                 colorAttachmentId,
@@ -313,8 +326,8 @@ public partial class CameraRenderer
         if (useColorTexture)
         {
             buffer.GetTemporaryRT(
-                colorTextureId, camera.pixelWidth, camera.pixelHeight, 0,
-                FilterMode.Bilinear, useHDR ? 
+                colorTextureId, bufferSize.x, bufferSize.y, 
+                0, FilterMode.Bilinear, useHDR ? 
                     RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
             );
             if (copyTextureSupported)
@@ -330,8 +343,8 @@ public partial class CameraRenderer
         if (useDepthTexture)
         {
             buffer.GetTemporaryRT(
-                    depthTextureId, camera.pixelWidth, camera.pixelHeight, 32, 
-                    FilterMode.Point, RenderTextureFormat.Depth
+                    depthTextureId, bufferSize.x, bufferSize.y, 
+                    32, FilterMode.Point, RenderTextureFormat.Depth
                 );
             if (copyTextureSupported)
             {
