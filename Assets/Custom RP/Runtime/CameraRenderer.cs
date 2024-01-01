@@ -27,6 +27,7 @@ public partial class CameraRenderer
 
     // private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     static int
+        bufferSizeId = Shader.PropertyToID("_CameraBufferSize"),
         colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
         depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
         colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
@@ -114,6 +115,10 @@ public partial class CameraRenderer
         
         //将Shadows渲染在对应相机样本内
         buffer.BeginSample(SampleName);
+        buffer.SetGlobalVector(bufferSizeId, new Vector4(
+                1f / bufferSize.x, 1f / bufferSize.y,
+                bufferSize.x, bufferSize.y
+            ));
         ExecuteBuffer();
         //使阴影信息在几何前绘制
         lighting.Setup(
