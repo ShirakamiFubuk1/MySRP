@@ -31,7 +31,9 @@ public partial class CameraRenderer
         depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
         colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
         depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
-        sourceTextureId = Shader.PropertyToID("_SourceTexture");
+        sourceTextureId = Shader.PropertyToID("_SourceTexture"),
+        srcBlendId = Shader.PropertyToID("_CameraSrcBlend"),
+        dstBlendId = Shader.PropertyToID("_CameraDstBlend");
 
     private bool 
         useHDR,
@@ -48,6 +50,8 @@ public partial class CameraRenderer
 
     private static bool copyTextureSupported = 
         SystemInfo.copyTextureSupport > CopyTextureSupport.None;
+
+    private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
     
     public void Render(ScriptableRenderContext context, Camera camera, 
         CameraBufferSettings bufferSettings, bool colorLUTPointSampler, 
@@ -117,8 +121,7 @@ public partial class CameraRenderer
         }
         else if(useIntermediateBuffer)
         {
-            Draw(colorAttachmentId, 
-                BuiltinRenderTextureType.CameraTarget);
+            DrawFinal(cameraSettings.finalBlendMode);
             ExecuteBuffer();
         }
         // 由于后处理的存在,将Gizmos分为前后两部分分开渲染,省的给Gizmos也加个后处理效果
@@ -385,5 +388,24 @@ public partial class CameraRenderer
                 Matrix4x4.identity, material, isDepth ? 1 : 0, 
                 MeshTopology.Triangles, 3
             );
+    }
+    
+    void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
+    {
+        buffer.SetGlobalFloat(srcBlendId, (float)finalBlendMode.source);
+        buffer.SetGlobalFloat(dstBlendId, (float)finalBlendMode.destination);
+        // 通过该命令使Source使from可用,使用to作为渲染目标
+        buffer.SetGlobalTexture(sourceTextureId, colorAttachmentId);
+        buffer.SetRenderTarget(
+            BuiltinRenderTextureType.CameraTarget,
+            finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ? 
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+            RenderBufferStoreAction.Store);
+        buffer.SetViewport(camera.pixelRect);
+        // 然后绘制三角形,我们通过调用Matrix4x4.identity,程序化创建的材质,使用的Pass序号,和绘制的图形与顶点数来调用
+        buffer.DrawProcedural(Matrix4x4.identity, material, 0,
+            MeshTopology.Triangles,3);
+        buffer.SetGlobalFloat(srcBlendId, 1f);
+        buffer.SetGlobalFloat(dstBlendId, 0f);
     }
 }
