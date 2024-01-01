@@ -56,6 +56,8 @@ public partial class CameraRenderer
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
 
     private Vector2Int bufferSize;
+
+    private const float renderScaleMin = 0.1f, renderScaleMax = 2f;
     
     public void Render(ScriptableRenderContext context, Camera camera, 
         CameraBufferSettings bufferSettings, bool colorLUTPointSampler, 
@@ -89,7 +91,8 @@ public partial class CameraRenderer
             postFXSettings = cameraSettings.postFXSettings;
         }
 
-        float renderScale = bufferSettings.renderScale;
+        float renderScale = 
+            cameraSettings.GetRenderScale(bufferSettings.renderScale);
         useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         PrepareBuffer();
         PrepareForSceneWindow();
@@ -103,6 +106,7 @@ public partial class CameraRenderer
         useHDR = bufferSettings.allowHDR && camera.allowHDR;
         if (useScaleRendering)
         {
+            renderScale = Mathf.Clamp(renderScale, 0.1f, 2f);
             bufferSize.x = (int)(camera.pixelWidth * renderScale);
             bufferSize.y = (int)(camera.pixelHeight * renderScale);
         }
