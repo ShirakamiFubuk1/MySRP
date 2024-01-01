@@ -8,6 +8,8 @@ public struct CameraBufferSettings
     public bool copyColor, copyColorReflection, copyDepth, copyDepthReflection;
 
     [Range(0.1f, 2f)] public float renderScale;
+    
+    public enum BicubicRescalingMode { Off, UpOnly, UpAndDown }
 
-    public bool bicubicRescaling;
+    public BicubicRescalingMode bicubicRescaling;
 }
