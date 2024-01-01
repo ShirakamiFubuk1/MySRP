@@ -47,7 +47,8 @@ public partial class PostFXStack
         colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC"),
         usePointSamplerId = Shader.PropertyToID("_UsePointSampler"),
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
-        finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
+        finalDstBlendId = Shader.PropertyToID("_FinalDstBlend"),
+        finalResultId = Shader.PropertyToID("_FinalResult");
 
     private int 
         bloomPyramidId,
@@ -76,7 +77,8 @@ public partial class PostFXStack
         ColorGradingACES,
         ColorGradingNeutral,
         ColorGradingReinhard,
-        Final
+        Final,
+        FinalRescale
     }
 
     private bool useHDR;
@@ -141,7 +143,7 @@ public partial class PostFXStack
             MeshTopology.Triangles,3);
     }
     
-    void DrawFinal(RenderTargetIdentifier from)
+    void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
         buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
@@ -153,7 +155,7 @@ public partial class PostFXStack
             RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);
         // 然后绘制三角形,我们通过调用Matrix4x4.identity,程序化创建的材质,使用的Pass序号,和绘制的图形与顶点数来调用
-        buffer.DrawProcedural(Matrix4x4.identity, settings.Material,(int)Pass.Final,
+        buffer.DrawProcedural(Matrix4x4.identity, settings.Material,(int)pass,
             MeshTopology.Triangles,3);
     }
 
@@ -427,7 +429,23 @@ public partial class PostFXStack
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                 1f / lutWidth, 1f / lutHeight, lutHeight - 1f
             ));
-        DrawFinal(sourceId);
+        if (bufferSize.x == camera.pixelWidth)
+        {
+            DrawFinal(sourceId, Pass.Final);            
+        }
+        else
+        {
+            buffer.SetGlobalFloat(finalSrcBlendId, 1f);
+            buffer.SetGlobalFloat(finalDstBlendId, 0f);
+            buffer.GetTemporaryRT(
+                    finalResultId, bufferSize.x, bufferSize.y, 0,
+                    FilterMode.Bilinear, RenderTextureFormat.Default
+                );
+            Draw(sourceId, finalResultId, Pass.Final);
+            DrawFinal(finalResultId, Pass.FinalRescale);
+            buffer.ReleaseTemporaryRT(finalResultId);
+        }
+
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 }
