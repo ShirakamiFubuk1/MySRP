@@ -70,6 +70,7 @@ float4 UnlitPassFragment(Varyings input):SV_TARGET
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_BaseColor);
     InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+    // return GetBufferColor(config.fragment, 0.05);
     // return float4(config.fragment.bufferDepth.xxx / 20.0, 1.0);
     // return float4(config.fragment.depth.xxx / 20.0, 1.0);
 #if defined(_VERTEX_COLORS)
@@ -89,6 +90,10 @@ float4 UnlitPassFragment(Varyings input):SV_TARGET
     
 #if defined(_CLIPPING)
     clip(base.a - GetCutOff(config));
+#endif
+#if defined(_DISTORTION)
+    float2 distortion = GetDistortion(config) * base.a;
+    base.rgb = GetBufferColor(config.fragment, distortion).rgb;
 #endif
     
     return float4(base.rgb, GetFinalAlpha(base.a));

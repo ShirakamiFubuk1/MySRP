@@ -3,7 +3,5 @@ public struct CameraBufferSettings
 {
     public bool allowHDR;
     
-    public bool copyColor, copyColorReflection;
-    
-    public bool copyDepth, copyDepthReflection;
+    public bool copyColor, copyColorReflection, copyDepth, copyDepthReflection;
 }

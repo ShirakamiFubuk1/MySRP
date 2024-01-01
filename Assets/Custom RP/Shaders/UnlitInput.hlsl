@@ -4,8 +4,9 @@
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,name)
 
 TEXTURE2D(_BaseMap);
-TEXTURE2D(_MaskMap);
+TEXTURE2D(_DistortionMap);
 SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_DistortionMap);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
@@ -14,6 +15,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
 	UNITY_DEFINE_INSTANCED_PROP(float, _CutOff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 	// UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
@@ -51,11 +53,11 @@ float2 TransformBaseUV (float2 baseUV) {
 }
 
 float4 GetBase (InputConfig c) {
-	float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
+	float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.baseUV);
 	if(c.flipbookBlending)
 	{
-		map = lerp(
-			map, SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.flipbookUVB.xy),
+		baseMap = lerp(
+			baseMap, SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, c.flipbookUVB.xy),
 			c.flipbookUVB.z
 		);
 	}
@@ -63,17 +65,30 @@ float4 GetBase (InputConfig c) {
 	{
 		float nearAttenuation = (c.fragment.depth - INPUT_PROP(_NearFadeDistance)) /
 			INPUT_PROP(_NearFadeRange);
-		map.a *= saturate(nearAttenuation);
+		baseMap.a *= saturate(nearAttenuation);
 	}
 	if(c.softParticles)
 	{
 		float depthDelta = c.fragment.bufferDepth - c.fragment.depth;
 		float nearAttenuation = (depthDelta - INPUT_PROP(_SoftParticlesDistance)) /
 			INPUT_PROP(_SoftParticlesRange);
-		map.a *= saturate(nearAttenuation);
+		baseMap.a *= saturate(nearAttenuation);
 	}
-	float4 color = INPUT_PROP(_BaseColor);
-	return map * color * c.color;
+	float4 BaseColor = INPUT_PROP(_BaseColor);
+	return baseMap * BaseColor * c.color;
+}
+
+float2 GetDistortion(InputConfig c)
+{
+	float4 rawMap = SAMPLE_TEXTURE2D(_DistortionMap,sampler_DistortionMap,c.baseUV);
+	if(c.flipbookBlending)
+	{
+		rawMap = lerp(
+			rawMap, SAMPLE_TEXTURE2D(_DistortionMap,sampler_DistortionMap,c.flipbookUVB.xy),
+			c.flipbookUVB.z
+		);
+	}
+	return DecodeNormal(rawMap, INPUT_PROP(_DistortionStrength)).xy;
 }
 
 float GetCutOff (InputConfig c) {
@@ -96,11 +111,6 @@ float GetFresnel(InputConfig c)
 float3 GetEmission(InputConfig c)
 {
 	return GetBase(c).rgb;
-}
-
-float4 GetMask(InputConfig c)
-{
-	return SAMPLE_TEXTURE2D(_MaskMap,sampler_BaseMap,c.baseUV);
 }
 
 float GetFinalAlpha(float alpha)
