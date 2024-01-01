@@ -48,7 +48,8 @@ public partial class PostFXStack
         usePointSamplerId = Shader.PropertyToID("_UsePointSampler"),
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend"),
-        finalResultId = Shader.PropertyToID("_FinalResult");
+        finalResultId = Shader.PropertyToID("_FinalResult"),
+        copyBicubicId = Shader.PropertyToID("_CopyBicubic");
 
     private int 
         bloomPyramidId,
@@ -81,18 +82,21 @@ public partial class PostFXStack
         FinalRescale
     }
 
-    private bool useHDR;
-
-    private bool colorLUTPointSampler;
+    private bool 
+        useHDR, 
+        colorLUTPointSampler,
+        bicubicRescaling;
 
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
 
     private Vector2Int bufferSize;
     
-    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize,
-        PostFXSettings settings ,bool useHDR, int colorLUTResolution , 
-        bool colorLUTPointSampler, CameraSettings.FinalBlendMode finalBlendMode)
+    public void Setup(ScriptableRenderContext context, Camera camera, 
+        Vector2Int bufferSize, PostFXSettings settings ,bool useHDR, 
+        int colorLUTResolution, bool colorLUTPointSampler, 
+        CameraSettings.FinalBlendMode finalBlendMode, bool bicubicRescaling)
     {
+        this.bicubicRescaling = bicubicRescaling;
         this.bufferSize = bufferSize;
         this.finalBlendMode = finalBlendMode;
         this.colorLUTPointSampler = colorLUTPointSampler;
@@ -442,6 +446,7 @@ public partial class PostFXStack
                     FilterMode.Bilinear, RenderTextureFormat.Default
                 );
             Draw(sourceId, finalResultId, Pass.Final);
+            buffer.SetGlobalFloat(copyBicubicId, bicubicRescaling ? 1f : 0f);
             DrawFinal(finalResultId, Pass.FinalRescale);
             buffer.ReleaseTemporaryRT(finalResultId);
         }

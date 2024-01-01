@@ -130,7 +130,8 @@ public partial class CameraRenderer
             cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
         // 在CameraRender中调用FX实例堆栈
         postFXStack.Setup(context,camera,bufferSize,postFXSettings,useHDR,
-            colorLUTResolution,colorLUTPointSampler, cameraSettings.finalBlendMode);
+            colorLUTResolution,colorLUTPointSampler, cameraSettings.finalBlendMode,
+            bufferSettings.bicubicRescaling);
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(

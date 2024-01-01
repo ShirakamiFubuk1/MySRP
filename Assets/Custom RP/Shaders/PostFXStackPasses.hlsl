@@ -31,6 +31,7 @@ float4 _ColorGradingLUTParameters;
 
 bool _ColorGradingLUTInLogC;
 bool _UsePointSampler;
+bool _CopyBicubic;
 
 float4 GetSourceTexelSize()
 {
@@ -416,6 +417,18 @@ float4 FinalPassFragment(Varyings input) : SV_TARGET
     color.rgb = ApplyColorGradingLUT(color.rgb);
 
     return color;
+}
+
+float4 FinalPassFragmentRescale(Varyings input) : SV_TARGET
+{
+    if(_CopyBicubic)
+    {
+        return GetSourceBicubic(input.screenUV);
+    }
+    else
+    {
+        return GetSource(input.screenUV);
+    }
 }
 
 #endif
