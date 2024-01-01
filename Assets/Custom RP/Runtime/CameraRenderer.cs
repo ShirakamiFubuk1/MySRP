@@ -125,7 +125,7 @@ public partial class CameraRenderer
             context,cullingResults,shadowSettings,useLightsPerObject,
             cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
         // 在CameraRender中调用FX实例堆栈
-        postFXStack.Setup(context,camera,postFXSettings,useHDR,
+        postFXStack.Setup(context,camera,bufferSize,postFXSettings,useHDR,
             colorLUTResolution,colorLUTPointSampler, cameraSettings.finalBlendMode);
         buffer.EndSample(SampleName);
         Setup();

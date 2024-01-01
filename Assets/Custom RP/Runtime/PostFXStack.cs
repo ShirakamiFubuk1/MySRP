@@ -84,11 +84,14 @@ public partial class PostFXStack
     private bool colorLUTPointSampler;
 
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
+
+    private Vector2Int bufferSize;
     
-    public void Setup(ScriptableRenderContext context, Camera camera, 
+    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize,
         PostFXSettings settings ,bool useHDR, int colorLUTResolution , 
         bool colorLUTPointSampler, CameraSettings.FinalBlendMode finalBlendMode)
     {
+        this.bufferSize = bufferSize;
         this.finalBlendMode = finalBlendMode;
         this.colorLUTPointSampler = colorLUTPointSampler;
         this.colorLUTResolution = colorLUTResolution;
@@ -179,8 +182,17 @@ public partial class PostFXStack
         // 使用BloomSettings中的配置文件
         PostFXSettings.BloomSettings bloom = settings.Bloom;
         // 生成第一级金字塔的参数
-        int width = camera.pixelWidth / 2,
+        int width, height;
+        if (bloom.ignoreRenderScale)
+        {
+            width = camera.pixelWidth / 2;
             height = camera.pixelHeight / 2;
+        }
+        else
+        {
+            width = bufferSize.x / 2;
+            height = bufferSize.y / 2;
+        }
         // 如果迭代数小于0,或强度小于等于0,或默认的宽高小于限制数的二倍,则直接跳过Bloom
         if (bloom.maxIterations == 0 || bloom.intensity <= 0f ||
             // 因为直接使用半分辨率跳过了第一次迭代,所以本应该用在第一次迭代的像素限制应该乘二来适配一半分辨率
@@ -316,7 +328,8 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(bloomIntensityId,finalIntensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         // 直接将全分辨率的截图带到最后阶段
-        buffer.GetTemporaryRT(bloomResultId,camera.pixelWidth,camera.pixelHeight,0,
+        buffer.GetTemporaryRT(bloomResultId,
+            bufferSize.x,bufferSize.y,0,
             FilterMode.Bilinear,format);
         Draw(fromId,
             bloomResultId,combinePass);
