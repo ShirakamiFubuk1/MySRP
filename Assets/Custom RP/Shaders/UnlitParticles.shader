@@ -17,6 +17,7 @@
 		[Toggle(_DISTORTION)] _Distortion ("Distortion", Float) = 0
         [NoScaleOffset] _DistortionMap("Distortion Vectors",2D) = "bump"{}
 		_DistortionStrength("Distortion Strength", Range(0.0, 0.2)) = 0.1
+        _DistortionBlend("Distortion Blend", Range(0.0, 1.0)) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Src Blend",Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("Dst Blend",Float) = 0
         [Enum(Off,0,On,1)] _ZWrite("Z Write",Float) = 1

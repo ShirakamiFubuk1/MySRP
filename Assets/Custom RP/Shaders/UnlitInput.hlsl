@@ -16,6 +16,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
 	UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
 	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
+	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionBlend)
 	UNITY_DEFINE_INSTANCED_PROP(float, _CutOff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 	// UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
@@ -116,6 +117,11 @@ float3 GetEmission(InputConfig c)
 float GetFinalAlpha(float alpha)
 {
 	return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
+}
+
+float GetDistortionBlend(InputConfig c)
+{
+	return INPUT_PROP(_DistortionBlend);
 }
 
 #endif
