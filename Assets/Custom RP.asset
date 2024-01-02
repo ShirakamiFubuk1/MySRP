@@ -27,6 +27,8 @@ MonoBehaviour:
     copyDepthReflection: 1
     renderScale: 1
     bicubicRescaling: 0
+    fxaa:
+      enabled: 1
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:

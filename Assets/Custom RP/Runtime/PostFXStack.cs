@@ -81,7 +81,8 @@ public partial class PostFXStack
         ColorGradingReinhard,
         ApplyColorGrading,
         FinalRescale,
-        FXAA
+        FXAA,
+        ApplyColorGradingWithLuma
     }
 
     private bool
