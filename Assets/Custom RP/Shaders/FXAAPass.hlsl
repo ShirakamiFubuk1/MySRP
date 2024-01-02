@@ -36,7 +36,7 @@ LumaNeighborhood GetLumaNeighborhood(float2 uv)
 
 bool CanSkipFXAA (LumaNeighborhood luma)
 {
-    return luma.range < _FXAAConfig.x;
+    return luma.range < max(_FXAAConfig.x, _FXAAConfig.y * luma.highest);
 }
 
 float4 FXAAPassFragment(Varyings input) : SV_TARGET

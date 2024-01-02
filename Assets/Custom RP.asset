@@ -30,6 +30,7 @@ MonoBehaviour:
     fxaa:
       enabled: 1
       fixedThreshold: 0.0833
+      relativeThreshold: 0.063
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:
