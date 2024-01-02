@@ -109,12 +109,23 @@ float4 FXAAPassFragment(Varyings input) : SV_TARGET
     LumaNeighborhood luma = GetLumaNeighborhood(input.screenUV);
     if(CanSkipFXAA(luma))
     {
-        return 0.0;
+        return  GetSource(input.screenUV);
     }
 
     FXAAEdge edge = GetFXAAEdge(luma);
+
+    float blendFactor = GetSubpixelBlendFactor(luma);
+    float2 blendUV = input.screenUV;
+    if(edge.isHorizontal)
+    {
+        blendUV.y += blendFactor * edge.pixelStep;
+    }
+    else
+    {
+        blendUV.x += blendFactor * edge.pixelStep;
+    }
     
-    return edge.pixelStep > 0.0 ? float4(1.0, 0.0, 0.0, 0.0) : 1.0;
+    return GetSource(blendUV);
 }
 
 #endif
