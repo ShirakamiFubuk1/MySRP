@@ -9509,6 +9509,7 @@ MonoBehaviour:
     copyColor: 1
     copyDepth: 1
     allowFXAA: 1
+    keepAlpha: 0
 --- !u!1 &977074005
 GameObject:
   m_ObjectHideFlags: 0
