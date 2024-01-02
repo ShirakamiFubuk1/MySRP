@@ -50,7 +50,8 @@ public partial class PostFXStack
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend"),
         finalResultId = Shader.PropertyToID("_FinalResult"),
-        copyBicubicId = Shader.PropertyToID("_CopyBicubic");
+        copyBicubicId = Shader.PropertyToID("_CopyBicubic"),
+        fxaaConfigId = Shader.PropertyToID("_FXAAConfig");
 
     private int 
         bloomPyramidId,
@@ -452,6 +453,8 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(finalDstBlendId, 0f);
         if (fxaa.enabled)
         {
+            buffer.SetGlobalVector(fxaaConfigId, 
+                new Vector4(fxaa.fixedThreshold, 0f));
             buffer.GetTemporaryRT(
                     colorGradingResultId, bufferSize.x, bufferSize.y, 0,
                     FilterMode.Bilinear, RenderTextureFormat.Default

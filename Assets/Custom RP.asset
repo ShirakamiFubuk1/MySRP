@@ -29,6 +29,7 @@ MonoBehaviour:
     bicubicRescaling: 0
     fxaa:
       enabled: 1
+      fixedThreshold: 0.0833
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:

@@ -15,9 +15,15 @@ public struct CameraBufferSettings
     public BicubicRescalingMode bicubicRescaling;
     
     [Serializable]
-    public struct FXAA {
-
+    public struct FXAA 
+    {
         public bool enabled;
+        
+        // Trims the algorithm from processing darks.
+        //   0.0833 - upper limit (default, the start of visible unfiltered edges)
+        //   0.0625 - high quality (faster)
+        //   0.0312 - visible limit (slower)
+        [Range(0.0312f, 0.0833f)] public float fixedThreshold;
     }
 
     public FXAA fxaa;
