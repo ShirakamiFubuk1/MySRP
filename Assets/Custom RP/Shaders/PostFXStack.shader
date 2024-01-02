@@ -177,7 +177,7 @@ Shader "Hidden/Custom RP/Post FX Stack"
 
                 #pragma target 3.5
                 #pragma vertex DefaultPassVertex
-                #pragma fragment FinalPassFragment
+                #pragma fragment ApplyColorGradingPassFragment
 
             ENDHLSL
         }
@@ -193,6 +193,22 @@ Shader "Hidden/Custom RP/Post FX Stack"
                 #pragma target 3.5
                 #pragma vertex DefaultPassVertex
                 #pragma fragment FinalPassFragmentRescale
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "FXAA"
+            
+            Blend [_FinalSrcBlend] [_FinalDstBlend]
+            
+            HLSLPROGRAM
+
+                #pragma target 3.5
+                #pragma vertex DefaultPassVertex
+                #pragma fragment FXAAPassFragment
+                #include "FXAAPass.hlsl"
 
             ENDHLSL
         }

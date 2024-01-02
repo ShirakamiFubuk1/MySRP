@@ -45,6 +45,7 @@ public partial class PostFXStack
         colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
         colorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters"),
         colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC"),
+        colorGradingResultId = Shader.PropertyToID("_ColorGradingResult"),
         usePointSamplerId = Shader.PropertyToID("_UsePointSampler"),
         finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
         finalDstBlendId = Shader.PropertyToID("_FinalDstBlend"),
@@ -78,8 +79,9 @@ public partial class PostFXStack
         ColorGradingACES,
         ColorGradingNeutral,
         ColorGradingReinhard,
-        Final,
-        FinalRescale
+        ApplyColorGrading,
+        FinalRescale,
+        FXAA
     }
 
     private bool
@@ -129,12 +131,12 @@ public partial class PostFXStack
         // 否则直接映射原图
         if (DoBloom(sourceId))
         {
-            DoColorGradingAndToneMapping(bloomResultId);
+            DoFinal(bloomResultId);
             buffer.ReleaseTemporaryRT(bloomResultId);
         }
         else
         {
-            DoColorGradingAndToneMapping(sourceId);
+            DoFinal(sourceId);
         }
         context.ExecuteCommandBuffer(buffer);
         // 在这种情况下,我们不需要手动开始和结束缓冲区样本,因为我们不需要调用ClearRenderTarget
@@ -408,7 +410,7 @@ public partial class PostFXStack
     // 因此我们需要一个不均匀的颜色调整.这种颜色调整并不代表光本身的物理变化,而是我们如何观测他.
     // 例如我们眼睛对较深的色调比对较浅的色调更敏感
     // 从HDR到LDR称为色调映射,没有单一正确的方法来执行色调映射,可以使用不同的方法得到不同的结果.
-    void DoColorGradingAndToneMapping(int sourceId)
+    void DoFinal(int sourceId)
     {
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
@@ -439,19 +441,49 @@ public partial class PostFXStack
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                 1f / lutWidth, 1f / lutHeight, lutHeight - 1f
             ));
+
+        buffer.SetGlobalFloat(finalSrcBlendId, 1f);
+        buffer.SetGlobalFloat(finalDstBlendId, 0f);
+        if (fxaa.enabled)
+        {
+            buffer.GetTemporaryRT(
+                    colorGradingResultId, bufferSize.x, bufferSize.y, 0,
+                    FilterMode.Bilinear, RenderTextureFormat.Default
+                );
+            Draw(sourceId, 
+                colorGradingResultId, Pass.ApplyColorGrading);
+        }
         if (bufferSize.x == camera.pixelWidth)
         {
-            DrawFinal(sourceId, Pass.Final);            
+            if (fxaa.enabled)
+            {
+                DrawFinal(colorGradingResultId, Pass.FXAA);
+                buffer.ReleaseTemporaryRT(colorGradingResultId);
+            }
+            else
+            {
+                DrawFinal(sourceId, Pass.ApplyColorGrading);                  
+            }
         }
         else
         {
-            buffer.SetGlobalFloat(finalSrcBlendId, 1f);
-            buffer.SetGlobalFloat(finalDstBlendId, 0f);
+            // buffer.SetGlobalFloat(finalSrcBlendId, 1f);
+            // buffer.SetGlobalFloat(finalDstBlendId, 0f);
             buffer.GetTemporaryRT(
                     finalResultId, bufferSize.x, bufferSize.y, 0,
                     FilterMode.Bilinear, RenderTextureFormat.Default
                 );
-            Draw(sourceId, finalResultId, Pass.Final);
+            if (fxaa.enabled)
+            {
+                Draw(colorGradingResultId, 
+                    finalResultId, Pass.FXAA);
+                buffer.ReleaseTemporaryRT(colorGradingResultId);
+            }
+            else
+            {
+                Draw(sourceId, 
+                    finalResultId, Pass.ApplyColorGrading);                
+            }
             bool bicubicSampling =
                 bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
                 bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly &&
