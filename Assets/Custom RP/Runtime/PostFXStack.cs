@@ -91,13 +91,17 @@ public partial class PostFXStack
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
 
     private Vector2Int bufferSize;
+
+    private CameraBufferSettings.FXAA fxaa;
     
     public void Setup(ScriptableRenderContext context, Camera camera, 
         Vector2Int bufferSize, PostFXSettings settings ,bool useHDR, 
         int colorLUTResolution, bool colorLUTPointSampler, 
         CameraSettings.FinalBlendMode finalBlendMode, 
-        CameraBufferSettings.BicubicRescalingMode bicubicRescaling)
+        CameraBufferSettings.BicubicRescalingMode bicubicRescaling, 
+        CameraBufferSettings.FXAA fxaa)
     {
+        this.fxaa = fxaa;
         this.bicubicRescaling = bicubicRescaling;
         this.bufferSize = bufferSize;
         this.finalBlendMode = finalBlendMode;

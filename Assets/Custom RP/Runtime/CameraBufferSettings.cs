@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public struct CameraBufferSettings
 {
     public bool allowHDR;
@@ -12,4 +13,12 @@ public struct CameraBufferSettings
     public enum BicubicRescalingMode { Off, UpOnly, UpAndDown }
 
     public BicubicRescalingMode bicubicRescaling;
+    
+    [Serializable]
+    public struct FXAA {
+
+        public bool enabled;
+    }
+
+    public FXAA fxaa;
 }
