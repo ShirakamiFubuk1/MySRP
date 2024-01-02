@@ -53,7 +53,7 @@ float GetSubpixelBlendFactor(LumaNeighborhood luma)
     filter = saturate(filter / luma.range);
     filter = smoothstep(0, 1, filter);
     
-    return filter * filter;
+    return filter * filter * _FXAAConfig.z;
 }
 
 bool IsHorizontalEdge(LumaNeighborhood luma)
