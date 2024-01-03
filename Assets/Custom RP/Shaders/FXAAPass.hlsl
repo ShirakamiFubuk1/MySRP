@@ -114,7 +114,42 @@ FXAAEdge GetFXAAEdge(LumaNeighborhood luma)
 
 float GetEdgeBlendFactor(LumaNeighborhood luma, FXAAEdge edge, float2 uv)
 {
-    return edge.lumaGradient;
+    float2 edgeUV = uv;
+    float2 uvStep = 0.0;
+    if(edge.isHorizontal)
+    {
+        edgeUV.y += 0.5 * edge.pixelStep;
+        uvStep.x = GetSourceTexelSize().x;
+    }
+    else
+    {
+        edgeUV.x += 0.5 * edge.pixelStep;
+        uvStep.y = GetSourceTexelSize().y;
+    }
+    float edgeLuma = 0.5 * (luma.m + edge.otherLuma);
+    float gradientThreshold = 0.25 * edge.lumaGradient;
+
+    float2 uvP = edgeUV + uvStep;
+    float lumaGradientP = abs(GetLuma(uvP) - edgeLuma);
+    bool atEndP = lumaGradientP >= gradientThreshold;
+
+    for(int i = 0; i < 99 && !atEndP; i++)
+    {
+        uvP += uvStep;
+        lumaGradientP = abs(GetLuma(uvP) - edgeLuma);
+        atEndP = lumaGradientP >= gradientThreshold;
+    }
+    float distanceToEndP;
+    if(edge.isHorizontal)
+    {
+        distanceToEndP = uvP.x - uv.x;
+    }
+    else
+    {
+        distanceToEndP = uvP.y - uv.y;
+    }
+    
+    return 10.0 * distanceToEndP;
 }
 
 float4 FXAAPassFragment(Varyings input) : SV_TARGET
