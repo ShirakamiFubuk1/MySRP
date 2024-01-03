@@ -28,7 +28,7 @@ MonoBehaviour:
     renderScale: 1
     bicubicRescaling: 2
     fxaa:
-      enabled: 0
+      enabled: 1
       fixedThreshold: 0.0833
       relativeThreshold: 0.063
       subpixelBlending: 0.75

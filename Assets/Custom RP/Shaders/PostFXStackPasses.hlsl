@@ -45,6 +45,9 @@ struct Varyings
     float2 screenUV : VAR_SCREEN_UV;
 };
 
+// 在颜色调整和对比度步骤之后,我们要么处于线性色彩空间,要么处于ACEScg色彩空间
+// 除了亮度需要在ACEScg空间中计算以外其他不需要调整
+// 引入一个Luminance函数变体,该函数变体是根据是否使用ACES调用正确的函数
 float Luminance(float3 color, bool useACES)
 {
     return useACES ? AcesLuminance(color) : Luminance(color);
@@ -61,6 +64,8 @@ float3 ColorGradingContrast(float3 color, bool useACES)
 {
     // 为了更好的效果我们将从线性空间转换到LogC空间中
     // 使用ColorCore中的函数LinearToLogC转换,最后用LogCToLinear函数转换回来
+    // 当使用ACES空间时,将颜色转换到ACEScc空间而不是LogC,最后在转换到ACEScg空间
+    // 其中ACEScg空间时ACES空间的子集
     color = useACES ? ACES_to_ACEScc(unity_to_ACES(color)) : LinearToLogC(color);    
     // 对比度的思路是,从颜色中减去中间灰度,然后通过对比度大小缩放,然后加上中灰色
     // 这里使用的中灰色时, ACEScc_MIDGRAY,其中ACEScc是ACES色彩空间的对数子集,中灰度值为0.4135884
@@ -97,6 +102,8 @@ float3 ColorGradingSaturation(float3 color, bool useACES)
 
 float3 ColorGradeWhiteBalance(float3 color)
 {
+    // 通过将转化过的数值乘以转化到LMS空间的颜色最后在转换为线性颜色完成效果
+    // LMS空间代表的人眼视锥体的三种视锥细胞的类型
     color = LinearToLMS(color);
     color *= _WhiteBalance.rgb;
     return LMSToLinear(color);
@@ -104,10 +111,16 @@ float3 ColorGradeWhiteBalance(float3 color)
 
 float3 ColorGradeSplitToning(float3 color, bool useACES)
 {
+    // 我们在近似gamma空间中执行颜色拆分色调,将颜色提供到2.2的倒数,后来在转换回来
+    // 这样做是为了匹配Adobe产品使用的拆分色调
     color = PositivePow(color,1.0 / 2.2);
+    // 在颜色混合之前,我们将色调限制在各自的区域
+    // 方法是用中间值0.5和它们之间插值.
+    // 对于高光,我们根据饱和亮度加上平衡(再次饱和)来做到这一点.对于阴影使用相反的方法
     float t = saturate(Luminance(saturate(color), useACES) + _SplitToningShadows.w);
     float3 shadows = lerp(0.5, _SplitToningShadows.rgb, 1.0 - t);
     float3 highlights = lerp(0.5, _SplitToningHighlights.rgb, t);
+    // 通过颜色和阴影进行光线柔和混合来应用色调,然后是高光色调.
     color = SoftLight(color,shadows);
     color = SoftLight(color,highlights);
     return PositivePow(color,2.2);
@@ -115,6 +128,8 @@ float3 ColorGradeSplitToning(float3 color, bool useACES)
 
 float3 ColorGradingChannelMixer(float3 color)
 {
+    // 返回传来的三个颜色值乘上原本的颜色来调整颜色
+    // 由于会产生负值,故需要剔除负值
     return mul(
         float3x3(_ChannelMixerRed.rgb, _ChannelMixerGreen.rgb, _ChannelMixerBlue.rgb),
         color
@@ -123,9 +138,14 @@ float3 ColorGradingChannelMixer(float3 color)
 
 float3 ColorGradingShadowsMidtonesHighlights (float3 color, bool useACES)
 {
+    // 我们将输入的颜色分别乘以三个色调,每种颜色按照自己的权重缩放,对结果求和.亮度作为权重.
     float luminance = Luminance(color, useACES);
+    // 阴影范围从1开始计算,并在Start和End之间平滑,最后减少到0
+    // 根据开始和结束通过亮度进行插值得到一个平滑的0-1的数值,然后映射到luminance的范围
     float shadowsWeight = 1.0 - smoothstep(_SMHRange.x, _SMHRange.y, luminance);
+    // 高光范围从0开始逐渐递增,算法类似
     float highlightsWeight = smoothstep(_SMHRange.z, _SMHRange.w, luminance);
+    // 中间范围为除了前两者之间的区域
     float midtonesWeight = 1.0 - shadowsWeight - highlightsWeight;
     return
         color * _SMHShadows.rgb * shadowsWeight +
@@ -355,9 +375,12 @@ float3 ColorGrade (float3 color, bool useACES = false)
     // 当对比度增加的时候可能会导致负的颜色值,可能会影响后续的操作
     // 故在对比度之后消除负值
     color = max(color,0.0);
+    // 色调分离在滤色之后,剔除负值之后操作
     color = ColorGradeSplitToning(color, useACES);
     color = ColorGradingChannelMixer(color);
     color = max(color,0.0);
+    // 因为高光和阴影区域不太会重叠,或者只重叠一点点,因此中间色调权重永远不会变成负数
+    // Unity自带的色轮控件的工作原理相同,只是能限制输入颜色和更精确的拖动
     color = ColorGradingShadowsMidtonesHighlights(color, useACES);
     // URP和HDRP执行色相转换在滤色之后,故我们也这么做,此处说的是URP/HDRP有的操作
     // 又因为色相范围为0-1 故必须在剔除负值之后操作

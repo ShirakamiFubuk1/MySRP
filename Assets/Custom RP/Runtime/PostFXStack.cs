@@ -382,6 +382,8 @@ public partial class PostFXStack
     void ConfigureWhiteBalance()
     {
         WhiteBalanceSettings whiteBalance = settings.WhiteBalance;
+        // 使用CoreLibrary中的ColorUtils.ColorBalanceToLMSCoeffs函数来计算色温
+        // 输入参数为色温和tint
         buffer.SetGlobalVector(whiteBalanceId,ColorUtils.ColorBalanceToLMSCoeffs(
                 whiteBalance.temperature,whiteBalance.tint
             ));
@@ -390,6 +392,7 @@ public partial class PostFXStack
     void ConfigureSplitToning()
     {
         SplitToningSettings splitToning = settings.SplitToning;
+        // 将平衡值缩放到-之后存储在阴影颜色的a中
         Color splitColor = splitToning.shadows;
         splitColor.a = splitToning.balance * 0.01f;
         buffer.SetGlobalColor(splitToningShadowId,splitColor);
