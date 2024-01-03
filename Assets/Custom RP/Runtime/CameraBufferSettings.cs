@@ -41,6 +41,10 @@ public struct CameraBufferSettings
         //   0.25 - almost off
         //   0.00 - completely off
         [Range(0f, 1f)] public float subpixelBlending;
+        
+        public enum Quality { Low, Medium, High}
+
+        public Quality quality;
     }
 
     public FXAA fxaa;

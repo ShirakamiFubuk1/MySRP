@@ -32,6 +32,7 @@ MonoBehaviour:
       fixedThreshold: 0.0833
       relativeThreshold: 0.063
       subpixelBlending: 0.75
+      quality: 2
   colorLUTPointSampler: 0
   colorLUTResolution: 32
   shadows:

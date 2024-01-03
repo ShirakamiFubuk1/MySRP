@@ -6,7 +6,10 @@ using static PostFXSettings;
 
 public partial class PostFXStack
 {
-    private const string bufferName = "Post FX";
+    private const string 
+        bufferName = "Post FX",
+        fxaaQualityLowKeyword = "FXAA_QUALITY_LOW",
+        fxaaQualityMediumKeyword = "FXAA_QUALITY_MEDIUM";
 
     private CommandBuffer buffer = new CommandBuffer
     {
@@ -405,6 +408,29 @@ public partial class PostFXStack
             ));
     }
 
+    void ConfigureFXAA()
+    {
+        if (fxaa.quality == CameraBufferSettings.FXAA.Quality.Low)
+        {
+            buffer.EnableShaderKeyword(fxaaQualityLowKeyword);
+            buffer.DisableShaderKeyword(fxaaQualityMediumKeyword);
+        }
+        else if(fxaa.quality == CameraBufferSettings.FXAA.Quality.Medium)
+        {
+            buffer.EnableShaderKeyword(fxaaQualityMediumKeyword);
+            buffer.DisableShaderKeyword(fxaaQualityLowKeyword);
+        }
+        else
+        {
+            buffer.DisableShaderKeyword(fxaaQualityLowKeyword);
+            buffer.DisableShaderKeyword(fxaaQualityMediumKeyword);
+        }
+        buffer.SetGlobalVector(fxaaConfigId, 
+            new Vector4(fxaa.fixedThreshold, 
+                fxaa.relativeThreshold, fxaa.subpixelBlending
+                ));
+    }
+    
     // 虽然我们可以在HDR中渲染,但对于普通设备来说最终的帧缓冲区始终是LDR的.
     // 因此颜色通道在1处被截断.实际上最终的白点位置位于1.
     // 那些及其鲜艳的颜色最终看起来和完全饱和的颜色没有什么不同.
@@ -453,9 +479,7 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(finalDstBlendId, 0f);
         if (fxaa.enabled)
         {
-            buffer.SetGlobalVector(fxaaConfigId, 
-                new Vector4(fxaa.fixedThreshold, 
-                    fxaa.relativeThreshold, fxaa.subpixelBlending));
+            ConfigureFXAA();
             buffer.GetTemporaryRT(
                     colorGradingResultId, bufferSize.x, bufferSize.y, 0,
                     FilterMode.Bilinear, RenderTextureFormat.Default
