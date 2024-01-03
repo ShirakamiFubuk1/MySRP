@@ -157,6 +157,7 @@ float GetEdgeBlendFactor(LumaNeighborhood luma, FXAAEdge edge, float2 uv)
     bool atEndP = abs(lumaDeltaP) >= gradientThreshold;
 
     int i;
+    UNITY_UNROLL
     for(i = 0; i < EXTRA_EDGE_STEPS && !atEndP; i++)
     {
         uvP += uvStep * edgeStepSizes[i];
@@ -172,6 +173,7 @@ float GetEdgeBlendFactor(LumaNeighborhood luma, FXAAEdge edge, float2 uv)
     float lumaDeltaN = GetLuma(uvN) - edgeLuma;
     bool atEndN = abs(lumaDeltaN) >= gradientThreshold;
 
+    UNITY_UNROLL
     for(i = 0; i < EXTRA_EDGE_STEPS && !atEndN; i++)
     {
         uv -= uvStep * edgeStepSizes[i];
