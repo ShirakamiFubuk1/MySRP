@@ -31,6 +31,14 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 
     [SerializeField] private bool colorLUTPointSampler = true;
     
+    // 执行每个像素的所有颜色分级是一个步骤繁重的工作.
+    // 我们可以制作可能的变体,之应用更改某些内容的步骤,但这需要大量的关键字和传递
+    // 相反,可以将颜色分级烘焙到LUT中,对其采样以转换颜色.
+    // LUT是3D纹理,通常为32x32x32.使用该纹理并对其采样比直接对整个图像进行颜色调整省的多
+    // URP和HDRP使用相同的方法
+    // 通常32的彩色LUT分辨率就足够了,但这里我们提供一个可配置选项.
+    // 这是一个质量设置,将设置添加到管线资源中,然后用于所有的颜色分级.
+    // 虽然URP/HDRP的分辨率支持到65,但是不用POT(Power Of Two)可能会出错
     public enum ColorLUTResolution
     {
         _16 = 16, _32 = 32, _64 = 64

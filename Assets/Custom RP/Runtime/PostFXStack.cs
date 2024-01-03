@@ -460,12 +460,21 @@ public partial class PostFXStack
         ConfigureChannelMixer();
         ConfigureShadowsMidtonesHighlights();
 
+        // 由于LUT是3D的,但常规着色器无法渲染3D纹理.
+        // 因此将使用等宽的2D纹理来模拟3D纹理.
+        // 因此LUT纹理的高毒等于配置的分辨率,宽度为配置的平方.
+        // 默认使用的HDR格式获取具有改大小的临时渲染纹理
         int lutHeight = colorLUTResolution;
         int lutWidth = lutHeight * lutHeight;
         buffer.GetTemporaryRT(
                 colorGradingLUTId, lutWidth, lutHeight, 0,
                 FilterMode.Bilinear, RenderTextureFormat.DefaultHDR
             );
+        // URP不是单独进行色调映射吗?
+        // URP将颜色分级和色调映射烘焙到LUT中来进行HDR渲染, 但LDR渲染单独执行色调映射.
+        // 但是色调映射对于LDR渲染没有多大意义故此处不做特殊处理
+        // 除此之外URP对LDR LUT使用LDR RGBA格式,但我们这里使用默认HDR格式来保持简洁
+        // 而且Unity的曝光并未包含在色调映射之内,但是这里的包含在里面
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                 lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)
             ));
@@ -473,15 +482,26 @@ public partial class PostFXStack
         ToneMappingSettings.Mode mode = settings.ToneMapping.mode;
         // 根据配置选择tonemapping方案,以及跳过tonemapping
         Pass pass = Pass.ColorGradingNone + (int)mode;
+        // 当使用HDR时就会使用LogC空间
         buffer.SetGlobalFloat(
                 colorGradingLUTInLogId, useHDR && pass != Pass.ColorGradingNone ? 1f : 0f
             );
         buffer.SetGlobalFloat(
                 usePointSamplerId, colorLUTPointSampler ? 1f : 0f
             );
+        
+        // 绘制LUT
+        // 是否要每帧更新LUT
+        // 仅对LUT纹理进行颜色分级和色调映射比单独对图像的所有像素进行调色和色阶映射要少得多
+        // 进一步优化是缓存LUT.但是,确定是否需要LUT刷新可能会变得很复杂
+        // 尤其是每个摄像机支持的不同的设置或混合设置时.
+        // 所以此处我们简单处理,即在每次渲染摄像机时重新创建LUT
+        // URP/HDRP也是这样么做的
         Draw(
             sourceId, 
             colorGradingLUTId, pass);
+        
+        // 因为之前已经计算完毕所需要的图像,此处在传递同一个参数就会覆盖之前的参数
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(
                 1f / lutWidth, 1f / lutHeight, lutHeight - 1f
             ));
@@ -541,6 +561,7 @@ public partial class PostFXStack
             buffer.ReleaseTemporaryRT(finalResultId);
         }
 
+        // 释放LUT
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 }

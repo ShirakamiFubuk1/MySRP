@@ -366,6 +366,7 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
 // 因为颜色分级发生在色调映射之前,所以新建一个函数只将颜色分量限制为60
 float3 ColorGrade (float3 color, bool useACES = false)
 {
+    // 由于我们不再直接通过截图渲染效果,所以不需要把颜色限制60了,因为在LUT中已经受到了限制
     // color = min(color,60);
     color = ColorGradePostExposure(color);
     color = ColorGradeWhiteBalance(color);
@@ -390,9 +391,18 @@ float3 ColorGrade (float3 color, bool useACES = false)
     return max(useACES ? ACEScg_to_ACES(color) : color, 0.0);
 }
 
+// 要创建合适的LUT,我们需要用颜色转换矩阵填充,因此我们需要调整颜色调整通道
+// 之后就可以从UV坐标派生颜色,而不是对源纹理进行采样.
+// 添加GetColorGradedLUT文件来获取颜色并进行分级.
+// 然后传递函数只需要在此基础上应用色调映射
 float3 GetColorGradedLUT(float2 uv, bool useACES = false)
 {
+    // 通过GetLutStripValue找到LUT输入颜色
+    // 该函数使用UV坐标和我们发送到GPU的颜色分级LUT的矢量
     float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
+    
+    // 由于我们得到的LUT图是线性空间颜色,仅覆盖0-1范围,为了支持HDR,我们需要拓展这个范围.
+    // 我们可以通过将输入颜色解释为LogC空间来做到这一点,将0-1的范围拓展到略低于59
     return ColorGrade(_ColorGradingLUTInLogC ? LogCToLinear(color) : color, useACES);
 }
 
@@ -435,8 +445,12 @@ float4 ColorGradingACESPassFragment(Varyings input) : SV_TARGET
     return float4(color, 1.0);
 }
 
+// 通过该函数应用LUT,该函数负责将2D LUT条应用为3D 纹理.
+// 需要LUT纹理和采样器状态作为参数,然后输入钳制过的颜色,并根据是否使用HDR进行空间转换
+// 最后再次使用参数向量,尽管这次只有三个分量
 float3 ApplyColorGradingLUT(float3 color)
 {
+    // 此处决定是否使用采样成条带
     if(_UsePointSampler)
     {
         return ApplyLut2D(
