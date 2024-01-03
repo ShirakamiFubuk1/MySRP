@@ -183,7 +183,7 @@ float GetEdgeBlendFactor(LumaNeighborhood luma, FXAAEdge edge, float2 uv)
     }
     else
     {
-        return 10.0 * distanceToNearestEnd;
+        return 0.5 - distanceToNearestEnd / (distanceToEndP + distanceToEndN);
     }
 }
 
@@ -192,13 +192,14 @@ float4 FXAAPassFragment(Varyings input) : SV_TARGET
     LumaNeighborhood luma = GetLumaNeighborhood(input.screenUV);
     if(CanSkipFXAA(luma))
     {
-        return  0.0;
+        return  GetSource(input.screenUV);
     }
 
     FXAAEdge edge = GetFXAAEdge(luma);
 
-    float blendFactor = GetEdgeBlendFactor(luma, edge, input.screenUV);
-    return blendFactor;
+    float blendFactor = max(
+        GetEdgeBlendFactor(luma, edge, input.screenUV), GetSubpixelBlendFactor(luma));
+    // return blendFactor;
     float2 blendUV = input.screenUV;
     if(edge.isHorizontal)
     {
