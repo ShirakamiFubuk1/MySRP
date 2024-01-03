@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+// 这里内联关联设置,将设置关联到该类,这样可以使代码更短
+// using static 的作用类似于namespace,但是给类型用的
+// 它能将一个类的所有成员或结构可以直接调用而不是用xx.xxxx
 using static PostFXSettings;
 
 // 像Lighting和Shadows一样,创建一个PostFXStack的类,用于跟踪缓冲区,上下文,相机和FX的设置
@@ -360,9 +363,13 @@ public partial class PostFXStack
         return true;
     }
 
+    // 添加一个配置文件
     void ConfigureColorAdjustments()
     {
         ColorAdjustmentsSettings colorAdjustments = settings.ColorAdjustments;
+        // 设置一个V4来调整颜色,各分量表示曝光,对比度,色相转换,饱和度
+        // 曝光度使用光圈大小来度量的, 意味着我们必须用2的幂次方来作为配置
+        // 对比度和饱和度范围为0-2,色相转换范围为-1,1,而滤色一定要处于线性色彩空间
         buffer.SetGlobalVector(colorAdjustmentsId,new Vector4(
                 Mathf.Pow(2f,colorAdjustments.postExposure),
                 colorAdjustments.contrast * 0.01f + 1f,
@@ -443,6 +450,7 @@ public partial class PostFXStack
     // 从HDR到LDR称为色调映射,没有单一正确的方法来执行色调映射,可以使用不同的方法得到不同的结果.
     void DoFinal(int sourceId)
     {
+        // 引用颜色调整的配置文件
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
         ConfigureSplitToning();

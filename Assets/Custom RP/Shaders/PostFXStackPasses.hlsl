@@ -15,6 +15,7 @@ TEXTURE2D(_ColorGradingLUT);
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 float4 _PostFXSource_TexelSize;
+
 float4 _ColorAdjustments;
 float4 _ColorFilter;
 float4 _WhiteBalance;
@@ -51,12 +52,18 @@ float Luminance(float3 color, bool useACES)
 
 float3 ColorGradePostExposure(float3 color)
 {
+    // 后期曝光的思路是模仿相机的曝光,但是在其他后期效果之后用的
+    // 这是一种非现实的艺术手法用来更改曝光度且不影响其他效果,如曝光
     return color * _ColorAdjustments.x;
 }
 
 float3 ColorGradingContrast(float3 color, bool useACES)
 {
-    color = useACES ? ACES_to_ACEScc(unity_to_ACES(color)) : LinearToLogC(color);
+    // 为了更好的效果我们将从线性空间转换到LogC空间中
+    // 使用ColorCore中的函数LinearToLogC转换,最后用LogCToLinear函数转换回来
+    color = useACES ? ACES_to_ACEScc(unity_to_ACES(color)) : LinearToLogC(color);    
+    // 对比度的思路是,从颜色中减去中间灰度,然后通过对比度大小缩放,然后加上中灰色
+    // 这里使用的中灰色时, ACEScc_MIDGRAY,其中ACEScc是ACES色彩空间的对数子集,中灰度值为0.4135884
     color = (color - ACEScc_MIDGRAY) * _ColorAdjustments.y + ACEScc_MIDGRAY;
     return useACES ? ACES_to_ACEScg(ACEScc_to_ACES(color)) : LogCToLinear(color);
 }
@@ -68,16 +75,23 @@ float3 ColorGradeColorFilter(float3 color)
 
 float3 ColorGradingHueShift(float3 color)
 {
+    // 色相转换的原理是将RGB颜色转换为HSV通过RgbToHsv函数
     color = RgbToHsv(color);
+    // 将色相转换的数值添加到H
     float hue = color.x + _ColorAdjustments.z;
+    // 因为色相是0-1的色轮,我们需要防止其超出范围,故使用RotateHue反转色相
+    // 使用hue, 0.0, 1.0作为参数
     color.x = RotateHue(hue,0.0,1.0);
-
+    
+    // 然后用HsvToRgb转换回RGB
     return HsvToRgb(color);
 }
 
 float3 ColorGradingSaturation(float3 color, bool useACES)
 {
+    // 首先获得颜色的亮度通过Luminance函数
     float luminance = Luminance(color, useACES);
+    // 结果类似对比度的处理方式,除了用luminance代替中间灰度值和不在LogC空间
     return (color - luminance) * _ColorAdjustments.w + luminance;
 }
 
@@ -328,6 +342,7 @@ float4 BloomPrefilterFirefliesPassFragment(Varyings input) : SV_TARGET
     return float4(color, 1.0);
 }
 
+// 目前支持持对最终图像应用色调映射,使HDR映射到可见的LDR范围内,现添加颜色调整
 // 因为颜色分级发生在色调映射之前,所以新建一个函数只将颜色分量限制为60
 float3 ColorGrade (float3 color, bool useACES = false)
 {
@@ -335,13 +350,19 @@ float3 ColorGrade (float3 color, bool useACES = false)
     color = ColorGradePostExposure(color);
     color = ColorGradeWhiteBalance(color);
     color = ColorGradingContrast(color, useACES);
+    // 由于滤色不受负值影响,故在消除负值之前应用滤色
     color = ColorGradeColorFilter(color);
+    // 当对比度增加的时候可能会导致负的颜色值,可能会影响后续的操作
+    // 故在对比度之后消除负值
     color = max(color,0.0);
     color = ColorGradeSplitToning(color, useACES);
     color = ColorGradingChannelMixer(color);
     color = max(color,0.0);
     color = ColorGradingShadowsMidtonesHighlights(color, useACES);
+    // URP和HDRP执行色相转换在滤色之后,故我们也这么做,此处说的是URP/HDRP有的操作
+    // 又因为色相范围为0-1 故必须在剔除负值之后操作
     color = ColorGradingHueShift(color);
+    // 因为饱和度操作类似于对比度,可能会产生负值,故需要剔除负值
     color = ColorGradingSaturation(color, useACES);
     return max(useACES ? ACEScg_to_ACES(color) : color, 0.0);
 }

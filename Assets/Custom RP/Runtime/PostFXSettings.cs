@@ -11,9 +11,9 @@ public class PostFXSettings : ScriptableObject
     // 通过此设置链接PostFXshader
     [SerializeField] private Shader shader = default;
 
-    [System.NonSerialized] private Material material;
+    [NonSerialized] private Material material;
 
-    [System.Serializable]
+    [Serializable]
     public struct BloomSettings
     {
         public bool ignoreRenderScale;
@@ -64,8 +64,12 @@ public class PostFXSettings : ScriptableObject
         }
     }
     
+    // 添加URP和HDRP的颜色调整后处理工具的功能
+    // 第一步是添加一个配置结构,因为我们需要多个属性
     [Serializable] public struct ColorAdjustmentsSettings
     {
+        // URP和HDRP的颜色调整功能是相同的, 这里按照相同的顺序添加配置
+        // 首先是曝光,然后是对比度,滤色,色相转换,和饱和度
         public float postExposure;
 
         [Range(-100f, 100f)] public float contrast;
@@ -79,6 +83,7 @@ public class PostFXSettings : ScriptableObject
 
     [SerializeField] private ColorAdjustmentsSettings colorAdjustments = new ColorAdjustmentsSettings
     {
+        // 其他值默认可以为0,但滤色默认值为白色防止更改图像
         colorFilter = Color.white
     };
 
