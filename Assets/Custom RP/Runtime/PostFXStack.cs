@@ -116,6 +116,7 @@ public partial class PostFXStack
         this.fxaa = fxaa;
         this.bicubicRescaling = bicubicRescaling;
         this.bufferSize = bufferSize;
+        // 可以获得从CameraRenderer中传来的设置了
         this.finalBlendMode = finalBlendMode;
         this.colorLUTPointSampler = colorLUTPointSampler;
         this.colorLUTResolution = colorLUTResolution;
@@ -168,11 +169,17 @@ public partial class PostFXStack
     
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
+        // 将混合配置传递给shader
         buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
         buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
         // 通过该命令使Source使from可用,使用to作为渲染目标
         buffer.SetGlobalTexture(fxSourceId,from);
         buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+            // 当如果使用一个tile-based的GPU,则会在渲染窗口的边缘获得伪影超出边界
+            // 发生这种情况是因为备品彼得切片区域包含部分垃圾数据
+            // 通过在不适用完整视口时加载目标来解决这个问题.
+            // 因为Apple Silicon Mac具有tile-base的GPU并不支持DontCare选项
+            // 当destination的blend模式不是Zero时,需要加载targetBuffer
             finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ? 
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
             RenderBufferStoreAction.Store);

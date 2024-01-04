@@ -264,6 +264,10 @@ float3 ApplyBloomThreshold(float3 color)
     return color * contribution;
 }
 
+// 给Bloom添加多相机支持,即从高分辨率截图中正确传入highRes.a
+// 此时光晕已经支持透明,但其对透明度的改变已经不可用.
+// 我们可以通过把final pass预乘alpha混合保存bloom效果.
+// 这需要把摄像机的背景颜色设为不透明黑色
 float4 BloomAddPassFragment (Varyings input) : SV_TARGET
 {
     float3 lowRes;

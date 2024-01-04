@@ -5,6 +5,12 @@ using UnityEngine.Rendering;
 [Serializable]
 public class CameraSettings
 {
+    // 在Final Pass中调整相机混合模式仅对上层的叠加相机有意义.
+    // 底部摄像机将与摄像机目标的任何初始内容混合,
+    // 这些内容要么是随机的,要么是先前帧的累计,除非编辑器提供清除的目标.
+    // 因此第一台相机应该使用One Zero模式进行混合.
+    // 为了支持替换,叠加和其他分层设置,我们将给摄像机添加可配置的最终混合模式,该模式尽在启用后期特效时使用
+    // 这里给上述需求创建一个类似于阴影配置新的可序列化的CameraSettings设置类
     [Serializable]
     public struct FinalBlendMode
     {
@@ -17,6 +23,7 @@ public class CameraSettings
         destination = BlendMode.Zero
     };
 
+    // 添加每个摄像机单独的后处理配置
     public bool overridePostFX = false;
 
     public PostFXSettings postFXSettings = default;

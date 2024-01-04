@@ -68,6 +68,7 @@ public partial class CameraRenderer
         this.context = context;
         this.camera = camera;
 
+        // 获取Camera上挂载的CustomRenderPipelineCamera组件
         var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
         CameraSettings cameraSettings = 
             crpCamera ? crpCamera.Settings : defaultCameraSettings;
@@ -86,6 +87,8 @@ public partial class CameraRenderer
             useDepthTexture = bufferSettings.copyDepth && 
                               cameraSettings.copyDepth;
         }
+        
+        // 如果启用了单独的后处理配置则优先用
         if (cameraSettings.overridePostFX)
         {
             postFXSettings = cameraSettings.postFXSettings;
@@ -418,6 +421,10 @@ public partial class CameraRenderer
             );
     }
     
+    // 由于剔除,光线处理和阴影渲染是按照摄像机执行的,因此最好每帧尽可能渲染较少的摄像机,最好只渲染一个摄像机.
+    // 但有时确实需要同时展示多个视角.如多人分屏游戏,后视镜,自上而下多个叠加层,游戏内摄像头和3D角色肖像.
+    // 其中第一人称游戏的手持物体不管周围环境怎么变手上都不变,因为他们是两个不同的相机渲染的.
+    // 因为这时最终绘制,所以可以用硬编码值替换除了source之外的所有参数
     void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
     {
         buffer.SetGlobalFloat(srcBlendId, (float)finalBlendMode.source);
@@ -427,6 +434,7 @@ public partial class CameraRenderer
         buffer.SetRenderTarget(
             BuiltinRenderTextureType.CameraTarget,
             finalBlendMode.destination == BlendMode.Zero && camera.rect == fullViewRect ? 
+                // 因为需要执行FinalPas的alphaBlend,此处需要总是存储目标缓存
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
             RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);

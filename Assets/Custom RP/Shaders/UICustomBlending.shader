@@ -9,6 +9,9 @@ Shader "Custom RP/UI Custom Blending" {
 		_StencilReadMask ("Stencil Read Mask", Float) = 255
 		_ColorMask ("Color Mask", Float) = 15
 		[Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+		// 默认的rawImage使用的时默认的UI材质,使用SrcAlpha OneMinusSrcAlpha
+		// 因此透明度是可以正常工作的,但是bloom并不叠加,除非显示纹理,否则像素完美的双线性滤波
+		// 将会是相机的黑色背景颜色在透明边缘周围显示为深色轮廓
 		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
 	}

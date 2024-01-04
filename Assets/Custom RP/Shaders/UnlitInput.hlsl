@@ -116,6 +116,7 @@ float3 GetEmission(InputConfig c)
 
 float GetFinalAlpha(float alpha)
 {
+	// 当_ZWrite设置为1时为1,反之使用提供的alpha
 	return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
 }
 
