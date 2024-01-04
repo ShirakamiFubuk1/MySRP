@@ -28,6 +28,10 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf,GI gi)
     {
         //将surface信息传递给GetDirectionalLight
         Light light = GetDirectionalLight(i,surfaceWS,shadowData);
+        // 根据layer检查是否需要添加照明
+        // 不放在另一个GetLighting的原因是不会正常编译产生分支,如果不需要照明总会被丢弃.
+        // 可以用UNITY_BRANCH来强制产生分支,但当检查返回值为0时仍会得到一个不需要的加算.
+        // 也可以解决这个问题但是会导致代码复杂且收益很小
         if(RenderingLayersOverlap(surfaceWS, light))
         {
             //叠加多个光照颜色

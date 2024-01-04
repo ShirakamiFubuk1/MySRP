@@ -86,6 +86,7 @@ public class Lighting
         dirLightColors[index] = visibleLight.finalColor;
         // //GetColumn(2)是获得M矩阵的第三行，即旋转，取反表示光照方向
         // dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        // 获得光源的layer数据
         Vector4 dirAndMask = -visibleLight.localToWorldMatrix.GetColumn(2);
         dirAndMask.w = light.renderingLayerMask.ReinterpretAsFloat();
         dirLightDirectionsAndMasks[index] = dirAndMask;
@@ -125,6 +126,7 @@ public class Lighting
             //         break;
             //     }                
             // }
+            // 将光照传递给所有参数
             Light light = visibleLight.light;
             if ((light.renderingLayerMask & renderingLayerMask) != 0)
             {

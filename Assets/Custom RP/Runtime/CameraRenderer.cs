@@ -280,6 +280,7 @@ public partial class CameraRenderer
         drawingSettings.SetShaderPassName(1,litShaderTagId);
         //指出哪些Render队列是被允许的
         var filteringSettings = new FilteringSettings(
+            // 将Layer信息传入过滤设置并把类型转换为uint
             RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask);
         
         context.DrawRenderers(

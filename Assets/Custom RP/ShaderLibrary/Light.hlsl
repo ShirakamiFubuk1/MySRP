@@ -127,6 +127,7 @@ Light GetOtherLight(int index, Surface surfaceWS,ShadowData shadowData)
 
 bool RenderingLayersOverlap(Surface surface, Light light)
 {
+    // 除了OpenGL ES 2.0 基本都支持着色器位操作
     return (surface.renderingLayerMask & light.renderingLayerMask) != 0;
 }
 

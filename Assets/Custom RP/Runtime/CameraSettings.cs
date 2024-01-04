@@ -28,9 +28,13 @@ public class CameraSettings
 
     public PostFXSettings postFXSettings = default;
 
+    // 因为相机自己没有LayerMask所以需要自己定义一个
+    // 又因为我们的light's Mask 是一个int,这里我们也用int,默认层级设为-1
+    // 此处我们引用自己定义的方法GUI
     [RenderingLayerMaskField]
     public int renderingLayerMask = -1;
 
+    // 为每个相机提供单独的开关
     public bool maskLights = false;
 
     public RenderScaleMode renderScaleMode = RenderScaleMode.Inherit;

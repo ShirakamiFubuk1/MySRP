@@ -17,6 +17,10 @@ public class CustomLightEditor : LightEditor
         // 为了提高效率需要重写默认的Inspector
         base.OnInspectorGUI();
         // DrawRenderingLayerMask();
+        // 此处调用我们自定义过的组件
+        RenderingLayerMaskDrawer.Draw(
+                settings.renderingLayerMask, renderingLayerMaskLabel
+            );
         // 检查是否选择了聚光灯以及是否有多个不同数值
         if (!settings.lightType.hasMultipleDifferentValues &&
             (LightType)settings.lightType.enumValueIndex == LightType.Spot)
@@ -42,8 +46,7 @@ public class CustomLightEditor : LightEditor
     }
 
     private static GUIContent renderingLayerMaskLabel = 
-        new GUIContent("Rendering Layer Mask", 
-            "Functional version of above property");
+        new GUIContent("Rendering Layer Mask", "Functional version of above property.");
 
     // void DrawRenderingLayerMask()
     // {
@@ -51,6 +54,15 @@ public class CustomLightEditor : LightEditor
     //     EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
     //     EditorGUI.BeginChangeCheck();
     //     int mask = property.intValue;
+    // 我们版本的属性确实能发挥作用,但是Everything和Layer 32选项产生的效果和Nothing一样
+    // 因为光照的LayerMask被在Unity内部定义为一个Uint类型
+    // 这个效果很明显因为它被用来当一个bit mask,但是SerializedProperty只支持signed integer数值.
+    // Everything选项使用的值是-1,但Property的数值是被钳制到0的.
+    // 此时Layer 32 代表最位的bit,但这超过了int.MaxValue,将和0号位重叠.
+    // 可以通过把renderLayer减少到31个来解决这个问题,还剩下很多个layer.HDRP只有8个可以用.
+    // 我们可以当property达到32时将其赋值为-1,这样可以解决第一个问题.
+    // 默认的renderLayer并没有这个操作,所以会显示位Mixed而不是Everything.HDRP也是这么做的
+    // 
     //     if (mask == int.MaxValue)
     //     {
     //         mask = -1;

@@ -565,6 +565,7 @@ public void Setup(ScriptableRenderContext context,
         var shadowDrawingSettings = new ShadowDrawingSettings(
             cullingResults,light.visibleLightIndex)
         {
+            // 启用我们定义的renderingLayerMask
             useRenderingLayerMaskTest = true
         };
         float texelSize = 2f / tileSize;
