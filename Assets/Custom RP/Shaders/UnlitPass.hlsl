@@ -32,8 +32,12 @@ struct Attributes
 struct Varyings
 {
     float2 baseUV : VAR_BASE_UV;
+    // 正常的SV_POSITION代表的是ClipSpace,
+    // 但是在fragment方程里的屏幕空间即ScreenSpace位置,这在Unity中有些许不同
+    // 为了证明这点我们把positionCS命名为positionCS_SS
     float4 positionCS_SS : SV_POSITION;
 #if defined(_VERTEX_COLORS)
+    // 根据需求来选择是否使用顶点色
     float4 color : VAR_COLOR;
 #endif
 #if defined(_FLIPBOOK_BLENDING)

@@ -34,11 +34,13 @@ struct InputConfig
 	bool softParticles;
 };
 
+// SS = Screen Spcae
 InputConfig GetInputConfig(float4 positionSS, float2 baseUV,float2 detailUV = 0.0)
 {
 	InputConfig c;
 	c.fragment = GetFragment(positionSS);
 	c.baseUV = baseUV;
+	// 再输入类型中添加一个颜色,默认为白色
 	c.color = 1.0;
 	c.flipbookUVB = false;
 	c.flipbookBlending = false;

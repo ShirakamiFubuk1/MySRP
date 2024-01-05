@@ -30,6 +30,8 @@
         #include "UnlitInput.hlsl"
         ENDHLSL
         
+        // 这是Unlit的Particle专用的副本
+
         Pass
         {
             Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha
