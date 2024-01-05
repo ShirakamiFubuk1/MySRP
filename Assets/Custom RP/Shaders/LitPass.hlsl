@@ -127,7 +127,7 @@ float4 LitPassFragment(Varyings input):SV_TARGET
     //视图空间和世界空间深度值是相同的，因为只进行了旋转和平移
     surface.depth = -TransformWorldToView(input.positionWS).z;
     //通过该函数使用给定的屏幕空间XY的位置，生成旋转的平铺抖动图案
-    surface.dither = InterleavedGradientNoise(input.positionCS_SS.xy,0);
+    surface.dither = InterleavedGradientNoise(config.fragment.positionSS,0);
     surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
 #if defined(_PREMULTIPLY_ALPHA)

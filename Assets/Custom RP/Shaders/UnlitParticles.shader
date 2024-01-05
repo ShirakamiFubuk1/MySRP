@@ -5,7 +5,7 @@
         _BaseMap("Texture",2D) = "white"{}
         [HDR] _BaseColor("Color",Color) = (1.0,1.0,1.0,1.0)
         [Toggle(_VERTEX_COLORS)] _VertexColors ("Vertex Colors",Float) = 0
-        [Toggle(_VERTEX_BLENDING)] _FlipbookBlending ("Flipbook Blending", Float) = 0
+        [Toggle(_FLIPBOOK_BLENDING)] _FlipbookBlending ("Flipbook Blending", Float) = 0
         _CutOff("Alpha Cut Off",Range(0.0,1.0)) = 0.5
         [Toggle(_CLIPPING)] _Clipping("Alpha Clipping",Float) = 0
         [Toggle(_NEAR_FADE)] _NearFade("Near Fade",Float) = 0 
