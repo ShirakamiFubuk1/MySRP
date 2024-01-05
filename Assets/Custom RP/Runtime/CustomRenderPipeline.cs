@@ -3,6 +3,8 @@ using UnityEngine.Rendering;
 
 public partial class CustomRenderPipeline : RenderPipeline
 {
+    // 因为我们需要兼容没有FX时的各种缓存,所以必须在构造渲染器时提供着色器.
+    // 因此需要在CustomRenderPipeline中提供一个shader.
     private CameraRenderer renderer;// = new CameraRenderer();
 
     private bool 
@@ -58,6 +60,7 @@ public partial class CustomRenderPipeline : RenderPipeline
         // 给Editor模式下添加我们的自定义设置,如光照代理
         InitializeForEditor();
 
+        // 在此处构建CameraRender
         renderer = new CameraRenderer(cameraRendererShader);
     }
 }

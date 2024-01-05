@@ -53,5 +53,6 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
             shadows, postFXSettings, (int)colorLUTResolution, cameraRendererShader);
     } 
 
+    // 从此处获得Shader属性然后把它们传递给管线构造器,这样我们就可以连接上我们的shader
     [SerializeField] private ShadowSettings shadows = default;
 }

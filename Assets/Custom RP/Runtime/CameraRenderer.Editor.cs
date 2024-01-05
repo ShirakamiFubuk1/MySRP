@@ -38,6 +38,8 @@ partial class CameraRenderer
         {
             if (useIntermediateBuffer)
             {
+                // 现在我们在不适用FX时也能获取深度,可以结合后期的深度
+                // 再次使我们的Gizmos获得深度感知能力
                 Draw(depthAttachmentId, 
                     BuiltinRenderTextureType.CameraTarget, true);
                 ExecuteBuffer();

@@ -14,6 +14,8 @@ public partial class CustomRenderPipeline
 
     partial void DisposeForEditor();
 
+    // 添加一个新的Dispose非EditorOnly版本
+    // 其中包含base,Editor版本,然后最后是渲染器
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -31,6 +33,10 @@ public partial class CustomRenderPipeline
 
     // 当我们的管线被处理过之后需要清除并重置代理数据
     // protected override void Dispose(bool disposing)
+    
+    // 从现在开始,当他自行处置时,他还必须在渲染器上调用Dispose
+    // 虽然我们已经有一个Dispose方法,但仅限于编辑器
+    // 将该版本重命名为DisposeForEditor并重置光照代理
     partial void DisposeForEditor()
     {
         // base.Dispose(disposing);

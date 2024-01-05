@@ -13,6 +13,10 @@ Shader "Hidden/Custom RP/Camera Renderer"
         
         ENDHLSL
 
+        // 当不使用后处理时,会因为没办法正确渲染中间帧而失败
+        // 我们需要定义一个复制方法给这种情况
+        // 不幸的是CopyTexture只能用来复制给renderTexture,而不是给最终frameBuffer
+        // 把后处理中的复制Pass复制过来来实现上述内容.
         Pass
         {
             Name "Copy"

@@ -65,7 +65,9 @@ float4 unity_OrthoParams;
 // Unity决定是否手动翻转需要通过_ProjectionParams.x来决定,将其放入UnityInput
 // x一般为1.0,若使用反转投影矩阵则为-1.0,y为摄像机近平面,z为摄像机远平面,w是1/远平面
 float4 _ProjectionParams;
+// x是摄像机目标材质的像素宽,y是像素高,z是1.0+1.0/宽,y是1.0+1.0/高
 float4 _ScreenParams;
+// x是1-far/near,y是far/near,z是x/far,y是y/far
 float4 _ZBufferParams;
 
 #endif

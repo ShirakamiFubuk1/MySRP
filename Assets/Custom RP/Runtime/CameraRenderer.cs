@@ -28,8 +28,17 @@ public partial class CameraRenderer
     // private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     static int
         bufferSizeId = Shader.PropertyToID("_CameraBufferSize"),
+        // 当粒子Billboard和物体香蕉时,极具过度在视觉上很突兀,而且会显得很扁平不立体
+        // 解决方案时用软性粒子,当他们后面又不透明的几何形状时,软颗粒会淡入淡出.
+        // 为了实现这一点,必须将粒子的片段深度与之前绘制到相机缓冲区中相同位置的深度进行比较.
+        // 为了实现这个目的需要访问之前存储在摄像机中的缓冲区信息
+        // 我们摄像机使用的是单个帧缓冲区,其中包含颜色和深度信息.
+        // 这是典型的缓冲区配置,但颜色和深度数据始终存储在单独的缓冲区中,成为帧缓冲区附件.
+        // 要想访问深度缓冲区,我们得单独定义这些组件.        
         colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
         depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
+        // 我们不能在深度缓冲区用于渲染的同时对其进行采样,必须复制他们
+        // 需要引入一个bool值来指示useDepthTexture是否使用深度纹理_CameraDepthTexture.
         colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
         depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
         sourceTextureId = Shader.PropertyToID("_SourceTexture"),
@@ -147,6 +156,7 @@ public partial class CameraRenderer
         // 如果处于活动状态,在提交之前调用FX堆栈
         if (postFXStack.IsActive)
         {
+            // 将颜色缓存附件传递给Render
             postFXStack.Render(colorAttachmentId);
         }
         else if(useIntermediateBuffer)
@@ -170,10 +180,12 @@ public partial class CameraRenderer
         //1=Skybox,2=Color,3=Depth,4=Nothing
         CameraClearFlags flags = camera.clearFlags;
 
+        // 先判断是否要需要存储缓存中间缓存
         useIntermediateBuffer = useScaleRendering ||
             useColorTexture || useDepthTexture || postFXStack.IsActive;
         // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
         // 我们无法直接控制这些内容, 只能覆盖这些设置
+        // 使用该设置来跟踪中间帧,在获得缓存组件之前调用
         if (useIntermediateBuffer)
         {
             // 当渲染到中间帧缓冲区时,渲染为填充任意数据的纹理
@@ -194,10 +206,16 @@ public partial class CameraRenderer
                 colorAttachmentId, bufferSize.x, bufferSize.y, 
                 0, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+            // 在此处将颜色缓存和深度缓存分开存储,而不是一个复合缓冲区
+            // 将原来的sourceId分别换成对应的AttachmentId
+            // 颜色缓存中没有深度,深度缓存的RenderTextureFormat格式为Depth
+            // 深度缓冲区使用FilterMode.Point而不是双线性滤波,因为滤波深度信息没意义
             buffer.GetTemporaryRT(
                     depthAttachmentId, bufferSize.x, bufferSize.y, 
                     32, FilterMode.Point, RenderTextureFormat.Depth
                 );
+            // 两个缓冲组件可以用一个单独的SetRenderTarget设置.
+            // 给每个缓存Id后面跟上对应的操作即可.         
             buffer.SetRenderTarget(
                 colorAttachmentId,
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, 
@@ -215,6 +233,7 @@ public partial class CameraRenderer
             );
         //使用命令缓冲区诸如给Profiler
         buffer.BeginSample(SampleName);
+        // 先给这两个贴图赋一个默认材质
         buffer.SetGlobalTexture(colorTextureId, missingTexture);
         buffer.SetGlobalTexture(depthTextureId, missingTexture);
         ExecuteBuffer();
@@ -289,6 +308,9 @@ public partial class CameraRenderer
             );
         
         context.DrawSkybox(camera);
+        // 把复制材质放在不透明绘制之后,即绘制完成skybox
+        // 这也意味着深度材质只有渲染透明材质时有用
+        // 但是只有使用后处理时才会有附加缓存组件可以获得,要兼容不启动后处理时的情况
         if (useColorTexture || useDepthTexture)
         {
             CopyAttachments();            
@@ -324,6 +346,7 @@ public partial class CameraRenderer
         lighting.Cleanup();
         if (useIntermediateBuffer)
         {
+            // 因为这两个缓存区都是我们申请的,需要手动清除缓存
             buffer.ReleaseTemporaryRT(colorAttachmentId);
             buffer.ReleaseTemporaryRT(depthAttachmentId);
             if(useColorTexture)
@@ -337,6 +360,7 @@ public partial class CameraRenderer
         }
     }
 
+    // 创建一个复制缓存组件的函数来获得临时复制的深度材质
     void CopyAttachments()
     {
         if (useColorTexture)
@@ -348,11 +372,13 @@ public partial class CameraRenderer
             );
             if (copyTextureSupported)
             {
+                // 通过该函数来复制材质,将临时复制的组件复制到我们准备好的缓存空间
                 buffer.CopyTexture(
                     colorAttachmentId, colorTextureId);
             }
             else
             {
+                // 如果不支持复制贴图,则使用绘制替代,虽然开销更高
                 Draw(colorAttachmentId, colorTextureId);
             }
         }
@@ -369,7 +395,8 @@ public partial class CameraRenderer
             }
             else
             {
-                Draw(depthAttachmentId, depthTextureId, true);
+                Draw(depthAttachmentId, 
+                    depthTextureId, true);
                 // buffer.SetRenderTarget(
                 //         colorAttachmentId, 
                 //         RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
@@ -380,6 +407,7 @@ public partial class CameraRenderer
             // ExecuteBuffer();
         }
 
+        // 如果不支持复制材质则在此设置贴图
         if (!copyTextureSupported)
         {
             buffer.SetRenderTarget(
@@ -392,9 +420,19 @@ public partial class CameraRenderer
         ExecuteBuffer();
     }
 
+    // 由于深度纹理是可选的,所以有可能不存在.这时着色器对其采样时结果将是随机的
+    // 可以是控温里,也可以是之前的缓存,也可以是另一台相机的缓存.
+    // 在不透明渲染阶段,着色器可以能过早对深度纹理采样.我们至少要保证无效样本的结果一致.
+    // 故我们创建一个不存在纹理时的默认纹理.
     public CameraRenderer(Shader shader)
     {
+        // 使用CoreUtils工具来获得临时材质,输入材质为对用的shader
+        // 这个方法可以创建一个新的材质且在Editor中隐藏也不会保存为资源
+        // 当shader丢失的时候会报错
         material = CoreUtils.CreateEngineMaterial(shader);
+        // 因为CoreUtils中没有贴图操作的方法,所以设置为HideAndDontSave
+        // 将其命名为Missing,当Debug时可以很明确知道纹理丢失
+        // 给他简单设定为1x1材质所有通道设定为0.5.
         missingTexture = new Texture2D(1, 1)
         {
             hideFlags = HideFlags.HideAndDontSave,
@@ -406,16 +444,22 @@ public partial class CameraRenderer
 
     public void Dispose()
     {
+        // 创建一个弃用方法销毁这两种材质
+        // 该方法会定期销毁材质,具体取决于Unity是否处于运行模式.
+        // 需要这样做的原因是每次修改RP资源时就会创建新的RP实例和渲染器
+        // 这可能会导致创建许多材质.
         CoreUtils.Destroy(material);
         CoreUtils.Destroy(missingTexture);
     }
 
+    // 类似于PostFX里面添加一个绘制函数,在不使用PostFX时可以绘制帧缓存
     void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, bool isDepth = false)
     {
         buffer.SetGlobalTexture(sourceTextureId, from);
         buffer.SetRenderTarget(
                 to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
             );
+        // 在此处根据是否使用深度来判断使用的Pass
         buffer.DrawProcedural(
                 Matrix4x4.identity, material, isDepth ? 1 : 0, 
                 MeshTopology.Triangles, 3
