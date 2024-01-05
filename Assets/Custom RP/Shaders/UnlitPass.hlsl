@@ -96,9 +96,14 @@ float4 UnlitPassFragment(Varyings input):SV_TARGET
     clip(base.a - GetCutOff(config));
 #endif
 #if defined(_DISTORTION)
+    // 获得扭曲之后的法线,用透明度控制扭曲程度
     float2 distortion = GetDistortion(config) * base.a;
+    // 叠加法线到颜色缓存上
     base.rgb = lerp(
+        // 输入片段和法线,通过保留粒子的.a来隐藏边缘过硬的问题
         GetBufferColor(config.fragment, distortion).rgb, base.rgb,
+        // 用于混合扰动和原图,思路是当混合值为1时,我们只能看到扭曲值,但并不会隐藏扭曲效果.
+        // 我们根据其alpha减去混合的数值作为参数,在扭曲和原图之间插值.
         saturate(base.a - GetDistortionBlend(config))
         );
 #endif

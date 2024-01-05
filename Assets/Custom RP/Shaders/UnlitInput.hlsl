@@ -94,6 +94,8 @@ float2 GetDistortion(InputConfig c)
 			c.flipbookUVB.z
 		);
 	}
+
+	// 解码法线
 	return DecodeNormal(rawMap, INPUT_PROP(_DistortionStrength)).xy;
 }
 

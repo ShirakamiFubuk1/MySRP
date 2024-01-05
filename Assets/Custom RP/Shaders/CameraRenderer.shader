@@ -21,6 +21,8 @@ Shader "Hidden/Custom RP/Camera Renderer"
         {
             Name "Copy"
             
+            // 为了兼容不使用后处理时需要把相机上单独设置混合模式设置回去的问题
+            // 单独用相机上带的混合模式对pass进行赋值
             Blend [_CameraSrcBlend] [_CameraDstBlend]
             
             HLSLPROGRAM

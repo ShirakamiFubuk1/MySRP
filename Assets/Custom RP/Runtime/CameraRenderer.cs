@@ -161,6 +161,7 @@ public partial class CameraRenderer
         }
         else if(useIntermediateBuffer)
         {
+            // 使用附带相机混合模式的设置作为参数输入
             DrawFinal(cameraSettings.finalBlendMode);
             ExecuteBuffer();
         }
@@ -470,6 +471,11 @@ public partial class CameraRenderer
     // 但有时确实需要同时展示多个视角.如多人分屏游戏,后视镜,自上而下多个叠加层,游戏内摄像头和3D角色肖像.
     // 其中第一人称游戏的手持物体不管周围环境怎么变手上都不变,因为他们是两个不同的相机渲染的.
     // 因为这时最终绘制,所以可以用硬编码值替换除了source之外的所有参数
+    // 添加FinalBlendMode对多相机的支持
+    // 因为默认情况下仅在使用单个摄像机时有效,但在渲染为没有后期特效的中间纹理时会失败.
+    // 原因是因为我们正在对摄像机目标执行常规复制,这会忽略视口和最终混合模式.
+    // 所以除了Copy Pass之外我们还需要把混合模式变回one-zero来防止影响复制操作,
+    // 输入的贴图是颜色的附件缓存,输入参数是混合模式
     void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
     {
         buffer.SetGlobalFloat(srcBlendId, (float)finalBlendMode.source);
