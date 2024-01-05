@@ -66,6 +66,9 @@ float4 GetBase (InputConfig c) {
 	}
 	if(c.nearFade)
 	{
+		// 相机附近的淡入淡出是通过降低片段的alpha值来完成的
+		// 衰减的比例为片段的深度减去_NearFadeDistance/_NearFadeRange
+		// 由于nearAttenuation有可能是负的所以需要saturate一下
 		float nearAttenuation = (c.fragment.depth - INPUT_PROP(_NearFadeDistance)) /
 			INPUT_PROP(_NearFadeRange);
 		baseMap.a *= saturate(nearAttenuation);

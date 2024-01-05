@@ -24,6 +24,8 @@
 SAMPLER(sampler_linear_clamp);
 SAMPLER(sampler_point_clamp);
 
+// 如果相机是正交则w=1,反之w=0
+// 如果用不上正交则可以直接写死return false,或者通过shader keyword控制
 bool IsOrthographicCamera()
 {
     return unity_OrthoParams.w;
@@ -31,9 +33,16 @@ bool IsOrthographicCamera()
 
 float OrthographicDepthBufferToLinear (float rawDepth)
 {
+    // 对于正交相机,最合适的深度就是用Z坐标了,其中包含了转换到clip-space的片段深度.
+    // 这是用于比较的深度原始值,如果启用了深度写入,则会写入深度缓冲区.
+    // 他是一个0-1范围的值,对于正交的线性的.
+    // 要把他们转换为view-space深度,我们必须按照相机的近远距离进行缩放,然后添加进平面距离.
+    // 近距离和远距离存储在Y和Z分量中.
+    // 如果使用反转深度缓冲区,我们还需要反转原始深度.
 #if UNITY_REVERSED_Z
     rawDepth = 1.0 - rawDepth;
 #endif
+    // 将相机近平面和远平面之间的区域映射到深度的0-1
     return (_ProjectionParams.z - _ProjectionParams.y) * rawDepth + _ProjectionParams.y;
 }
 

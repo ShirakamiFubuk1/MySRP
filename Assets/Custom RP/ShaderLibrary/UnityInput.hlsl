@@ -58,10 +58,12 @@ float4x4 glstate_matrix_projection;
 
 float3 _WorldSpaceCameraPos;
 
+// 这个变量可以跟Unity内部传递正交相机的信息给GPU
 float4 unity_OrthoParams;
 // 因为API的V轴方向不一样,导致有时候屏幕会上下颠倒
 // 大部分情况下Unity会解决这个问题,但在使用RenderTexture时会失效
 // Unity决定是否手动翻转需要通过_ProjectionParams.x来决定,将其放入UnityInput
+// x一般为1.0,若使用反转投影矩阵则为-1.0,y为摄像机近平面,z为摄像机远平面,w是1/远平面
 float4 _ProjectionParams;
 float4 _ScreenParams;
 float4 _ZBufferParams;
