@@ -36,22 +36,26 @@ public class CameraSettings
 
     // 为每个相机提供单独的开关
     public bool maskLights = false;
-
+    
+    // 给RenderScale添加一个下拉选项
+    public enum RenderScaleMode { Inherit, Multiply, Override }
+    
     public RenderScaleMode renderScaleMode = RenderScaleMode.Inherit;
 
     [Range(0.1f, 2f)] public float renderScale = 1f;
-    
-    public bool copyColor = true, copyDepth = true;
-    
-    public enum RenderScaleMode { Inherit, Multiply, Override }
 
     public float GetRenderScale(float scale)
     {
         return
+            // 若使用继承选项则使用RP设置中的renderScale
             renderScaleMode == RenderScaleMode.Inherit ? scale :
+            // 若使用覆盖选项则使用相机设置中单独的renderScale
             renderScaleMode == RenderScaleMode.Override ? renderScale :
+            // 反之使用相乘方法的时候则返回两者的乘积
             scale * renderScale;
     }
+    
+    public bool copyColor = true, copyDepth = true;
     
     public bool allowFXAA = false;
 

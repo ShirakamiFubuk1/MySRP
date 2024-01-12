@@ -27,6 +27,7 @@ public partial class CameraRenderer
 
     // private static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     static int
+        // 因为Unity存入_ScreenParams的数值只匹配相机的像素,而并非renderScale之后的尺寸
         bufferSizeId = Shader.PropertyToID("_CameraBufferSize"),
         // 当粒子Billboard和物体香蕉时,极具过度在视觉上很突兀,而且会显得很扁平不立体
         // 解决方案时用软性粒子,当他们后面又不透明的几何形状时,软颗粒会淡入淡出.
@@ -103,7 +104,10 @@ public partial class CameraRenderer
             postFXSettings = cameraSettings.postFXSettings;
         }
 
+        // 在PrepareForSceneWindow之前获得renderScale的数值
+        // 当renderScale满足要求时设置useScaleRendering来启用renderScale
         float renderScale = 
+            // 在此处应用GetRenderScale的方法应用Camera中的renderScale
             cameraSettings.GetRenderScale(bufferSettings.renderScale);
         useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         PrepareBuffer();
@@ -116,8 +120,10 @@ public partial class CameraRenderer
         
         // 当管线和摄像机都启用hdr时才会计算hdr
         useHDR = bufferSettings.allowHDR && camera.allowHDR;
+        // 当启用renderScale时将renderScale值应用到bufferSize上面
         if (useScaleRendering)
         {
+            // 将最后的renderScale限制在0.1到2.0中,防止太大或者太小
             renderScale = Mathf.Clamp(renderScale, 0.1f, 2f);
             bufferSize.x = (int)(camera.pixelWidth * renderScale);
             bufferSize.y = (int)(camera.pixelHeight * renderScale);
@@ -131,6 +137,7 @@ public partial class CameraRenderer
         
         //将Shadows渲染在对应相机样本内
         buffer.BeginSample(SampleName);
+        // 将bufferSize传入GPU中
         buffer.SetGlobalVector(bufferSizeId, new Vector4(
                 1f / bufferSize.x, 1f / bufferSize.y,
                 bufferSize.x, bufferSize.y
@@ -182,6 +189,7 @@ public partial class CameraRenderer
         CameraClearFlags flags = camera.clearFlags;
 
         // 先判断是否要需要存储缓存中间缓存
+        // 在使用renderScale时要使用中间帧,设置关键字以启用
         useIntermediateBuffer = useScaleRendering ||
             useColorTexture || useDepthTexture || postFXStack.IsActive;
         // 之前的设置都直接渲染到摄像机的缓冲区,要么是用于显示的缓冲区,要么是配置的渲染纹理
@@ -204,6 +212,7 @@ public partial class CameraRenderer
             // 如果目标平台支持的话也可以用其他HDR格式,但是为了普适性这里用默认的HDR格式
             // 在HDR模式下单步调试会发现画面很暗,因为线性颜色数据按原样显示了,因此被错误的当成sRGB
             buffer.GetTemporaryRT(
+                // 在此处和下面应用bufferSize
                 colorAttachmentId, bufferSize.x, bufferSize.y, 
                 0, FilterMode.Bilinear, useHDR ? 
                 RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
@@ -367,6 +376,7 @@ public partial class CameraRenderer
         if (useColorTexture)
         {
             buffer.GetTemporaryRT(
+                // 在此处和下面应用bufferSize
                 colorTextureId, bufferSize.x, bufferSize.y, 
                 0, FilterMode.Bilinear, useHDR ? 
                     RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default

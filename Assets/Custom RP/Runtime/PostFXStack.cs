@@ -102,6 +102,7 @@ public partial class PostFXStack
 
     private static Rect fullViewRect = new Rect(0f, 0f, 1f, 1f);
 
+    // 因为我们现在用的是自定义的相机缓存尺寸,需要单独创建一个组件来追踪该属性
     private Vector2Int bufferSize;
 
     private CameraBufferSettings.FXAA fxaa;
@@ -115,6 +116,7 @@ public partial class PostFXStack
     {
         this.fxaa = fxaa;
         this.bicubicRescaling = bicubicRescaling;
+        // 在此处追踪正确的bufferSize
         this.bufferSize = bufferSize;
         // 可以获得从CameraRenderer中传来的设置了
         this.finalBlendMode = finalBlendMode;
@@ -222,6 +224,7 @@ public partial class PostFXStack
         }
         else
         {
+            // 当不使用renderScale时使用我们修改过的尺寸
             width = bufferSize.x / 2;
             height = bufferSize.y / 2;
         }
@@ -360,6 +363,7 @@ public partial class PostFXStack
         buffer.SetGlobalFloat(bloomIntensityId,finalIntensity);
         buffer.SetGlobalTexture(fxSource2Id,sourceId);
         // 直接将全分辨率的截图带到最后阶段
+        // 将最终的全分辨率也应用到renderScale
         buffer.GetTemporaryRT(bloomResultId,
             bufferSize.x,bufferSize.y,0,
             FilterMode.Bilinear,format);

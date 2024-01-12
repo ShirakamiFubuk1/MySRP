@@ -90,6 +90,7 @@ partial class CameraRenderer
         if (camera.cameraType == CameraType.SceneView)
         {
             ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+            // 因为不想让RenderScale影响Scene,需要在这里设置false来关闭scaledRendering
             useScaleRendering = false;
         }
     }

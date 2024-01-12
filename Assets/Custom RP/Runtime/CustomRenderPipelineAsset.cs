@@ -20,6 +20,7 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     [SerializeField] private CameraBufferSettings cameraBuffer = new CameraBufferSettings
     {
         allowHDR = true,
+        // 将默认的RenderScale设定为1
         renderScale = 1f,
         fxaa = new CameraBufferSettings.FXAA
         {

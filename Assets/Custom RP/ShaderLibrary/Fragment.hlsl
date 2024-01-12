@@ -6,6 +6,7 @@
 TEXTURE2D(_CameraColorTexture);
 TEXTURE2D(_CameraDepthTexture);
 
+// 接收我们修改过的相机尺寸
 float4 _CameraBufferSize;
 
 struct Fragment
@@ -21,6 +22,8 @@ Fragment GetFragment (float4 positionSS)
 {
     Fragment f;
     f.positionSS = positionSS.xy;
+    // 在此处应用_CameraBufferSize代替_ScreenParams
+    // _ScreenParams的后两个值包含的是相机尺寸分之一加上1,在此处用不着
     f.screenUV = f.positionSS * _CameraBufferSize.xy;
     f.depth = IsOrthographicCamera() ?
         OrthographicDepthBufferToLinear(positionSS.z) : positionSS.w;

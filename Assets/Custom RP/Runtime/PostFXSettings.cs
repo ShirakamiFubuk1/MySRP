@@ -16,6 +16,8 @@ public class PostFXSettings : ScriptableObject
     [Serializable]
     public struct BloomSettings
     {
+        // 因为Bloom是一个和分辨率有关的效果,因此改变分辨率也会改变bloom的实际效果
+        // 这个可以通过降低迭代数来看到.减小渲染比例将增强效果,增大渲染比例将减轻效果
         public bool ignoreRenderScale;
         
         [Range(0f, 16f)] public int maxIterations;

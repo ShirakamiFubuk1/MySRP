@@ -13,6 +13,8 @@ public struct CameraBufferSettings
     
     public bool copyColor, copyColorReflection, copyDepth, copyDepthReflection;
 
+    // 由于低于0.1会基本看不出结果,高于2.0在双线性滤波之后不会有太大变化
+    // 甚至会跳过很多像素导致画质下降,故我们把范围定位(0.1, 2.0);
     [Range(0.1f, 2f)] public float renderScale;
     
     public enum BicubicRescalingMode { Off, UpOnly, UpAndDown }
