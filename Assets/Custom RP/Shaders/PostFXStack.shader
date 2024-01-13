@@ -182,6 +182,8 @@ Shader "Hidden/Custom RP/Post FX Stack"
             ENDHLSL
         }
 
+        // 清晰的HDR边缘和色彩校正伪影都是因为在色彩校正和色调映射之前插入HDR颜色造成的.
+        // 解决方案是调整渲染比例之后再执行这两个操作,然后再进行一次复制,重新缩放LDR颜色.
         Pass
         {
             Name "Final Rescale"

@@ -169,6 +169,7 @@ public partial class PostFXStack
             MeshTopology.Triangles,3);
     }
     
+    // 由于现在有两种最终Pass,所以提供一个Pass选项来选择
     void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         // 将混合配置传递给shader
@@ -530,6 +531,7 @@ public partial class PostFXStack
                 colorGradingResultId, 
                 keepAlpha ? Pass.ApplyColorGrading : Pass.ApplyColorGradingWithLuma);
         }
+        // 通过该条件判断是否使用了renderScale,只需判断长或者宽
         if (bufferSize.x == camera.pixelWidth)
         {
             if (fxaa.enabled)
@@ -544,6 +546,12 @@ public partial class PostFXStack
             }
         }
         else
+        // 为了使Rescale 操作再LDR下执行
+        // 如果使用了renderScale则需要绘制两次.
+        // 首先获取与当前缓冲区大小匹配的临时缓冲区纹理.
+        // 当LDR颜色存入其中时,我们使用默认的渲染纹理格式即可,
+        // 然后用常规方式绘制finalPass,同时将混合模式设置为OneZero
+        // 最后使用DrawFinal来绘制finalRescalePass,最后释放缓存
         {
             // buffer.SetGlobalFloat(finalSrcBlendId, 1f);
             // buffer.SetGlobalFloat(finalDstBlendId, 0f);
@@ -563,10 +571,14 @@ public partial class PostFXStack
                 Draw(sourceId, finalResultId, 
                     Pass.ApplyColorGrading);                
             }
+            // 由于bicubic采样只有在升采样时作用较大,降采样没啥效果
+            // 且当renderScale为2时没啥用处,因为和双线性滤波效果相同
+            // 所以将bicubic的选项改为Off,UpOnly和UpAndDown
             bool bicubicSampling =
                 bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
                 bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly &&
                 bufferSize.x < camera.pixelWidth;
+            // 当renderScale过小时可能会导致大果粒,所以支持bicubic采样来淡化这点
             buffer.SetGlobalFloat(copyBicubicId, bicubicSampling ? 1f : 0f);
             DrawFinal(finalResultId, Pass.FinalRescale);
             buffer.ReleaseTemporaryRT(finalResultId);
